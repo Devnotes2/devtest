@@ -222,16 +222,15 @@ exports.getLocationTypesInInstitute = async (req, res) => {
     // console.log(document);
       if (_id) {
           // Convert id to an integer for comparison
-          const year = document.data.find(yr => yr._id === parseInt(_id));
+          console.log(document.data);
+          console.log(_id);
+          const year = document.data.find(yr => yr._id.equals(_id));
           if (!year) {
               return res.json({ message: 'Academic year not found' });
           }
           return res.json(year);
-      } else {
-          // Sort by startDate, which are strings in the format 'YYYYMMDD'
-          document.data.sort((a, b) => a.locationType-b.locationType);
-          return res.json(document.data);
       }
+      
 
   } catch (error) {
       console.error("Error in getAcademicYears:", error.message);
