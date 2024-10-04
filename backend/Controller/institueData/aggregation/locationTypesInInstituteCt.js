@@ -3,7 +3,7 @@ const { ObjectId } = require('mongoose').Types;
 const createLocationTypesInInstituteModel = require('../../../Model/instituteData/aggregation/locationTypesInInstituteMd');
 
 // GET /api/location-types-institute
-exports.getLocationTypesInInstitute = async (req, res) => {
+exports.getLocationTypesInInstituteAg = async (req, res) => {
   try {
     const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
     const data = await LocationTypesInInstitute.aggregate([
@@ -203,5 +203,38 @@ exports.deleteLocationTypesInInstitute = async (req, res) => {
   } catch (error) {
     console.error('Error during delete:', error);
     res.status(500).json({ error: 'Failed to delete location types', details: error.message });
+  }
+};
+
+
+
+
+exports.getLocationTypesInInstitute = async (req, res) => {
+  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
+  const { _id } = req.params;
+  try {
+    const document = await LocationTypesInInstitute.findById('locationTypesInInstitute');
+    
+    if (!document) {
+      return res.status(404).json({ message: 'Academic year data not found' });
+    }
+    
+    // console.log(document);
+      if (_id) {
+          // Convert id to an integer for comparison
+          const year = document.data.find(yr => yr._id === parseInt(_id));
+          if (!year) {
+              return res.status(404).json({ message: 'Academic year not found' });
+          }
+          return res.json(year);
+      } else {
+          // Sort by startDate, which are strings in the format 'YYYYMMDD'
+          document.data.sort((a, b) => a.locationType-b.locationType);
+          return res.json(document.data);
+      }
+
+  } catch (error) {
+      console.error("Error in getAcademicYears:", error.message);
+      res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
