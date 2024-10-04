@@ -122,7 +122,7 @@ exports.createLocationTypesInInstitute = async (req, res) => {
     // Save the updated document back to the database
     await locationTypesInInstitute.save();
 
-    res.status(201).json({
+    res.status(200).json({
       message: 'Location Type added successfully!',
       data: locationTypesInInstitute
     });
@@ -169,7 +169,7 @@ exports.updateLocationTypesInInstitute = async (req, res) => {
       res.status(200).json({ message: 'No updates found' });
     } 
     else {
-      res.status(404).json({ message: 'No matching location type found or values are unchanged' });
+      res.json({ message: 'No matching location type found or values are unchanged' });
     }
   } catch (error) {
     console.error('Error during update:', error);
@@ -189,7 +189,7 @@ exports.deleteLocationTypesInInstitute = async (req, res) => {
     const document = await LocationTypesInInstitute.findOne({ _id: "locationTypesInInstitute" });
     
     if (!document) {
-      return res.status(404).json({ message: 'Document not found' });
+      return res.json({ message: 'Document not found' });
     }
 
     // Filter out the data items that are in the ids array
@@ -216,7 +216,7 @@ exports.getLocationTypesInInstitute = async (req, res) => {
     const document = await LocationTypesInInstitute.findById('locationTypesInInstitute');
     
     if (!document) {
-      return res.status(404).json({ message: 'Academic year data not found' });
+      return res.json({ message: 'Academic year data not found' });
     }
     
     // console.log(document);
@@ -224,7 +224,7 @@ exports.getLocationTypesInInstitute = async (req, res) => {
           // Convert id to an integer for comparison
           const year = document.data.find(yr => yr._id === parseInt(_id));
           if (!year) {
-              return res.status(404).json({ message: 'Academic year not found' });
+              return res.json({ message: 'Academic year not found' });
           }
           return res.json(year);
       } else {
