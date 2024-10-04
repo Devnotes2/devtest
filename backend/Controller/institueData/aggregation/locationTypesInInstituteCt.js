@@ -97,7 +97,7 @@ exports.createLocationTypesInInstitute = async (req, res) => {
   try {
     const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
 
-    const { instituteId, locationType, capacity, description } = req.body;
+    const { instituteId, locationType, capacity, description ,location} = req.body;
 
     // Find the document with _id 'locationTypesInInstitute'
     let locationTypesInInstitute = await LocationTypesInInstitute.findOne({ _id: 'locationTypesInInstitute' });
@@ -115,7 +115,8 @@ exports.createLocationTypesInInstitute = async (req, res) => {
       instituteId,
       locationType,
       capacity,
-      description
+      description,
+      location
     });
 
     // Save the updated document back to the database
@@ -133,7 +134,7 @@ exports.createLocationTypesInInstitute = async (req, res) => {
 
 // PUT /api/location-types-institute
 exports.updateLocationTypesInInstitute = async (req, res) => {
-  const { _id, newData } = req.body;
+  const { _id, updatedData } = req.body;
 
   try {
     const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
@@ -146,11 +147,11 @@ exports.updateLocationTypesInInstitute = async (req, res) => {
     console.log('Current Document:', currentDoc);
 
     const updateObject = {};
-    if (newData.instituteId) updateObject["data.$.instituteId"] = newData.instituteId;
-    if (newData.locationType) updateObject["data.$.locationType"] = newData.locationType;
-    if (newData.capacity) updateObject["data.$.capacity"] = newData.capacity;
-    if (newData.description) updateObject["data.$.description"] = newData.description;
-
+    if (updatedData.instituteId) updateObject["data.$.instituteId"] = updatedData.instituteId;
+    if (updatedData.locationType) updateObject["data.$.locationType"] = updatedData.locationType;
+    if (updatedData.capacity) updateObject["data.$.capacity"] = updatedData.capacity;
+    if (updatedData.description) updateObject["data.$.description"] = updatedData.description;
+    if (updatedData.location) updateObject["data.$.location"] = updatedData.location;
     console.log('Update Object:', updateObject);
 
     const result = await LocationTypesInInstitute.updateOne(
