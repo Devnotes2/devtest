@@ -3,7 +3,7 @@ const { ObjectId } = require('mongoose').Types;
 const createLocationTypesInInstituteModel = require('../../../Model/instituteData/aggregation/locationTypesInInstituteMd');
 
 // GET /api/location-types-institute
-exports.getLocationTypesInInstituteAg = async (req, res) => {
+exports.getLocationTypesInInstituteAgs = async (req, res) => {
   try {
     const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
     const data = await LocationTypesInInstitute.aggregate([
@@ -235,5 +235,126 @@ exports.getLocationTypesInInstitute = async (req, res) => {
   } catch (error) {
       console.error("Error in getAcademicYears:", error.message);
       res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+
+
+// Controller function to get location types based on multiple IDs
+exports.getLocationTypesInInstituteAg = async (req, res) => {
+  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
+  
+  // Extract the _id array from the query parameters (assuming multiple IDs sent as ids[] array)
+  const { ids } = req.query;
+
+  try {
+    // Find the document with _id 'locationTypesInInstitute'
+    const document = await LocationTypesInInstitute.findById('locationTypesInInstitute');
+    
+    if (!document) {
+      return res.json({ message: 'Location types data not found' });
+    }
+    
+    // If `ids` parameter is passed, process the array of IDs
+    if (ids && Array.isArray(ids)) {
+      // Convert the array of ids to ObjectId format if necessary
+      const objectIds = ids.map(id => id);
+
+      // Filter the document data for matching _ids
+      const matchingData = document.data.filter(yr => objectIds.some(oid => yr._id.equals(oid)));
+
+      // Check if any matches were found
+      if (matchingData.length === 0) {
+        return res.json({ message: 'No matching location types found' });
+      }
+
+      // Return the matching data
+      return res.json(matchingData);
+    } else {
+      const data = await LocationTypesInInstitute.aggregate([
+        {
+          "$unwind": "$data"
+        },
+        {
+          "$lookup": {
+            "from": "instituteData",
+            "let": { "instituteId": { "$toString": "$data.instituteId" } },
+            "pipeline": [
+              {
+                "$match": { "_id": "institutes" }
+              },
+              {
+                "$unwind": "$data"
+              },
+              {
+                "$match": {
+                  "$expr": {
+                    "$eq": [{ "$toString": "$data._id" }, "$$instituteId"]
+                  }
+                }
+              }
+            ],
+            "as": "matchedInstitute"
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$matchedInstitute",
+            "preserveNullAndEmptyArrays": true
+          }
+        },
+        {
+          "$lookup": {
+            "from": "generalData",
+            "let": { "locationType": "$data.locationType" },
+            "pipeline": [
+              {
+                "$match": { "_id": "locationTypes" }
+              },
+              {
+                "$unwind": "$data"
+              },
+              {
+                "$match": {
+                  "$expr": {
+                    "$eq": ["$data._id", "$$locationType"]
+                  }
+                }
+              }
+            ],
+            "as": "locationInfo"
+          }
+        },
+        {
+          "$unwind": {
+            "path": "$locationInfo",
+            "preserveNullAndEmptyArrays": true
+          }
+        },
+        {
+          "$set": {
+            "data.instituteId": "$matchedInstitute.data.instituteName",
+            "data.locationType": "$locationInfo.data.value"
+          }
+        },
+        {
+          "$unset": ["matchedInstitute", "locationInfo"]
+        },
+        {
+          "$group": {
+            "_id": "$_id",  // Group by the _id of the main document
+            "data": { "$push": "$data" },  // Combine all data entries into an array
+            "__v": { "$first": "$__v" }  // Keep the version field
+          }
+        }
+      ]);
+  
+      console.log(data);
+      res.status(200).json(data);
+    }
+
+  } catch (error) {
+    console.error("Error in getLocationTypesInInstitute:", error.message);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
