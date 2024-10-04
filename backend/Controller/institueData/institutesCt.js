@@ -13,15 +13,15 @@ exports.getInstitutes = async (req, res) => {
 
         if (instituteID) {
             // Find the specific institute by its ID
-            const institute = instituteDoc.institutes.find(inst => inst._id.toString() === instituteID);
+            const institute = instituteDoc.data.find(inst => inst._id.toString() === instituteID);
             if (!institute) {
                 return res.status(404).json({ message: 'Institute not found' });
             }
             return res.status(200).json(institute);
         } else {
             // Sort institutes by ID before returning the list
-            instituteDoc.institutes.sort((a, b) => a._id.toString().localeCompare(b._id.toString()));
-            return res.status(200).json(instituteDoc.institutes);
+            instituteDoc.data.sort((a, b) => a._id.toString().localeCompare(b._id.toString()));
+            return res.status(200).json(instituteDoc.data);
         }
 
     } catch (error) {
@@ -47,14 +47,14 @@ exports.insertInstitute = async (req, res) => {
             // Create a new document if none exists
             const newDoc = new Institute({
                 _id: "institutes",
-                institutes: [newInst] // Add the new institute object
+                data: [newInst] // Add the new institute object
             });
             await newDoc.save();
             return res.status(200).json({ message: "Document created with new institute", newDoc });
         }
 
         // Add newInst object to the institutes array
-        instituteDoc.institutes.push(newInst); // Directly push the newInst object into the array
+        instituteDoc.data.push(newInst); // Directly push the newInst object into the array
 
         await instituteDoc.save();
         res.status(200).json({ message: "Institute added", instituteDoc });
@@ -84,19 +84,19 @@ exports.updateInstitute = async (req, res) => {
         }
 
         // Find the institute by its ID
-        const instituteIndex = instituteDoc.institutes.findIndex(inst => inst._id.toString() === instituteID);
+        const instituteIndex = instituteDoc.data.findIndex(inst => inst._id.toString() === instituteID);
         if (instituteIndex === -1) {
             return res.status(404).json({ message: "Institute not found" });
         }
 
         // Update the institute data while preserving the original ID and other fields
-        instituteDoc.institutes[instituteIndex] = {
-            ...instituteDoc.institutes[instituteIndex].toObject(), // Preserve existing fields
+        instituteDoc.data[instituteIndex] = {
+            ...instituteDoc.data[instituteIndex].toObject(), // Preserve existing fields
             ...updatedData // Apply updated fields
         };
 
         await instituteDoc.save();
-        res.status(200).json({ message: "Institute updated", updatedInstitute: instituteDoc.institutes[instituteIndex] });
+        res.status(200).json({ message: "Institute updated", updatedInstitute: instituteDoc.data[instituteIndex] });
 
     } catch (error) {
         console.error("Error in updateInstitute:", error.message);
@@ -125,13 +125,13 @@ exports.deleteInstitutes = async (req, res) => {
         const instituteIds = Array.isArray(ids) ? ids : [ids];
 
         // Filter out the institutes that match the given ID(s)
-        const updatedInstitutes = instituteDoc.institutes.filter(inst => !instituteIds.includes(inst._id.toString()));
+        const updatedInstitutes = instituteDoc.data.filter(inst => !instituteIds.includes(inst._id.toString()));
 
-        if (updatedInstitutes.length === instituteDoc.institutes.length) {
+        if (updatedInstitutes.length === instituteDoc.data.length) {
             return res.status(404).json({ message: "No matching institutes found for deletion" });
         }
 
-        instituteDoc.institutes = updatedInstitutes;
+        instituteDoc.data = updatedInstitutes;
         await instituteDoc.save();
         res.status(200).json({ message: "Institute(s) deleted successfully" });
 

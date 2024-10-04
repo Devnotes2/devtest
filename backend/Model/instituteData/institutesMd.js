@@ -17,7 +17,7 @@ const instituteSchema = new mongoose.Schema({
 // Define the schema for institutes collection
 const institutesSchema = new mongoose.Schema({
     _id: String, // This will be 'institutes'
-    institutes: [instituteSchema] // Array of institutes, each with an auto-generated _id
+    data: [instituteSchema] // Array of institutes, each with an auto-generated _id
 }, { collection: 'instituteData' });
 
 const createInstitutesModel = (connection) => {

@@ -5,7 +5,8 @@ const dataSchema = new Schema({
   instituteId: { type: Schema.Types.ObjectId, ref: 'Institute' },  // Reference to Institute collection
   locationType: { type: Number },  // Assuming locationType is now a number, based on the given structure
   capacity: { type: Number, required: true },
-  description: { type: String, required: true }
+  description: { type: String, required: true },
+  location: { type: String, required: true }
 });
 
 const locationTypesInInstituteSchema = new Schema({
