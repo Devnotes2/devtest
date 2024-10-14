@@ -3,8 +3,8 @@ const { Schema } = mongoose;
 
 const GradesSchema = new Schema({
   instituteId: {
-    type: String,  // Reference to the institute
-    required: true
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
   },
   gradeCode: {
     type: String,  // Numeric code for the grade
