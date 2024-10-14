@@ -7,7 +7,7 @@ const GradesSchema = new Schema({
     required: true
   },
   gradeCode: {
-    type: Number,  // Numeric code for the grade
+    type: String,  // Numeric code for the grade
     required: true
   },
   gradeDescription: {
