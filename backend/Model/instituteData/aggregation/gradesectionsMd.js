@@ -3,12 +3,12 @@ const { Schema } = mongoose;
 
 const GradeSectionsSchema = new Schema({
   instituteId: {
-    type: String,  // Reference to the institute
-    required: true
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
   },
   gradeId : {
-    type: String,  // Numeric code for the grade
-    required: true
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
   },
   section: {
     type: String,  // Description of the grade

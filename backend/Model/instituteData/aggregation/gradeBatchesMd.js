@@ -3,12 +3,12 @@ const { Schema } = mongoose;
 
 const GradeBatchesSchema = new Schema({
   instituteId: {
-    type: String,  // Reference to the institute
-    required: true
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
   },
   gradeId : {
-    type: String,  // Numeric code for the grade
-    required: true
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
   },
   batch: {
     type: String,  // Description of the grade
