@@ -1,22 +1,22 @@
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
+const createSubjectsInInstituteModel = require('../../../Model/instituteData/aggregation/subjectsMd.js');
 
-exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
-    const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
+exports.subjectsInInstituteAg = async (req, res) => {
+    const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
     const { ids } = req.query;
   
     try {
       if (ids && Array.isArray(ids)) {
         const objectIds = ids.map(id => id);
-        const matchingData = await GradeSectionBatchesInInstitute.find({ _id: { $in: objectIds } });
+        const matchingData = await SubjectsInInstitute.find({ _id: { $in: objectIds } });
         if (matchingData.length === 0) {
           return res.json({ message: 'No matching grade sections found' });
         }
         
         return res.json(matchingData);
       } else {
-        const data = await GradeSectionBatchesInInstitute.aggregate([
+        const data = await SubjectsInInstitute.aggregate([
           {
             $lookup: {
               from: "instituteData",
@@ -83,25 +83,28 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
         res.status(200).json(data);
       }
     } catch (error) {
-      console.error("Error in gradeSectionBatchesInInstitute:", error.message);
+      console.error("Error in subjectsInInstitute:", error.message);
       res.status(500).json({ message: 'Server error', error: error.message });
     }
   };
   
   
   
-exports.createGradeSectionBatchesInInstitute = async (req, res) => {
+exports.createSubjectsInInstitute = async (req, res) => {
     try {
-        const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
+        const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
         
-        const { instituteId, gradeId, gradeSectionBatch ,gradeSectionId} = req.body;
+        const {instituteId,subjectCode,gradeId,subject,learningTypeId ,subjectTypeId ,description } = req.body;
         
         // Create a new grade document
-        const newGradeSection = new GradeSectionBatchesInInstitute({
+        const newGradeSection = new SubjectsInInstitute({
             instituteId,
-            gradeSectionBatch,
+            subjectCode,
             gradeId,
-            gradeSectionId
+            subject,
+            learningTypeId ,
+            subjectTypeId ,
+            description 
         });
         
         // Save the new grade to the database
@@ -118,37 +121,37 @@ exports.createGradeSectionBatchesInInstitute = async (req, res) => {
     }
 };
 
-// DELETE /api/gradeSectionBatches-institute
-exports.deleteGradeSectionBatchesInInstitute = async (req, res) => {
+// DELETE /api/subjects-institute
+exports.deleteSubjectsInInstitute = async (req, res) => {
     const { ids } = req.body;
   
     try {
-      const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
+      const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
   
-      // Find the gradeSectionBatches that match the ids
-      const result = await GradeSectionBatchesInInstitute.deleteMany({ _id: { $in: ids.map(id =>id) } });
+      // Find the subjects that match the ids
+      const result = await SubjectsInInstitute.deleteMany({ _id: { $in: ids.map(id =>id) } });
   
       if (result.deletedCount > 0) {
-        res.status(200).json({ message: 'GradeSectionBatches deleted successfully' });
+        res.status(200).json({ message: 'Subjects deleted successfully' });
       } else {
-        res.status(404).json({ message: 'No matching gradeSectionBatches found' });
+        res.status(404).json({ message: 'No matching subjects found' });
       }
     } catch (error) {
       console.error('Error during delete:', error);
-      res.status(500).json({ error: 'Failed to delete gradeSectionBatches', details: error.message });
+      res.status(500).json({ error: 'Failed to delete subjects', details: error.message });
     }
   };
   
 
-  // PUT /api/gradeSectionBatches-institute
-exports.updateGradeSectionBatchesInInstitute = async (req, res) => {
+  // PUT /api/subjects-institute
+exports.updateSubjectsInInstitute = async (req, res) => {
     const { _id, newData } = req.body;
   
     try {
-      const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
+      const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
   
       // Retrieve the current document before the update
-      const currentDoc = await GradeSectionBatchesInInstitute.findOne(
+      const currentDoc = await SubjectsInInstitute.findOne(
         { _id, "data._id": _id },
         { "data.$": 1 }
       );
@@ -156,13 +159,16 @@ exports.updateGradeSectionBatchesInInstitute = async (req, res) => {
   
       const updateObject = {};
       if (newData.instituteId) updateObject["instituteId"] = newData.instituteId;
+      if (newData.subjectCode) updateObject["subjectCode"] = newData.subjectCode;
       if (newData.gradeId) updateObject["gradeId"] = newData.gradeId;
-      if (newData.gradeSectionBatch) updateObject["gradeSectionBatch"] = newData.gradeSectionBatch;
-      if (newData.gradeSectionId) updateObject["gradeSectionId"] = newData.gradeSectionId;
+      if (newData.subject) updateObject["subject"] = newData.subject;
+      if (newData.learningTypeId) updateObject["learningTypeId"] = newData.learningTypeId;
+      if (newData.subjectTypeId) updateObject["subjectTypeId"] = newData.subjectTypeId;
+      if (newData.description) updateObject["description"] = newData.description;
 
       console.log('Update Object:', updateObject);
   
-      const result = await GradeSectionBatchesInInstitute.updateOne(
+      const result = await SubjectsInInstitute.updateOne(
         { _id },
         { $set: updateObject }
       );

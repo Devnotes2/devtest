@@ -13,6 +13,10 @@ const GradeSectionBatchesSchema = new Schema({
   gradeSectionBatch: {
     type: String,  // Description of the grade
     required: true
+  },
+  gradeSectionId :{
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
   }
 });  // Optionally, you can use timestamps to track creation and update times
 
