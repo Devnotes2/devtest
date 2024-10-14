@@ -14,6 +14,9 @@ router.use('/asideDataRt', require('./asideDataRt'));
 // instituteData
 router.use('/instituteDataRt', require('./instituteDataRt'));
 router.use('/instituteAggreRt', require('./aggregation/locationTypesInInstituteRt'));
+router.use('/instituteAggreRt', require('./aggregation/gradesRt'));
+router.use('/instituteAggreRt', require('./aggregation/gradeSectionsRt'));
+
 //  metaData
 router.use('/generalDataRt', require('./generalDataRt'));
 
