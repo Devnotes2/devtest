@@ -11,11 +11,11 @@ const SubjectsSchema = new Schema({
     required: true,
   },
   subjectTypeId: {
-    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    type: Number,  // Reference to the institute (ObjectId)
     required: true,
   },
   learningTypeId :{
-    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    type: Number,  // Reference to the institute (ObjectId)
     required: true,
   },
   description :{

@@ -52,9 +52,9 @@ exports.subjectsInInstituteAg = async (req, res) => {
           {
             $lookup: {
               from: "gradesections",
-              let: { gradeSectionId: "$gradeSectionId" }, // Use the string gradeId
+              let: { subjectId: "$subjectId" }, // Use the string gradeId
               pipeline: [
-                { $match: { $expr: { $eq: ["$_id","$$gradeSectionId"] } } }, // Convert gradeId to ObjectId
+                { $match: { $expr: { $eq: ["$_id","$$subjectId"] } } }, // Convert gradeId to ObjectId
                 {
                   $project: {
                     section: 1,
@@ -62,20 +62,80 @@ exports.subjectsInInstituteAg = async (req, res) => {
                   }
                 }
               ],
-              as: "gradeSectionDetails"
+              as: "subjectDetails"
             }
           },
-          { $unwind: { path: "$gradeSectionDetails", preserveNullAndEmptyArrays: true } }, // Handle if no matching grade found
+          { $unwind: { path: "$subjectDetails", preserveNullAndEmptyArrays: true } }, // Handle if no matching grade found
+          {
+            $lookup: {
+              from: "generalData",
+              let: { subjectTypeId: "$subjectTypeId" },
+              pipeline: [
+                {
+                  $match: { "_id": "subjectTypes" }
+                },
+                {
+                  $unwind: "$data"
+                },
+                {
+                  $match: {
+                    $expr: {
+                      $eq: ["$data._id", "$$subjectTypeId"]
+                    }
+                  }
+                }
+              ],
+              as: "subjectInfo"
+            }
+          },
+          {
+            $unwind: {
+              path: "$subjectInfo",
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
+            $lookup: {
+              from: "generalData",
+              let: { learningTypeId: "$learningTypeId" },
+              pipeline: [
+                {
+                  $match: { "_id": "learningTypes" }
+                },
+                {
+                  $unwind: "$data"
+                },
+                {
+                  $match: {
+                    $expr: {
+                      $eq: ["$data._id", "$$learningTypeId"]
+                    }
+                  }
+                }
+              ],
+              as: "learningInfo"
+            }
+          },
+          {
+            $unwind: {
+              path: "$learningInfo",
+              preserveNullAndEmptyArrays: true
+            }
+          },
           {
             $project: {
-              gradeSectionBatch: 1,
+              subject: 1,
+              subjectCode:1,
+              description:1,
               instituteName: { $arrayElemAt: ["$instituteDetails.instituteName", 0] },
               instituteId: { $arrayElemAt: ["$instituteDetails.instituteId", 0] },
               gradeCode: "$gradeDetails.gradeCode",
               gradeDescription: "$gradeDetails.gradeDescription",
               gradeDuration: "$gradeDetails.gradeDuration",
               isElective: "$gradeDetails.isElective",
-              section: "$gradeSectionDetails.section",
+              section: "$subjectDetails.section",
+              subjectType: "$subjectInfo.data.value",
+              learningType: "$learningInfo.data.value",
             }
           }
         ]);
@@ -97,7 +157,7 @@ exports.createSubjectsInInstitute = async (req, res) => {
         const {instituteId,subjectCode,gradeId,subject,learningTypeId ,subjectTypeId ,description } = req.body;
         
         // Create a new grade document
-        const newGradeSection = new SubjectsInInstitute({
+        const newSubject = new SubjectsInInstitute({
             instituteId,
             subjectCode,
             gradeId,
@@ -108,12 +168,12 @@ exports.createSubjectsInInstitute = async (req, res) => {
         });
         
         // Save the new grade to the database
-        await newGradeSection.save();
+        await newSubject.save();
         
         // Send a success response
         res.status(200).json({
-            message: 'GradeSection added successfully!',
-            data: newGradeSection
+            message: 'Subject added successfully!',
+            data: newSubject
         });
     } catch (error) {
         console.error('Error adding grade:', error);
@@ -176,7 +236,7 @@ exports.updateSubjectsInInstitute = async (req, res) => {
       console.log('Update Result:', result);
   
       if (result.modifiedCount > 0) {
-        res.status(200).json({ message: 'GradeSection updated successfully' });
+        res.status(200).json({ message: 'Subject updated successfully' });
       } else if(result.matchedCount > 0 && result.modifiedCount === 0) {
         res.status(200).json({ message: 'No updates were made' });
       } else {
