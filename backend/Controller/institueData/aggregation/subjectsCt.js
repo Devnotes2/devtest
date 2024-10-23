@@ -2,21 +2,24 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createSubjectsInInstituteModel = require('../../../Model/instituteData/aggregation/subjectsMd.js');
 
+
 exports.subjectsInInstituteAg = async (req, res) => {
-    const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
-    const { ids } = req.query;
-  
-    try {
-      if (ids && Array.isArray(ids)) {
-        const objectIds = ids.map(id => id);
-        const matchingData = await SubjectsInInstitute.find({ _id: { $in: objectIds } });
-        if (matchingData.length === 0) {
-          return res.json({ message: 'No matching grade sections found' });
-        }
-        
-        return res.json(matchingData);
-      } else {
-        const data = await SubjectsInInstitute.aggregate([
+  const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
+  const { ids, aggregate } = req.query; // Accept `aggregate` to control aggregation behavior
+
+  try {
+    if (ids && Array.isArray(ids)) {
+      const objectIds = ids.map(id =>new ObjectId(id)); // Convert to ObjectId
+      const matchingData = await SubjectsInInstitute.find({ _id: { $in: objectIds } });
+
+      if (matchingData.length === 0) {
+        return res.json({ message: 'No matching subjects found' });
+      }
+
+      // If `aggregate=true` is passed, return aggregated data for selected ids
+      if (aggregate === 'true') {
+        const aggregatedData = await SubjectsInInstitute.aggregate([
+          { $match: { _id: { $in: objectIds } } },
           {
             $lookup: {
               from: "instituteData",
@@ -33,9 +36,9 @@ exports.subjectsInInstituteAg = async (req, res) => {
           {
             $lookup: {
               from: "grades",
-              let: { gradeId: "$gradeId" }, // Use the string gradeId
+              let: { gradeId: "$gradeId" },
               pipeline: [
-                { $match: { $expr: { $eq: ["$_id","$$gradeId"] } } }, // Convert gradeId to ObjectId
+                { $match: { $expr: { $eq: ["$_id", "$$gradeId"] } } },
                 {
                   $project: {
                     gradeCode: 1,
@@ -48,35 +51,30 @@ exports.subjectsInInstituteAg = async (req, res) => {
               as: "gradeDetails"
             }
           },
-          { $unwind: { path: "$gradeDetails", preserveNullAndEmptyArrays: true } }, // Handle if no matching grade found
+          { $unwind: { path: "$gradeDetails", preserveNullAndEmptyArrays: true } },
           {
             $lookup: {
               from: "gradesections",
-              let: { subjectId: "$subjectId" }, // Use the string gradeId
+              let: { subjectId: "$subjectId" },
               pipeline: [
-                { $match: { $expr: { $eq: ["$_id","$$subjectId"] } } }, // Convert gradeId to ObjectId
+                { $match: { $expr: { $eq: ["$_id", "$$subjectId"] } } },
                 {
                   $project: {
                     section: 1,
-
                   }
                 }
               ],
               as: "subjectDetails"
             }
           },
-          { $unwind: { path: "$subjectDetails", preserveNullAndEmptyArrays: true } }, // Handle if no matching grade found
+          { $unwind: { path: "$subjectDetails", preserveNullAndEmptyArrays: true } },
           {
             $lookup: {
               from: "generalData",
               let: { subjectTypeId: "$subjectTypeId" },
               pipeline: [
-                {
-                  $match: { "_id": "subjectTypes" }
-                },
-                {
-                  $unwind: "$data"
-                },
+                { $match: { "_id": "subjectTypes" } },
+                { $unwind: "$data" },
                 {
                   $match: {
                     $expr: {
@@ -99,12 +97,8 @@ exports.subjectsInInstituteAg = async (req, res) => {
               from: "generalData",
               let: { learningTypeId: "$learningTypeId" },
               pipeline: [
-                {
-                  $match: { "_id": "learningTypes" }
-                },
-                {
-                  $unwind: "$data"
-                },
+                { $match: { "_id": "learningTypes" } },
+                { $unwind: "$data" },
                 {
                   $match: {
                     $expr: {
@@ -125,8 +119,8 @@ exports.subjectsInInstituteAg = async (req, res) => {
           {
             $project: {
               subject: 1,
-              subjectCode:1,
-              description:1,
+              subjectCode: 1,
+              description: 1,
               instituteName: { $arrayElemAt: ["$instituteDetails.instituteName", 0] },
               instituteId: { $arrayElemAt: ["$instituteDetails.instituteId", 0] },
               gradeCode: "$gradeDetails.gradeCode",
@@ -139,14 +133,137 @@ exports.subjectsInInstituteAg = async (req, res) => {
             }
           }
         ]);
-  
-        res.status(200).json(data);
+
+        return res.status(200).json(aggregatedData); // Return aggregated data for selected ids
       }
-    } catch (error) {
-      console.error("Error in subjectsInInstitute:", error.message);
-      res.status(500).json({ message: 'Server error', error: error.message });
+
+      // Return the raw data without aggregation
+      return res.status(200).json(matchingData);
+    } else {
+      // If no ids are passed, return all subjects with aggregation
+      const data = await SubjectsInInstitute.aggregate([
+        {
+          $lookup: {
+            from: "instituteData",
+            let: { instituteId: "$instituteId" },
+            pipeline: [
+              { $match: { _id: "institutes" } },
+              { $unwind: "$data" },
+              { $match: { $expr: { $eq: ["$data._id", "$$instituteId"] } } },
+              { $project: { instituteName: "$data.instituteName", instituteId: "$data._id" } }
+            ],
+            as: "instituteDetails"
+          }
+        },
+        {
+          $lookup: {
+            from: "grades",
+            let: { gradeId: "$gradeId" },
+            pipeline: [
+              { $match: { $expr: { $eq: ["$_id", "$$gradeId"] } } },
+              {
+                $project: {
+                  gradeCode: 1,
+                  gradeDescription: 1,
+                  isElective: 1,
+                  gradeDuration: 1
+                }
+              }
+            ],
+            as: "gradeDetails"
+          }
+        },
+        { $unwind: { path: "$gradeDetails", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "gradesections",
+            let: { subjectId: "$subjectId" },
+            pipeline: [
+              { $match: { $expr: { $eq: ["$_id", "$$subjectId"] } } },
+              {
+                $project: {
+                  section: 1,
+                }
+              }
+            ],
+            as: "subjectDetails"
+          }
+        },
+        { $unwind: { path: "$subjectDetails", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "generalData",
+            let: { subjectTypeId: "$subjectTypeId" },
+            pipeline: [
+              { $match: { "_id": "subjectTypes" } },
+              { $unwind: "$data" },
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$data._id", "$$subjectTypeId"]
+                  }
+                }
+              }
+            ],
+            as: "subjectInfo"
+          }
+        },
+        {
+          $unwind: {
+            path: "$subjectInfo",
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $lookup: {
+            from: "generalData",
+            let: { learningTypeId: "$learningTypeId" },
+            pipeline: [
+              { $match: { "_id": "learningTypes" } },
+              { $unwind: "$data" },
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$data._id", "$$learningTypeId"]
+                  }
+                }
+              }
+            ],
+            as: "learningInfo"
+          }
+        },
+        {
+          $unwind: {
+            path: "$learningInfo",
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $project: {
+            subject: 1,
+            subjectCode: 1,
+            description: 1,
+            instituteName: { $arrayElemAt: ["$instituteDetails.instituteName", 0] },
+            instituteId: { $arrayElemAt: ["$instituteDetails.instituteId", 0] },
+            gradeCode: "$gradeDetails.gradeCode",
+            gradeDescription: "$gradeDetails.gradeDescription",
+            gradeDuration: "$gradeDetails.gradeDuration",
+            isElective: "$gradeDetails.isElective",
+            section: "$subjectDetails.section",
+            subjectType: "$subjectInfo.data.value",
+            learningType: "$learningInfo.data.value",
+          }
+        }
+      ]);
+
+      return res.status(200).json(data); // Return aggregated data for all subjects
     }
-  };
+  } catch (error) {
+    console.error("Error in subjectsInInstitute:", error.message);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
   
   
   

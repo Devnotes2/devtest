@@ -4,81 +4,142 @@ const createGradesInInstituteModel = require('../../../Model/instituteData/aggre
 
 exports.gradesInInstituteAg = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { ids } = req.query;
+  const { ids, aggregate } = req.query; // Accept `aggregate` to control aggregation behavior
 
   try {
+    // When ids are passed, return the raw data without aggregation
     if (ids && Array.isArray(ids)) {
-      const objectIds = ids.map(id => id);
+      const objectIds = ids.map(id =>new ObjectId(id)); // Convert to ObjectId
       const matchingData = await GradesInInstitute.find({ _id: { $in: objectIds } });
-      if (matchingData.length === 0) {
-        return res.json({ message: 'No matching grades found' });
-      }
-      
-      return res.json(matchingData);
-    } else {
-      const data = await GradesInInstitute.aggregate([
-        {
-          $lookup: {
-            from: "instituteData",
-            let: { gradeInstituteId: "$instituteId" },
-            pipeline: [
-              { $match: { _id: "institutes" } },
-              { $unwind: "$data" },
-              { $match: { $expr: { $eq: ["$data._id", "$$gradeInstituteId"] } } },
-              { $project: { instituteName: "$data.instituteName", instituteId: "$data._id" } }
-            ],
-            as: "instituteDetails"
-          }
-        },
-        { $unwind: "$instituteDetails" },
-        {
-          $lookup: {
-            from: "generalData",
-            let: { gradeDurationId: "$gradeDuration" },
-            pipeline: [
-              { $match: { _id: "gradeDuration" } },  // Match document with _id = "gradeDuration"
-              { $unwind: "$data" },  // Unwind the 'data' array
-              { $match: { $expr: { $eq: ["$data._id", "$$gradeDurationId"] } } },  // Match _id inside 'data' with gradeDuration
-              { $project: { gradeDurationValue: "$data.value" } }  // Get the corresponding 'value'
-            ],
-            as: "gradeDurationDetails"
-          }
-        },
-        { $unwind: "$gradeDurationDetails" },
-        {
-          $lookup: {
-            from: "generalData",
-            let: { electiveFlag: "$isElective" },  // Pass the `isElective` value to lookup for booleanChoices
-            pipeline: [
-              { $match: { _id: "booleanChoices" } },  // Match the document with _id = "booleanChoices"
-              { $unwind: "$data" },  // Unwind the `data` array
-              { $match: { $expr: { $eq: ["$data._id","$$electiveFlag" ] } } },  // Match `isElective` (0/1) to booleanChoices _id
-              { $project: { isElectiveValue: "$data.value" } }  // Get the corresponding "Yes" or "No" value
-            ],
-            as: "isElectiveDetails"
-          }
-        },
-        { $unwind: "$isElectiveDetails" },
-        {
-          $project: {
-            gradeCode: 1,
-            gradeDescription: 1,
-            instituteName: "$instituteDetails.instituteName",
-            instituteId: "$instituteDetails.instituteId",
-            gradeDuration: "$gradeDurationDetails.gradeDurationValue",
-            isElective: "$isElectiveDetails.isElectiveValue"  // Get the "Yes" or "No" value for isElective
-          }
-        }
-      ]);
 
-      console.log(data);
-      res.status(200).json(data);
+      if (aggregate === 'true') {
+        // If `aggregate=true` is passed, return aggregated data for selected ids
+        const aggregatedData = await GradesInInstitute.aggregate([
+          { $match: { _id: { $in: objectIds } } },
+          {
+            $lookup: {
+              from: "instituteData",
+              let: { gradeInstituteId: "$instituteId" },
+              pipeline: [
+                { $match: { _id: "institutes" } },
+                { $unwind: "$data" },
+                { $match: { $expr: { $eq: ["$data._id", "$$gradeInstituteId"] } } },
+                { $project: { instituteName: "$data.instituteName", instituteId: "$data._id" } }
+              ],
+              as: "instituteDetails"
+            }
+          },
+          { $unwind: "$instituteDetails" },
+          {
+            $lookup: {
+              from: "generalData",
+              let: { gradeDurationId: "$gradeDuration" },
+              pipeline: [
+                { $match: { _id: "gradeDuration" } },
+                { $unwind: "$data" },
+                { $match: { $expr: { $eq: ["$data._id", "$$gradeDurationId"] } } },
+                { $project: { gradeDurationValue: "$data.value" } }
+              ],
+              as: "gradeDurationDetails"
+            }
+          },
+          { $unwind: "$gradeDurationDetails" },
+          {
+            $lookup: {
+              from: "generalData",
+              let: { electiveFlag: "$isElective" },
+              pipeline: [
+                { $match: { _id: "booleanChoices" } },
+                { $unwind: "$data" },
+                { $match: { $expr: { $eq: ["$data._id", "$$electiveFlag"] } } },
+                { $project: { isElectiveValue: "$data.value" } }
+              ],
+              as: "isElectiveDetails"
+            }
+          },
+          { $unwind: "$isElectiveDetails" },
+          {
+            $project: {
+              gradeCode: 1,
+              gradeDescription: 1,
+              instituteName: "$instituteDetails.instituteName",
+              instituteId: "$instituteDetails.instituteId",
+              gradeDuration: "$gradeDurationDetails.gradeDurationValue",
+              isElective: "$isElectiveDetails.isElectiveValue"
+            }
+          }
+        ]);
+
+        return res.status(200).json(aggregatedData); // Return aggregated data for selected ids
+      }
+
+      // Return the raw data without aggregation
+      return res.status(200).json(matchingData);
     }
+
+    // If no ids are passed, return all grades with aggregation
+    const allData = await GradesInInstitute.aggregate([
+      {
+        $lookup: {
+          from: "instituteData",
+          let: { gradeInstituteId: "$instituteId" },
+          pipeline: [
+            { $match: { _id: "institutes" } },
+            { $unwind: "$data" },
+            { $match: { $expr: { $eq: ["$data._id", "$$gradeInstituteId"] } } },
+            { $project: { instituteName: "$data.instituteName", instituteId: "$data._id" } }
+          ],
+          as: "instituteDetails"
+        }
+      },
+      { $unwind: "$instituteDetails" },
+      {
+        $lookup: {
+          from: "generalData",
+          let: { gradeDurationId: "$gradeDuration" },
+          pipeline: [
+            { $match: { _id: "gradeDuration" } },
+            { $unwind: "$data" },
+            { $match: { $expr: { $eq: ["$data._id", "$$gradeDurationId"] } } },
+            { $project: { gradeDurationValue: "$data.value" } }
+          ],
+          as: "gradeDurationDetails"
+        }
+      },
+      { $unwind: "$gradeDurationDetails" },
+      {
+        $lookup: {
+          from: "generalData",
+          let: { electiveFlag: "$isElective" },
+          pipeline: [
+            { $match: { _id: "booleanChoices" } },
+            { $unwind: "$data" },
+            { $match: { $expr: { $eq: ["$data._id", "$$electiveFlag"] } } },
+            { $project: { isElectiveValue: "$data.value" } }
+          ],
+          as: "isElectiveDetails"
+        }
+      },
+      { $unwind: "$isElectiveDetails" },
+      {
+        $project: {
+          gradeCode: 1,
+          gradeDescription: 1,
+          instituteName: "$instituteDetails.instituteName",
+          instituteId: "$instituteDetails.instituteId",
+          gradeDuration: "$gradeDurationDetails.gradeDurationValue",
+          isElective: "$isElectiveDetails.isElectiveValue"
+        }
+      }
+    ]);
+
+    return res.status(200).json(allData); // Return aggregated data for all grades
   } catch (error) {
-    console.error("Error in gradesInInstitute:", error.message);
+    console.error("Error in gradesInInstituteAg:", error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 
 // exports.gradesInInstitute = async (req, res) => {
 //     const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
