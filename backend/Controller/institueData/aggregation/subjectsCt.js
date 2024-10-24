@@ -2,24 +2,35 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createSubjectsInInstituteModel = require('../../../Model/instituteData/aggregation/subjectsMd.js');
 
-
 exports.subjectsInInstituteAg = async (req, res) => {
   const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
-  const { ids, aggregate } = req.query; // Accept `aggregate` to control aggregation behavior
+  const { ids, aggregate, instituteId, gradeId, subjectTypeId, learningTypeId } = req.query; // Accept additional filters
 
   try {
-    if (ids && Array.isArray(ids)) {
-      const objectIds = ids.map(id =>new ObjectId(id)); // Convert to ObjectId
-      const matchingData = await SubjectsInInstitute.find({ _id: { $in: objectIds } });
+    let matchCriteria = {}; // Prepare the match criteria object
 
-      if (matchingData.length === 0) {
-        return res.json({ message: 'No matching subjects found' });
-      }
+    // Add filters to matchCriteria if they exist
+    if (instituteId) {
+      matchCriteria.instituteId = new ObjectId(instituteId);
+    }
+    if (gradeId) {
+      matchCriteria.gradeId = new ObjectId(gradeId);
+    }
+    if (subjectTypeId) {
+      matchCriteria.subjectTypeId = new ObjectId(subjectTypeId);
+    }
+    if (learningTypeId) {
+      matchCriteria.learningTypeId = new ObjectId(learningTypeId);
+    }
+
+    if (ids && Array.isArray(ids)) {
+      const objectIds = ids.map(id => new ObjectId(id)); // Convert to ObjectId
+      matchCriteria._id = { $in: objectIds }; // Add id filter to match criteria
 
       // If `aggregate=true` is passed, return aggregated data for selected ids
       if (aggregate === 'true') {
         const aggregatedData = await SubjectsInInstitute.aggregate([
-          { $match: { _id: { $in: objectIds } } },
+          { $match: matchCriteria }, // Use the matchCriteria
           {
             $lookup: {
               from: "instituteData",
@@ -138,10 +149,12 @@ exports.subjectsInInstituteAg = async (req, res) => {
       }
 
       // Return the raw data without aggregation
+      const matchingData = await SubjectsInInstitute.find(matchCriteria);
       return res.status(200).json(matchingData);
     } else {
       // If no ids are passed, return all subjects with aggregation
       const data = await SubjectsInInstitute.aggregate([
+        { $match: matchCriteria }, // Use the matchCriteria
         {
           $lookup: {
             from: "instituteData",
@@ -259,13 +272,11 @@ exports.subjectsInInstituteAg = async (req, res) => {
       return res.status(200).json(data); // Return aggregated data for all subjects
     }
   } catch (error) {
-    console.error("Error in subjectsInInstitute:", error.message);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Error in subjectsInInstitute:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-  
-  
   
 exports.createSubjectsInInstitute = async (req, res) => {
     try {

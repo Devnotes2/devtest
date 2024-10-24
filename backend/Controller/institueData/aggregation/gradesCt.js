@@ -2,20 +2,28 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createGradesInInstituteModel = require('../../../Model/instituteData/aggregation/gradesMd');
 
+
 exports.gradesInInstituteAg = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { ids, aggregate } = req.query; // Accept `aggregate` to control aggregation behavior
+  const { ids, aggregate, instituteId, gradeCode, isElective, gradeDuration } = req.query;
 
   try {
+    // Build the match conditions based on filters
+    const matchConditions = {};
+    if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
+    if (gradeCode) matchConditions.gradeCode = Number(gradeCode);
+    if (isElective) matchConditions.isElective = Boolean(isElective);
+    if (gradeDuration) matchConditions.gradeDuration = Number(gradeDuration);
+
     // When ids are passed, return the raw data without aggregation
     if (ids && Array.isArray(ids)) {
-      const objectIds = ids.map(id =>new ObjectId(id)); // Convert to ObjectId
-      const matchingData = await GradesInInstitute.find({ _id: { $in: objectIds } });
+      const objectIds = ids.map(id => new ObjectId(id));
+      const matchingData = await GradesInInstitute.find({ _id: { $in: objectIds }, ...matchConditions });
 
       if (aggregate === 'true') {
-        // If `aggregate=true` is passed, return aggregated data for selected ids
+        // Return aggregated data for selected ids
         const aggregatedData = await GradesInInstitute.aggregate([
-          { $match: { _id: { $in: objectIds } } },
+          { $match: { _id: { $in: objectIds }, ...matchConditions } },
           {
             $lookup: {
               from: "instituteData",
@@ -70,15 +78,16 @@ exports.gradesInInstituteAg = async (req, res) => {
           }
         ]);
 
-        return res.status(200).json(aggregatedData); // Return aggregated data for selected ids
+        return res.status(200).json(aggregatedData);
       }
 
       // Return the raw data without aggregation
       return res.status(200).json(matchingData);
     }
 
-    // If no ids are passed, return all grades with aggregation
+    // If no ids are passed, return all grades with aggregation and filters
     const allData = await GradesInInstitute.aggregate([
+      { $match: { ...matchConditions } },
       {
         $lookup: {
           from: "instituteData",
@@ -133,12 +142,13 @@ exports.gradesInInstituteAg = async (req, res) => {
       }
     ]);
 
-    return res.status(200).json(allData); // Return aggregated data for all grades
+    return res.status(200).json(allData);
   } catch (error) {
     console.error("Error in gradesInInstituteAg:", error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 
 
 // exports.gradesInInstitute = async (req, res) => {

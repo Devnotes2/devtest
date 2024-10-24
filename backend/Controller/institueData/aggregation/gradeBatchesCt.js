@@ -5,70 +5,36 @@ const createGradeBatchesInInstituteModel = require('../../../Model/instituteData
 
 exports.gradeBatchesInInstituteAg = async (req, res) => {
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
-  const { ids, aggregate } = req.query; // Accept `aggregate` to control aggregation behavior
+  const { ids, aggregate, instituteId, gradeId, batch } = req.query; // Accept multiple filters from query params
 
   try {
+    // Build a dynamic filter object
+    const filters = {};
+
     if (ids && Array.isArray(ids)) {
-      const objectIds = ids.map(id =>new ObjectId(id)); // Convert to ObjectId
-      const matchingData = await GradeBatchesInInstitute.find({ _id: { $in: objectIds } });
+      const objectIds = ids.map(id => new ObjectId(id)); // Convert to ObjectId
+      filters._id = { $in: objectIds };
+    }
 
-      if (aggregate === 'true') {
-        // If `aggregate=true` is passed, return aggregated data for selected ids
-        const aggregatedData = await GradeBatchesInInstitute.aggregate([
-          { $match: { _id: { $in: objectIds } } },
-          {
-            $lookup: {
-              from: "instituteData",
-              let: { instituteId: "$instituteId" },
-              pipeline: [
-                { $match: { _id: "institutes" } },
-                { $unwind: "$data" },
-                { $match: { $expr: { $eq: ["$data._id", "$$instituteId"] } } },
-                { $project: { instituteName: "$data.instituteName", instituteId: "$data._id" } }
-              ],
-              as: "instituteDetails"
-            }
-          },
-          {
-            $lookup: {
-              from: "grades",
-              let: { gradeId: "$gradeId" },
-              pipeline: [
-                { $match: { $expr: { $eq: ["$_id", "$$gradeId"] } } },
-                {
-                  $project: {
-                    gradeCode: 1,
-                    gradeDescription: 1,
-                    isElective: 1,
-                    gradeDuration: 1
-                  }
-                }
-              ],
-              as: "gradeDetails"
-            }
-          },
-          { $unwind: { path: "$gradeDetails", preserveNullAndEmptyArrays: true } },
-          {
-            $project: {
-              batch: 1,
-              instituteName: { $arrayElemAt: ["$instituteDetails.instituteName", 0] },
-              instituteId: { $arrayElemAt: ["$instituteDetails.instituteId", 0] },
-              gradeCode: "$gradeDetails.gradeCode",
-              gradeDescription: "$gradeDetails.gradeDescription",
-              gradeDuration: "$gradeDetails.gradeDuration",
-              isElective: "$gradeDetails.isElective"
-            }
-          }
-        ]);
+    if (instituteId) {
+      filters.instituteId = new ObjectId(instituteId);
+    }
 
-        return res.status(200).json(aggregatedData); // Return aggregated data for selected ids
-      }
+    if (gradeId) {
+      filters.gradeId = new ObjectId(gradeId);
+    }
 
-      // Return the raw data without aggregation
-      return res.status(200).json(matchingData);
-    } else {
-      // If no ids are passed, return all grade batches with aggregation
-      const data = await GradeBatchesInInstitute.aggregate([
+    if (batch) {
+      filters.batch = batch;
+    }
+
+    // Fetch matching data
+    const matchingData = await GradeBatchesInInstitute.find(filters);
+
+    if (aggregate === 'true') {
+      // If `aggregate=true` is passed, return aggregated data for selected filters
+      const aggregatedData = await GradeBatchesInInstitute.aggregate([
+        { $match: filters }, // Apply dynamic filters here
         {
           $lookup: {
             from: "instituteData",
@@ -114,15 +80,18 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
         }
       ]);
 
-      return res.status(200).json(data); // Return aggregated data for all grade batches
+      return res.status(200).json(aggregatedData); // Return aggregated data for selected filters
     }
+
+    // Return the raw data without aggregation
+    return res.status(200).json(matchingData);
+
   } catch (error) {
     console.error("Error in gradeBatchesInInstitute:", error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-  
   
   
 exports.createGradeBatchesInInstitute = async (req, res) => {

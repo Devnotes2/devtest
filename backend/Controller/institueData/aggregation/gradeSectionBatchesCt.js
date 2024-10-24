@@ -2,20 +2,32 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
 
-
 exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  const { ids, aggregate } = req.query; // Accept `aggregate` to control aggregation behavior
+  const { ids, aggregate, instituteId, gradeId, gradeSectionId } = req.query; // Accept new filters
 
   try {
+    let matchConditions = {}; // Initialize match conditions
+
+    // Add filtering conditions based on the query parameters
+    if (instituteId) {
+      matchConditions.instituteId = new ObjectId(instituteId); // Convert to ObjectId if present
+    }
+    if (gradeId) {
+      matchConditions.gradeId = new ObjectId(gradeId); // Convert to ObjectId if present
+    }
+    if (gradeSectionId) {
+      matchConditions.gradeSectionId = new ObjectId(gradeSectionId); // Convert to ObjectId if present
+    }
+
     if (ids && Array.isArray(ids)) {
-      const objectIds = ids.map(id =>new ObjectId(id)); // Convert to ObjectId
-      const matchingData = await GradeSectionBatchesInInstitute.find({ _id: { $in: objectIds } });
+      const objectIds = ids.map(id => new ObjectId(id)); // Convert to ObjectId
+      matchConditions._id = { $in: objectIds }; // Add _id filtering
 
       if (aggregate === 'true') {
         // If `aggregate=true` is passed, return aggregated data for selected ids
         const aggregatedData = await GradeSectionBatchesInInstitute.aggregate([
-          { $match: { _id: { $in: objectIds } } },
+          { $match: matchConditions }, // Use dynamic match conditions
           {
             $lookup: {
               from: "instituteData",
@@ -82,10 +94,12 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
       }
 
       // Return the raw data without aggregation
+      const matchingData = await GradeSectionBatchesInInstitute.find(matchConditions);
       return res.status(200).json(matchingData);
     } else {
       // If no ids are passed, return all grade section batches with aggregation
       const data = await GradeSectionBatchesInInstitute.aggregate([
+        { $match: matchConditions }, // Use dynamic match conditions
         {
           $lookup: {
             from: "instituteData",
@@ -156,7 +170,6 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
   }
 };
 
-  
   
   
 exports.createGradeSectionBatchesInInstitute = async (req, res) => {
