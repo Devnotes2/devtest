@@ -147,7 +147,7 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
 
   // PUT /api/gradeSections-institute
 exports.updateGradeSectionsInInstitute = async (req, res) => {
-    const { _id, updatedData } = req.body;
+    const { _id, newData } = req.body;
   
     try {
       const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
