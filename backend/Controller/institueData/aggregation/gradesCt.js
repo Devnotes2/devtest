@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createGradesInInstituteModel = require('../../../Model/instituteData/aggregation/gradesMd');
 
-
 exports.gradesInInstituteAg = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
   const { ids, aggregate, instituteId, gradeCode, isElective, gradeDuration } = req.query;
