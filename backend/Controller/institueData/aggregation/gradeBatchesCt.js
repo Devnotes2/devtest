@@ -184,7 +184,7 @@ exports.deleteGradeBatchesInInstitute = async (req, res) => {
 
   // PUT /api/gradeBatches-institute
 exports.updateGradeBatchesInInstitute = async (req, res) => {
-    const { _id, newData } = req.body;
+    const { _id, updatedData } = req.body;
   
     try {
       const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
@@ -197,9 +197,9 @@ exports.updateGradeBatchesInInstitute = async (req, res) => {
       console.log('Current Document:', currentDoc);
   
       const updateObject = {};
-      if (newData.instituteId) updateObject["instituteId"] = newData.instituteId;
-      if (newData.gradeId) updateObject["gradeId"] = newData.gradeId;
-      if (newData.batch) updateObject["batch"] = newData.batch;
+      if (updatedData.instituteId) updateObject["instituteId"] = updatedData.instituteId;
+      if (updatedData.gradeId) updateObject["gradeId"] = updatedData.gradeId;
+      if (updatedData.batch) updateObject["batch"] = updatedData.batch;
   
       console.log('Update Object:', updateObject);
   
