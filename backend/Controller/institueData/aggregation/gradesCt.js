@@ -222,7 +222,7 @@ exports.deleteGradesInInstitute = async (req, res) => {
 
   // PUT /api/grades-institute
 exports.updateGradesInInstitute = async (req, res) => {
-    const { _id, newData } = req.body;
+    const { _id, updatedData } = req.body;
   
     try {
       const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
@@ -235,11 +235,11 @@ exports.updateGradesInInstitute = async (req, res) => {
       console.log('Current Document:', currentDoc);
   
       const updateObject = {};
-      if (newData.instituteId) updateObject["instituteId"] = newData.instituteId;
-      if (newData.gradeCode) updateObject["gradeCode"] = newData.gradeCode;
-      if (newData.gradeDescription) updateObject["gradeDescription"] = newData.gradeDescription;
-      if (newData.gradeDuration) updateObject["gradeDuration"] = newData.gradeDuration;
-      if (newData.isElective !== undefined) updateObject["isElective"] = newData.isElective;
+      if (updatedData.instituteId) updateObject["instituteId"] = updatedData.instituteId;
+      if (updatedData.gradeCode) updateObject["gradeCode"] = updatedData.gradeCode;
+      if (updatedData.gradeDescription) updateObject["gradeDescription"] = updatedData.gradeDescription;
+      if (updatedData.gradeDuration) updateObject["gradeDuration"] = updatedData.gradeDuration;
+      if (updatedData.isElective !== undefined) updateObject["isElective"] = updatedData.isElective;
   
       console.log('Update Object:', updateObject);
   

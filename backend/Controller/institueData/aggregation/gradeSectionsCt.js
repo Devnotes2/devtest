@@ -173,7 +173,7 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
 
   // PUT /api/gradeSections-institute
 exports.updateGradeSectionsInInstitute = async (req, res) => {
-    const { _id, newData } = req.body;
+    const { _id, updatedData } = req.body;
   
     try {
       const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
@@ -186,9 +186,9 @@ exports.updateGradeSectionsInInstitute = async (req, res) => {
       console.log('Current Document:', currentDoc);
   
       const updateObject = {};
-      if (newData.instituteId) updateObject["instituteId"] = newData.instituteId;
-      if (newData.gradeId) updateObject["gradeId"] = newData.gradeId;
-      if (newData.section) updateObject["section"] = newData.section;
+      if (updatedData.instituteId) updateObject["instituteId"] = updatedData.instituteId;
+      if (updatedData.gradeId) updateObject["gradeId"] = updatedData.gradeId;
+      if (updatedData.section) updateObject["section"] = updatedData.section;
   
       console.log('Update Object:', updateObject);
   

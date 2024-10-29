@@ -7,99 +7,26 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
   const { ids, aggregate, instituteId, gradeId, gradeSectionId } = req.query; // Accept new filters
 
   try {
-    let matchConditions = {}; // Initialize match conditions
+    // Build the match conditions based on filters
+    const matchConditions = {};
+    if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
+    if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
+    if (gradeSectionId) matchConditions.gradeSectionId = new ObjectId(gradeSectionId);
 
-    // Add filtering conditions based on the query parameters
-    if (instituteId) {
-      matchConditions.instituteId = new ObjectId(instituteId); // Convert to ObjectId if present
-    }
-    if (gradeId) {
-      matchConditions.gradeId = new ObjectId(gradeId); // Convert to ObjectId if present
-    }
-    if (gradeSectionId) {
-      matchConditions.gradeSectionId = new ObjectId(gradeSectionId); // Convert to ObjectId if present
-    }
-
+    // When ids are passed, return the raw data without aggregation
     if (ids && Array.isArray(ids)) {
-      const objectIds = ids.map(id => new ObjectId(id)); // Convert to ObjectId
-      matchConditions._id = { $in: objectIds }; // Add _id filtering
+      const objectIds = ids.map(id => new ObjectId(id));
+      matchConditions._id = { $in: objectIds };
 
-      if (aggregate === 'true') {
-        // If `aggregate=true` is passed, return aggregated data for selected ids
-        const aggregatedData = await GradeSectionBatchesInInstitute.aggregate([
-          { $match: matchConditions }, // Use dynamic match conditions
-          {
-            $lookup: {
-              from: "instituteData",
-              let: { instituteId: "$instituteId" },
-              pipeline: [
-                { $match: { _id: "institutes" } },
-                { $unwind: "$data" },
-                { $match: { $expr: { $eq: ["$data._id", "$$instituteId"] } } },
-                { $project: { instituteName: "$data.instituteName", instituteId: "$data._id" } }
-              ],
-              as: "instituteDetails"
-            }
-          },
-          {
-            $lookup: {
-              from: "grades",
-              let: { gradeId: "$gradeId" },
-              pipeline: [
-                { $match: { $expr: { $eq: ["$_id", "$$gradeId"] } } },
-                {
-                  $project: {
-                    gradeCode: 1,
-                    gradeDescription: 1,
-                    isElective: 1,
-                    gradeDuration: 1
-                  }
-                }
-              ],
-              as: "gradeDetails"
-            }
-          },
-          { $unwind: { path: "$gradeDetails", preserveNullAndEmptyArrays: true } },
-          {
-            $lookup: {
-              from: "gradesections",
-              let: { gradeSectionId: "$gradeSectionId" },
-              pipeline: [
-                { $match: { $expr: { $eq: ["$_id", "$$gradeSectionId"] } } },
-                {
-                  $project: {
-                    section: 1,
-                  }
-                }
-              ],
-              as: "gradeSectionDetails"
-            }
-          },
-          { $unwind: { path: "$gradeSectionDetails", preserveNullAndEmptyArrays: true } },
-          {
-            $project: {
-              gradeSectionBatch: 1,
-              instituteName: { $arrayElemAt: ["$instituteDetails.instituteName", 0] },
-              instituteId: { $arrayElemAt: ["$instituteDetails.instituteId", 0] },
-              gradeCode: "$gradeDetails.gradeCode",
-              gradeDescription: "$gradeDetails.gradeDescription",
-              gradeDuration: "$gradeDetails.gradeDuration",
-              isElective: "$gradeDetails.isElective",
-              section: "$gradeSectionDetails.section",
-            }
-          }
-        ]);
-
-        return res.status(200).json(aggregatedData); // Return aggregated data for selected ids
+      if (aggregate === 'false') {
+        // Return the raw data without aggregation
+        const matchingData = await GradeSectionBatchesInInstitute.find(matchConditions);
+        return res.status(200).json(matchingData);
       }
 
-      // Return the raw data without aggregation
-      const matchingData = await GradeSectionBatchesInInstitute.find(matchConditions);
-      return res.status(200).json(matchingData);
-    } else {
-      // If no ids are passed, return all grade section batches with aggregation
-      const data = await GradeSectionBatchesInInstitute.aggregate([
-        { $match: matchConditions }, // Use dynamic match conditions
+      // Return aggregated data for selected ids
+      const aggregatedData = await GradeSectionBatchesInInstitute.aggregate([
+        { $match: matchConditions },
         {
           $lookup: {
             from: "instituteData",
@@ -113,6 +40,7 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
             as: "instituteDetails"
           }
         },
+        { $unwind: "$instituteDetails" },
         {
           $lookup: {
             from: "grades",
@@ -151,8 +79,8 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
         {
           $project: {
             gradeSectionBatch: 1,
-            instituteName: { $arrayElemAt: ["$instituteDetails.instituteName", 0] },
-            instituteId: { $arrayElemAt: ["$instituteDetails.instituteId", 0] },
+            instituteName: "$instituteDetails.instituteName",
+            instituteId: "$instituteDetails.instituteId",
             gradeCode: "$gradeDetails.gradeCode",
             gradeDescription: "$gradeDetails.gradeDescription",
             gradeDuration: "$gradeDetails.gradeDuration",
@@ -162,10 +90,78 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
         }
       ]);
 
-      return res.status(200).json(data); // Return aggregated data for all grade section batches
+      return res.status(200).json(aggregatedData);
     }
+
+    // If no ids are passed, return all grade section batches with aggregation and filters
+    const allData = await GradeSectionBatchesInInstitute.aggregate([
+      { $match: matchConditions },
+      {
+        $lookup: {
+          from: "instituteData",
+          let: { instituteId: "$instituteId" },
+          pipeline: [
+            { $match: { _id: "institutes" } },
+            { $unwind: "$data" },
+            { $match: { $expr: { $eq: ["$data._id", "$$instituteId"] } } },
+            { $project: { instituteName: "$data.instituteName", instituteId: "$data._id" } }
+          ],
+          as: "instituteDetails"
+        }
+      },
+      { $unwind: "$instituteDetails" },
+      {
+        $lookup: {
+          from: "grades",
+          let: { gradeId: "$gradeId" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$gradeId"] } } },
+            {
+              $project: {
+                gradeCode: 1,
+                gradeDescription: 1,
+                isElective: 1,
+                gradeDuration: 1
+              }
+            }
+          ],
+          as: "gradeDetails"
+        }
+      },
+      { $unwind: { path: "$gradeDetails", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "gradesections",
+          let: { gradeSectionId: "$gradeSectionId" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$gradeSectionId"] } } },
+            {
+              $project: {
+                section: 1,
+              }
+            }
+          ],
+          as: "gradeSectionDetails"
+        }
+      },
+      { $unwind: { path: "$gradeSectionDetails", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          gradeSectionBatch: 1,
+          instituteName: "$instituteDetails.instituteName",
+          instituteId: "$instituteDetails.instituteId",
+          gradeCode: "$gradeDetails.gradeCode",
+          gradeDescription: "$gradeDetails.gradeDescription",
+          gradeDuration: "$gradeDetails.gradeDuration",
+          isElective: "$gradeDetails.isElective",
+          section: "$gradeSectionDetails.section",
+        }
+      }
+    ]);
+
+    return res.status(200).json(allData);
   } catch (error) {
-    console.error("Error in gradeSectionBatchesInInstitute:", error.message);
+    console.error("Error in gradeSectionBatchesInInstituteAg:", error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -224,7 +220,7 @@ exports.deleteGradeSectionBatchesInInstitute = async (req, res) => {
 
   // PUT /api/gradeSectionBatches-institute
 exports.updateGradeSectionBatchesInInstitute = async (req, res) => {
-    const { _id, newData } = req.body;
+    const { _id, updatedData } = req.body;
   
     try {
       const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
@@ -237,10 +233,10 @@ exports.updateGradeSectionBatchesInInstitute = async (req, res) => {
       console.log('Current Document:', currentDoc);
   
       const updateObject = {};
-      if (newData.instituteId) updateObject["instituteId"] = newData.instituteId;
-      if (newData.gradeId) updateObject["gradeId"] = newData.gradeId;
-      if (newData.gradeSectionBatch) updateObject["gradeSectionBatch"] = newData.gradeSectionBatch;
-      if (newData.gradeSectionId) updateObject["gradeSectionId"] = newData.gradeSectionId;
+      if (updatedData.instituteId) updateObject["instituteId"] = updatedData.instituteId;
+      if (updatedData.gradeId) updateObject["gradeId"] = updatedData.gradeId;
+      if (updatedData.gradeSectionBatch) updateObject["gradeSectionBatch"] = updatedData.gradeSectionBatch;
+      if (updatedData.gradeSectionId) updateObject["gradeSectionId"] = updatedData.gradeSectionId;
 
       console.log('Update Object:', updateObject);
   
