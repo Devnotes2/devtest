@@ -20,7 +20,10 @@ exports.gradesInInstituteAg = async (req, res) => {
       const objectIds = ids.map(id => new ObjectId(id));
       const matchingData = await GradesInInstitute.find({ _id: { $in: objectIds }, ...matchConditions });
 
-      if (aggregate === 'true') {
+      if (aggregate === 'false') {
+          // Return the raw data without aggregation
+          return res.status(200).json(matchingData);
+      }
         // Return aggregated data for selected ids
         const aggregatedData = await GradesInInstitute.aggregate([
           { $match: { _id: { $in: objectIds }, ...matchConditions } },
@@ -79,10 +82,9 @@ exports.gradesInInstituteAg = async (req, res) => {
         ]);
 
         return res.status(200).json(aggregatedData);
-      }
+      
 
-      // Return the raw data without aggregation
-      return res.status(200).json(matchingData);
+
     }
 
     // If no ids are passed, return all grades with aggregation and filters

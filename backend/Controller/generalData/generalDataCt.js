@@ -4,7 +4,7 @@ exports.getGeneraldata = async (req, res) => {
   const GeneralData = createGeneralDataModel(req.collegeDB);
   const { type } = req.params; // e.g., 'religion', 'state', etc.
   const { itemId } = req.params; // Optional query parameter for specific item ID
-
+console.log(type);
   try {
       const generaldataDoc = await GeneralData.findById(type);
       if (!generaldataDoc) {
