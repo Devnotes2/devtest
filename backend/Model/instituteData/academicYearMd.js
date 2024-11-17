@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 // Define the schema for academic years
 const academicYearSchema = new mongoose.Schema({
     _id: String,
-    academicYear: [
+    data: [
         {
             // _id: Number,
             startDate: String,
