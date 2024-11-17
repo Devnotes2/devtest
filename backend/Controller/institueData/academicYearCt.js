@@ -50,8 +50,7 @@ exports.insertAcademicYear = async (req, res) => {
         // Find the highest _id value and increment for the new entry
         // const maxId = Math.max(...academicYearDoc.academicYear.map(yr => yr._id), 0);
         // newYear._id = parseInt(maxId + 1);
-
-        academicYearDoc.academicYear.push(newYear);
+        academicYearDoc.data.push(newYear);
         await academicYearDoc.save();
         res.status(201).json({ message: "Academic year added" });
 
