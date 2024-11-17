@@ -60,12 +60,12 @@ exports.addGeneraldata = async (req, res) => {
 exports.updateGeneraldata = async (req, res) => {
   const GeneralData = createGeneralDataModel(req.collegeDB);
   const { type } = req.params; // e.g., 'religion', 'state', etc.
-  const { itemId, newValue } = req.body;
+  const { itemId, updatedData } = req.body;
 
   try {
       const result = await GeneralData.findOneAndUpdate(
           { _id: type, 'data._id': itemId },
-          { $set: { 'data.$.value': newValue } },
+          { $set: { 'data.$.value': updatedData } },
           { new: true }
       );
       if (result) {
