@@ -19,7 +19,7 @@ console.log(type);
           return res.json(item);
       } else {
         console.log(generaldataDoc)
-          generaldataDoc.data.sort((a, b) => a._id - b._id);
+        //   generaldataDoc.data.sort((a, b) => a._id - b._id);
           return res.json(generaldataDoc.data);
       }
 
@@ -34,20 +34,18 @@ exports.addGeneraldata = async (req, res) => {
   const GeneralData = createGeneralDataModel(req.collegeDB);
   const { type } = req.params; // e.g., 'religion', 'state', etc.
   const { value } = req.body; // The value to add
-
+    
   try {
       let generaldataDoc = await GeneralData.findById(type);
       if (generaldataDoc) {
           // Get the current max _id
-          
-          const maxId = generaldataDoc.data.reduce((max, item) => (item._id > max ? item._id : max), 0);
-          const newItem = { _id: maxId + 1, value: value };
+          const newItem = {value: value };
           generaldataDoc.data.push(newItem);
           await generaldataDoc.save();
           return res.status(200).json(newItem);
       } else {
           // If no existing data, start with _id = 0
-          const newItem = { _id: 0, value: value };
+          const newItem = {value: value };
           await GeneralData.create({ _id: type, data: [newItem] });
           return res.status(200).json(newItem);
       }

@@ -13,7 +13,8 @@ exports.getAcademicYears = async (req, res) => {
 
         if (id) {
             // Convert id to an integer for comparison
-            const year = academicYearDoc.academicYear.find(yr => yr._id === parseInt(id));
+            const year = academicYearDoc.academicYear.find(yr => yr._id.toString() === id.toString());
+            console.log(year);
             if (!year) {
                 return res.status(404).json({ message: 'Academic year not found' });
             }
@@ -37,7 +38,7 @@ exports.insertAcademicYear = async (req, res) => {
     try {
         const academicYearDoc = await AcademicYear.findById("academicYear");
         if (!academicYearDoc) {
-            newYear._id=0;
+            // newYear._id=0;
             const newDoc = new AcademicYear({
                 _id: "academicYear",
                 academicYear: [newYear]
@@ -47,8 +48,8 @@ exports.insertAcademicYear = async (req, res) => {
         }
 
         // Find the highest _id value and increment for the new entry
-        const maxId = Math.max(...academicYearDoc.academicYear.map(yr => yr._id), 0);
-        newYear._id = parseInt(maxId + 1);
+        // const maxId = Math.max(...academicYearDoc.academicYear.map(yr => yr._id), 0);
+        // newYear._id = parseInt(maxId + 1);
 
         academicYearDoc.academicYear.push(newYear);
         await academicYearDoc.save();
@@ -72,7 +73,8 @@ exports.updateAcademicYear = async (req, res) => {
         }
 
         // Find the academic year by its integer _id
-        const yearIndex = academicYearDoc.academicYear.findIndex(yr => yr._id === parseInt(id));
+        const yearIndex = academicYearDoc.academicYear.findIndex(yr => yr._id.toString() === id);
+        console.log(yearIndex);
         if (yearIndex !== -1) {
             // Preserve the _id and update only the fields in updatedData
             const existingYear = academicYearDoc.academicYear[yearIndex];
@@ -93,10 +95,9 @@ exports.updateAcademicYear = async (req, res) => {
     }
 };
 
-// Function to delete multiple academic years
 exports.deleteAcademicYear = async (req, res) => {
     const AcademicYear = createAcademicYearModel(req.collegeDB);
-    const { ids } = req.body; // Expecting an array of IDs
+    const { ids } = req.body; // Expecting an array of ObjectId strings
 
     try {
         const academicYearDoc = await AcademicYear.findById("academicYear");
@@ -105,8 +106,10 @@ exports.deleteAcademicYear = async (req, res) => {
             return res.status(404).json({ message: "Document not found" });
         }
 
-        // Filter out the academic years that match the given ids (converted to integers)
-        const updatedAcademicYears = academicYearDoc.academicYear.filter(yr => !ids.includes(yr._id));
+        // Filter out the academic years whose _id matches the provided ids
+        const updatedAcademicYears = academicYearDoc.academicYear.filter(
+            (yr) => !ids.includes(yr._id.toString())
+        );
 
         if (updatedAcademicYears.length === academicYearDoc.academicYear.length) {
             return res.status(404).json({ message: "No matching academic years found for deletion" });
@@ -114,10 +117,12 @@ exports.deleteAcademicYear = async (req, res) => {
 
         academicYearDoc.academicYear = updatedAcademicYears;
         await academicYearDoc.save();
-        res.json({ message: "Academic year(s) deleted" });
+
+        res.json({ message: "Academic year(s) deleted successfully", deletedCount: ids.length });
 
     } catch (error) {
         console.error("Error in deleteAcademicYear:", error.message);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+

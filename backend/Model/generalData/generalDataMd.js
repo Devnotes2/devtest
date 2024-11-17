@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const generalDataItemSchema = new mongoose.Schema({
-  _id: { type: Number, required: true }, // We will manually set _id as an incrementing number
+  // _id: { type: Number, required: true }, // We will manually set _id as an incrementing number
   value: { type: String, required: true } // The actual value, e.g., religion name, language name
 });
 

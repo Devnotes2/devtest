@@ -5,7 +5,7 @@ const academicYearSchema = new mongoose.Schema({
     _id: String,
     academicYear: [
         {
-            _id: Number,
+            // _id: Number,
             startDate: String,
             endDate: String,
         }
