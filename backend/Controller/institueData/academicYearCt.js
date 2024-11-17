@@ -106,15 +106,15 @@ exports.deleteAcademicYear = async (req, res) => {
         }
 
         // Filter out the academic years whose _id matches the provided ids
-        const updatedAcademicYears = academicYearDoc.academicYear.filter(
+        const updatedAcademicYears = academicYearDoc.data.filter(
             (yr) => !ids.includes(yr._id.toString())
         );
 
-        if (updatedAcademicYears.length === academicYearDoc.academicYear.length) {
+        if (updatedAcademicYears.length === academicYearDoc.data.length) {
             return res.status(404).json({ message: "No matching academic years found for deletion" });
         }
 
-        academicYearDoc.academicYear = updatedAcademicYears;
+        academicYearDoc.data = updatedAcademicYears;
         await academicYearDoc.save();
 
         res.json({ message: "Academic year(s) deleted successfully", deletedCount: ids.length });
