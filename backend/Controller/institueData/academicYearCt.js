@@ -13,7 +13,7 @@ exports.getAcademicYears = async (req, res) => {
 
         if (id) {
             // Convert id to an integer for comparison
-            const year = academicYearDoc.academicYear.find(yr => yr._id.toString() === id.toString());
+            const year = academicYearDoc.data.find(yr => yr._id.toString() === id.toString());
             console.log(year);
             if (!year) {
                 return res.status(404).json({ message: 'Academic year not found' });
@@ -21,8 +21,8 @@ exports.getAcademicYears = async (req, res) => {
             return res.json(year);
         } else {
             // Sort by startDate, which are strings in the format 'YYYYMMDD'
-            academicYearDoc.academicYear.sort((a, b) => a.startDate-b.startDate);
-            return res.json(academicYearDoc.academicYear);
+            academicYearDoc.data.sort((a, b) => a.startDate-b.startDate);
+            return res.json(academicYearDoc.data);
         }
 
     } catch (error) {
@@ -72,12 +72,12 @@ exports.updateAcademicYear = async (req, res) => {
         }
 
         // Find the academic year by its integer _id
-        const yearIndex = academicYearDoc.academicYear.findIndex(yr => yr._id.toString() === id);
+        const yearIndex = academicYearDoc.data.findIndex(yr => yr._id.toString() === id);
         console.log(yearIndex);
         if (yearIndex !== -1) {
             // Preserve the _id and update only the fields in updatedData
-            const existingYear = academicYearDoc.academicYear[yearIndex];
-            academicYearDoc.academicYear[yearIndex] = {
+            const existingYear = academicYearDoc.data[yearIndex];
+            academicYearDoc.data[yearIndex] = {
                 _id: existingYear._id, // Preserve _id
                 ...existingYear, // Existing fields
                 ...updatedData // Fields to update
