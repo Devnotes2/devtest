@@ -52,7 +52,7 @@ exports.insertAcademicYear = async (req, res) => {
         // newYear._id = parseInt(maxId + 1);
         academicYearDoc.data.push(newYear);
         await academicYearDoc.save();
-        res.status(201).json({ message: "Academic year added" });
+        res.status(200).json({ message: "Academic year added" });
 
     } catch (error) {
         console.error("Error in insertAcademicYear:", error.message);
