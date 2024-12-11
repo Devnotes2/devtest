@@ -7,7 +7,7 @@ const GradesSchema = new Schema({
     required: true,
   },
   gradeCode: {
-    type: String,  // Numeric code for the grade
+    type: mongoose.Schema.Types.ObjectId,  // Numeric code for the grade
     required: true
   },
   gradeDescription: {
@@ -15,11 +15,11 @@ const GradesSchema = new Schema({
     required: true
   },
   gradeDuration: {
-    type: Number,  // Duration of the grade (e.g., "1 year")
+    type: mongoose.Schema.Types.ObjectId,  // Duration of the grade (e.g., "1 year")
     required: true
   },
   isElective: {
-    type: Number,  // Whether the grade is elective or not
+    type: mongoose.Schema.Types.ObjectId,  // Whether the grade is elective or not
     required: true
   }
 });  // Optionally, you can use timestamps to track creation and update times

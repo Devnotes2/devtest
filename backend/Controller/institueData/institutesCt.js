@@ -1,8 +1,9 @@
-const createInstitutesModel = require('../../Model/instituteData/institutesMd'); // Assuming your model is in models/Asinstitute_IdeData.js
+const createInstitutesModel = require('../../Model/instituteData/institutesMd'); // Adjust the path as necessary
 
+// Get Institutes or a specific Institute
 exports.getInstitutes = async (req, res) => {
     const Institute = createInstitutesModel(req.collegeDB);
-    const { instituteID } = req.params; // Optional institute ID from URL
+    const { instituteID } = req.params; // Optional institute ID
 
     try {
         const instituteDoc = await Institute.findById("institutes");
@@ -12,14 +13,12 @@ exports.getInstitutes = async (req, res) => {
         }
 
         if (instituteID) {
-            // Find the specific institute by its ID
             const institute = instituteDoc.data.find(inst => inst._id.toString() === instituteID);
             if (!institute) {
                 return res.status(404).json({ message: 'Institute not found' });
             }
             return res.status(200).json(institute);
         } else {
-            // Sort institutes by ID before returning the list
             instituteDoc.data.sort((a, b) => a._id.toString().localeCompare(b._id.toString()));
             return res.status(200).json(instituteDoc.data);
         }
@@ -30,12 +29,11 @@ exports.getInstitutes = async (req, res) => {
     }
 };
 
-
+// Add a New Institute
 exports.insertInstitute = async (req, res) => {
     const Institute = createInstitutesModel(req.collegeDB);
-    const { newInst } = req.body; // Expecting an object for newInst
+    const { newInst } = req.body;
 
-    // Ensure the request contains a valid newInst object
     if (!newInst || typeof newInst !== 'object') {
         return res.status(400).json({ message: 'Invalid institute data' });
     }
@@ -44,18 +42,15 @@ exports.insertInstitute = async (req, res) => {
         const instituteDoc = await Institute.findById("institutes");
 
         if (!instituteDoc) {
-            // Create a new document if none exists
             const newDoc = new Institute({
                 _id: "institutes",
-                data: [newInst] // Add the new institute object
+                data: [newInst]
             });
             await newDoc.save();
             return res.status(200).json({ message: "Document created with new institute", newDoc });
         }
 
-        // Add newInst object to the institutes array
-        instituteDoc.data.push(newInst); // Directly push the newInst object into the array
-
+        instituteDoc.data.push(newInst);
         await instituteDoc.save();
         res.status(200).json({ message: "Institute added", instituteDoc });
 
@@ -65,13 +60,11 @@ exports.insertInstitute = async (req, res) => {
     }
 };
 
-
-
+// Update an Institute
 exports.updateInstitute = async (req, res) => {
     const Institute = createInstitutesModel(req.collegeDB);
     const { instituteID, updatedData } = req.body;
 
-    // Ensure the request body contains the necessary data
     if (!instituteID || !updatedData || typeof updatedData !== 'object') {
         return res.status(400).json({ message: 'Invalid institute ID or update data' });
     }
@@ -83,16 +76,14 @@ exports.updateInstitute = async (req, res) => {
             return res.status(404).json({ message: "Document not found" });
         }
 
-        // Find the institute by its ID
         const instituteIndex = instituteDoc.data.findIndex(inst => inst._id.toString() === instituteID);
         if (instituteIndex === -1) {
             return res.status(404).json({ message: "Institute not found" });
         }
 
-        // Update the institute data while preserving the original ID and other fields
         instituteDoc.data[instituteIndex] = {
-            ...instituteDoc.data[instituteIndex].toObject(), // Preserve existing fields
-            ...updatedData // Apply updated fields
+            ...instituteDoc.data[instituteIndex].toObject(),
+            ...updatedData
         };
 
         await instituteDoc.save();
@@ -104,14 +95,13 @@ exports.updateInstitute = async (req, res) => {
     }
 };
 
-
-
+// Delete Institute(s)
 exports.deleteInstitutes = async (req, res) => {
     const Institute = createInstitutesModel(req.collegeDB);
-    const { ids } = req.body; // Expecting a single ID for deletion or an array of IDs
+    const { ids } = req.body;
 
     if (!ids) {
-        return res.status(400).json({ message: "Institute ID is required" });
+        return res.status(400).json({ message: "Institute ID(s) required" });
     }
 
     try {
@@ -121,10 +111,7 @@ exports.deleteInstitutes = async (req, res) => {
             return res.status(404).json({ message: "Document not found" });
         }
 
-        // If instituteID is an array, delete multiple institutes, otherwise delete one
         const instituteIds = Array.isArray(ids) ? ids : [ids];
-
-        // Filter out the institutes that match the given ID(s)
         const updatedInstitutes = instituteDoc.data.filter(inst => !instituteIds.includes(inst._id.toString()));
 
         if (updatedInstitutes.length === instituteDoc.data.length) {
@@ -136,9 +123,7 @@ exports.deleteInstitutes = async (req, res) => {
         res.status(200).json({ message: "Institute(s) deleted successfully" });
 
     } catch (error) {
-        console.error("Error in deleteInstitute:", error.message);
+        console.error("Error in deleteInstitutes:", error.message);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
-
-
