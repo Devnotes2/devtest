@@ -7,7 +7,7 @@ const GradesSchema = new Schema({
     required: true,
   },
   gradeCode: {
-    type: String,  // Numeric code for the grade
+    type: mongoose.Schema.Types.ObjectId,  // Numeric code for the grade
     required: true
   },
   gradeDescription: {
