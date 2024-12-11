@@ -10,7 +10,7 @@ exports.gradesInInstituteAg = async (req, res) => {
     // Build the match conditions based on filters
     const matchConditions = {};
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
-    if (gradeCode) matchConditions.gradeCode = Number(gradeCode);
+    if (gradeCode) matchConditions.gradeCode = new ObjectId(gradeCode);
     if (isElective) matchConditions.isElective = new ObjectId(isElective);
     if (gradeDuration) matchConditions.gradeDuration = new ObjectId(gradeDuration);
 
