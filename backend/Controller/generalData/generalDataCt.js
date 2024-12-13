@@ -69,7 +69,7 @@ exports.updateGeneraldata = async (req, res) => {
           { new: true }
       );
       if (result) {
-          return res.status(200).json(result);
+          return res.status(200).json({ message: 'Generaldata Updated successfully' });
       } else {
           return res.status(404).json({ message: 'Generaldata item not found' });
       }

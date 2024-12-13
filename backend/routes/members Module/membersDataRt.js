@@ -1,11 +1,10 @@
+// membersDataRt.js (Route file)
 const express = require('express');
 const router = express.Router();
+const membersDataCt = require('../../Controller/membersModule/membersDataCt');  // Controller for handling member data
+const upload = require('../../Utilities/multer');  // Import multer configuration
 
-const gradeBatchesCt = require('../../Controller/membersModule/membersDataCt');
-
-router.get('/gradeBatchesInInstitute',membersDataCt.gradeBatchesInInstituteAg);
-router.post('/gradeBatchesInInstitute',membersDataCt.createGradeBatchesInInstitute);
-router.put('/gradeBatchesInInstitute',membersDataCt.updateGradeBatchesInInstitute);
-router.delete('/gradeBatchesInInstitute',membersDataCt.deleteGradeBatchesInInstitute);
+// POST route for adding member data with image upload
+router.post('/member', upload, membersDataCt.createMembersData);  // Apply upload middleware before the controller
 
 module.exports = router;

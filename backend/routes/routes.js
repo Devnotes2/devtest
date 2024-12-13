@@ -23,5 +23,7 @@ router.use('/instituteAggreRt', require('./aggregation/subjectsRt'));
 //  metaData
 router.use('/generalDataRt', require('./generalDataRt'));
 
+// members Module
+router.use('/membersDataRt', require('./members Module/membersDataRt'));
 
 module.exports = router;
