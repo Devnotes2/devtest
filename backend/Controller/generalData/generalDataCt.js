@@ -95,10 +95,11 @@ exports.deleteGeneraldata = async (req, res) => {
         if (!generalDataDoc) {
             return res.status(404).json({ message: 'Document not found' });
         }
-
+        console.log(generalDataDoc);
         // Filter out the items that match the given ids
         const updatedData = generalDataDoc.data.filter(item => !ids.includes(item._id));
-        console.log(ids);
+        console.log(updatedData);
+        
         // If no items were removed, return a 404 response
         if (updatedData.length === generalDataDoc.data.length) {
             return res.status(404).json({ message: 'No matching items found for deletion' });

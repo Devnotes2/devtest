@@ -15,4 +15,11 @@ router.post('/institutes', institutesCt.insertInstitute);
 router.put('/institutes', institutesCt.updateInstitute);
 router.delete('/institutes', institutesCt.deleteInstitutes);
 
+const departmentCt = require('../Controller/institueData/departmentCt');
+
+// router.get('/institutes/:instituteID?', departmentCt.getDepartments);
+// router.post('/institutes', departmentCt.insertDepartment);
+// router.put('/institutes', departmentCt.updateDepartment);
+// router.delete('/institutes', departmentCt.deleteDepartment);
+
 module.exports = router;
