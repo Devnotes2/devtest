@@ -2,7 +2,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const createUserModel = require('../Model/regLoginMd');
+const createUserModel = require('../../Model/authentication/regLoginMd');
 
 exports.register = async (req, res) => {
   const User = createUserModel(req.collegeDB);

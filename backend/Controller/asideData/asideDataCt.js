@@ -1,4 +1,4 @@
-const createAsideDataModel = require('../Model/asideDataMd'); // Assuming your model is in models/AsideData.js
+const createAsideDataModel = require('../../Model/asideData/asideDataMd'); // Assuming your model is in models/AsideData.js
 
 // GET aside data by type (menu, member, etc.)
 exports.asideData =  async (req, res) => {
