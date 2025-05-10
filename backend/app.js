@@ -3,11 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const multiTenantMiddleware = require('./config/multiTenantMiddleware');
 // eslint-disable-next-line import/no-extraneous-dependencies
-// const myReqLogger = require('./Utilities/ReqLogger');
 const compression = require('compression');
 require('dotenv').config();
 const cookieParser = require('cookie-parser');
-const route = require('./routes/routes');
+const route = require('./Routes/routes');
 
 const app = express();
 const allowedOrigins = [

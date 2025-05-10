@@ -1,52 +1,48 @@
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
+const { handleCRUD } = require('../../../Utilities/crudUtils');
 
 exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  const { ids, aggregate, instituteId, gradeId, gradeSectionId } = req.query; // Accept new filters
+  const { ids, aggregate, instituteId, gradeId, gradeSectionId } = req.query;
 
   try {
-    // Build the match conditions based on filters
     const matchConditions = {};
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
     if (gradeSectionId) matchConditions.gradeSectionId = new ObjectId(gradeSectionId);
 
-    // When ids are passed, return the raw data without aggregation
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
-      matchConditions._id = { $in: objectIds };
+      const matchingData = await handleCRUD(GradeSectionBatchesInInstitute, 'find', { _id: { $in: objectIds }, ...matchConditions });
 
       if (aggregate === 'false') {
-        // Return the raw data without aggregation
-        const matchingData = await GradeSectionBatchesInInstitute.find(matchConditions);
         return res.status(200).json(matchingData);
       }
 
-      // Return aggregated data for selected ids
       const aggregatedData = await GradeSectionBatchesInInstitute.aggregate([
-        { $match: matchConditions },
+        { $match: { _id: { $in: objectIds }, ...matchConditions } },
         {
           $lookup: {
-            from: "instituteData",
-            let: { instituteId: "$instituteId" },
+            from: 'instituteData',
+            let: { instituteId: '$instituteId' },
             pipeline: [
-              { $match: { _id: "institutes" } },
-              { $unwind: "$data" },
-              { $match: { $expr: { $eq: ["$data._id", "$$instituteId"] } } },
-              { $project: { instituteName: "$data.instituteName", instituteId: "$data._id" } }
+              { $match: { _id: 'institutes' } },
+              { $unwind: '$data' },
+              { $match: { $expr: { $eq: ['$data._id', '$$instituteId'] } } },
+              { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
             ],
-            as: "instituteDetails"
+            as: 'instituteDetails'
           }
         },
-        { $unwind: "$instituteDetails" },
+        { $unwind: '$instituteDetails' },
         {
           $lookup: {
-            from: "grades",
-            let: { gradeId: "$gradeId" },
+            from: 'grades',
+            let: { gradeId: '$gradeId' },
             pipeline: [
-              { $match: { $expr: { $eq: ["$_id", "$$gradeId"] } } },
+              { $match: { $expr: { $eq: ['$_id', '$$gradeId'] } } },
               {
                 $project: {
                   gradeCode: 1,
@@ -56,36 +52,36 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
                 }
               }
             ],
-            as: "gradeDetails"
+            as: 'gradeDetails'
           }
         },
-        { $unwind: { path: "$gradeDetails", preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
         {
           $lookup: {
-            from: "gradesections",
-            let: { gradeSectionId: "$gradeSectionId" },
+            from: 'gradesections',
+            let: { gradeSectionId: '$gradeSectionId' },
             pipeline: [
-              { $match: { $expr: { $eq: ["$_id", "$$gradeSectionId"] } } },
+              { $match: { $expr: { $eq: ['$_id', '$$gradeSectionId'] } } },
               {
                 $project: {
-                  section: 1,
+                  section: 1
                 }
               }
             ],
-            as: "gradeSectionDetails"
+            as: 'gradeSectionDetails'
           }
         },
-        { $unwind: { path: "$gradeSectionDetails", preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
         {
           $project: {
             gradeSectionBatch: 1,
-            instituteName: "$instituteDetails.instituteName",
-            instituteId: "$instituteDetails.instituteId",
-            gradeCode: "$gradeDetails.gradeCode",
-            gradeDescription: "$gradeDetails.gradeDescription",
-            gradeDuration: "$gradeDetails.gradeDuration",
-            isElective: "$gradeDetails.isElective",
-            section: "$gradeSectionDetails.section",
+            instituteName: '$instituteDetails.instituteName',
+            instituteId: '$instituteDetails.instituteId',
+            gradeCode: '$gradeDetails.gradeCode',
+            gradeDescription: '$gradeDetails.gradeDescription',
+            gradeDuration: '$gradeDetails.gradeDuration',
+            isElective: '$gradeDetails.isElective',
+            section: '$gradeSectionDetails.section'
           }
         }
       ]);
@@ -93,29 +89,28 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
       return res.status(200).json(aggregatedData);
     }
 
-    // If no ids are passed, return all grade section batches with aggregation and filters
     const allData = await GradeSectionBatchesInInstitute.aggregate([
-      { $match: matchConditions },
+      { $match: { ...matchConditions } },
       {
         $lookup: {
-          from: "instituteData",
-          let: { instituteId: "$instituteId" },
+          from: 'instituteData',
+          let: { instituteId: '$instituteId' },
           pipeline: [
-            { $match: { _id: "institutes" } },
-            { $unwind: "$data" },
-            { $match: { $expr: { $eq: ["$data._id", "$$instituteId"] } } },
-            { $project: { instituteName: "$data.instituteName", instituteId: "$data._id" } }
+            { $match: { _id: 'institutes' } },
+            { $unwind: '$data' },
+            { $match: { $expr: { $eq: ['$data._id', '$$instituteId'] } } },
+            { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
           ],
-          as: "instituteDetails"
+          as: 'instituteDetails'
         }
       },
-      { $unwind: "$instituteDetails" },
+      { $unwind: '$instituteDetails' },
       {
         $lookup: {
-          from: "grades",
-          let: { gradeId: "$gradeId" },
+          from: 'grades',
+          let: { gradeId: '$gradeId' },
           pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$gradeId"] } } },
+            { $match: { $expr: { $eq: ['$_id', '$$gradeId'] } } },
             {
               $project: {
                 gradeCode: 1,
@@ -125,138 +120,99 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
               }
             }
           ],
-          as: "gradeDetails"
+          as: 'gradeDetails'
         }
       },
-      { $unwind: { path: "$gradeDetails", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
-          from: "gradesections",
-          let: { gradeSectionId: "$gradeSectionId" },
+          from: 'gradesections',
+          let: { gradeSectionId: '$gradeSectionId' },
           pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$gradeSectionId"] } } },
+            { $match: { $expr: { $eq: ['$_id', '$$gradeSectionId'] } } },
             {
               $project: {
-                section: 1,
+                section: 1
               }
             }
           ],
-          as: "gradeSectionDetails"
+          as: 'gradeSectionDetails'
         }
       },
-      { $unwind: { path: "$gradeSectionDetails", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           gradeSectionBatch: 1,
-          instituteName: "$instituteDetails.instituteName",
-          instituteId: "$instituteDetails.instituteId",
-          gradeCode: "$gradeDetails.gradeCode",
-          gradeDescription: "$gradeDetails.gradeDescription",
-          gradeDuration: "$gradeDetails.gradeDuration",
-          isElective: "$gradeDetails.isElective",
-          section: "$gradeSectionDetails.section",
+          instituteName: '$instituteDetails.instituteName',
+          instituteId: '$instituteDetails.instituteId',
+          gradeCode: '$gradeDetails.gradeCode',
+          gradeDescription: '$gradeDetails.gradeDescription',
+          gradeDuration: '$gradeDetails.gradeDuration',
+          isElective: '$gradeDetails.isElective',
+          section: '$gradeSectionDetails.section'
         }
       }
     ]);
 
     return res.status(200).json(allData);
   } catch (error) {
-    console.error("Error in gradeSectionBatchesInInstituteAg:", error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-  
-  
 exports.createGradeSectionBatchesInInstitute = async (req, res) => {
-    try {
-        const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-        
-        const { instituteId, gradeId, gradeSectionBatch ,gradeSectionId} = req.body;
-        
-        // Create a new grade document
-        const newGradeSection = new GradeSectionBatchesInInstitute({
-            instituteId,
-            gradeSectionBatch,
-            gradeId,
-            gradeSectionId
-        });
-        
-        // Save the new grade to the database
-        await newGradeSection.save();
-        
-        // Send a success response
-        res.status(200).json({
-            message: 'GradeSection added successfully!',
-            data: newGradeSection
-        });
-    } catch (error) {
-        console.error('Error adding grade:', error);
-        res.status(500).json({ error: 'Failed to add grade', details: error.message });
-    }
+  const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
+  const { instituteId, gradeId, gradeSectionBatch, gradeSectionId } = req.body;
+
+  try {
+    const newGradeSection = await handleCRUD(GradeSectionBatchesInInstitute, 'create', {}, {
+      instituteId,
+      gradeSectionBatch,
+      gradeId,
+      gradeSectionId
+    });
+
+    res.status(200).json({
+      message: 'GradeSection added successfully!',
+      data: newGradeSection
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add grade', details: error.message });
+  }
 };
 
-// DELETE /api/gradeSectionBatches-institute
 exports.deleteGradeSectionBatchesInInstitute = async (req, res) => {
-    const { ids } = req.body;
-  
-    try {
-      const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  
-      // Find the gradeSectionBatches that match the ids
-      const result = await GradeSectionBatchesInInstitute.deleteMany({ _id: { $in: ids.map(id =>id) } });
-  
-      if (result.deletedCount > 0) {
-        res.status(200).json({ message: 'GradeSectionBatches deleted successfully' });
-      } else {
-        res.status(404).json({ message: 'No matching gradeSectionBatches found' });
-      }
-    } catch (error) {
-      console.error('Error during delete:', error);
-      res.status(500).json({ error: 'Failed to delete gradeSectionBatches', details: error.message });
-    }
-  };
-  
+  const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
+  const { ids } = req.body;
 
-  // PUT /api/gradeSectionBatches-institute
+  try {
+    const result = await handleCRUD(GradeSectionBatchesInInstitute, 'delete', { _id: { $in: ids.map(id => id) } });
+
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: 'GradeSectionBatches deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'No matching gradeSectionBatches found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete gradeSectionBatches', details: error.message });
+  }
+};
+
 exports.updateGradeSectionBatchesInInstitute = async (req, res) => {
-    const { _id, updatedData } = req.body;
-  
-    try {
-      const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  
-      // Retrieve the current document before the update
-      const currentDoc = await GradeSectionBatchesInInstitute.findOne(
-        { _id, "data._id": _id },
-        { "data.$": 1 }
-      );
-      console.log('Current Document:', currentDoc);
-  
-      const updateObject = {};
-      if (updatedData.instituteId) updateObject["instituteId"] = updatedData.instituteId;
-      if (updatedData.gradeId) updateObject["gradeId"] = updatedData.gradeId;
-      if (updatedData.gradeSectionBatch) updateObject["gradeSectionBatch"] = updatedData.gradeSectionBatch;
-      if (updatedData.gradeSectionId) updateObject["gradeSectionId"] = updatedData.gradeSectionId;
+  const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
+  const { _id, updatedData } = req.body;
 
-      console.log('Update Object:', updateObject);
-  
-      const result = await GradeSectionBatchesInInstitute.updateOne(
-        { _id },
-        { $set: updateObject }
-      );
-  
-      console.log('Update Result:', result);
-  
-      if (result.modifiedCount > 0) {
-        res.status(200).json({ message: 'GradeSection updated successfully' });
-      } else if(result.matchedCount > 0 && result.modifiedCount === 0) {
-        res.status(200).json({ message: 'No updates were made' });
-      } else {
-        res.json({ message: 'No matching grade found or values are unchanged' });
-      }
-    } catch (error) {
-      console.error('Error during update:', error);
-      res.status(500).json({ error: 'Failed to update grade', details: error.message });
+  try {
+    const result = await handleCRUD(GradeSectionBatchesInInstitute, 'update', { _id }, { $set: updatedData });
+
+    if (result.modifiedCount > 0) {
+      res.status(200).json({ message: 'GradeSection updated successfully' });
+    } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
+      res.status(200).json({ message: 'No updates were made' });
+    } else {
+      res.status(404).json({ message: 'No matching gradeSection found or values are unchanged' });
     }
-  };
-  
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update gradeSection', details: error.message });
+  }
+};

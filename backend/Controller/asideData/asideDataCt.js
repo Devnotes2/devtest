@@ -1,11 +1,11 @@
-const createAsideDataModel = require('../../Model/asideData/asideDataMd'); // Assuming your model is in models/AsideData.js
+const createAsideDataModel = require('../../Model/asideData/asideDataMd');
+const { handleCRUD } = require('../../Utilities/crudUtils');
 
-// GET aside data by type (menu, member, etc.)
-exports.asideData =  async (req, res) => {
-const AsideData = createAsideDataModel(req.collegeDB);
+exports.asideData = async (req, res) => {
+  const AsideData = createAsideDataModel(req.collegeDB);
   try {
     const { type } = req.params;
-    const asideData = await AsideData.findById({_id:type});
+    const asideData = await handleCRUD(AsideData, 'findOne', { _id: type });
     if (!asideData) {
       return res.status(404).json({ message: `${type} not found` });
     }
@@ -13,4 +13,4 @@ const AsideData = createAsideDataModel(req.collegeDB);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
-}
+};
