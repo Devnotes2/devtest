@@ -1,27 +1,49 @@
 const mongoose = require('mongoose');
 
-// Define the schema for each institute
-const instituteSchema = new mongoose.Schema({
-    instituteName: String,
-    address: String,
-    city: String,
-    district: String,
-    state: String,
-    country: String,
-    pinCode: Number,
-    contactNo1: String,
-    contactNo2: String,
-    emailId: String,
-}, { _id: true }); // Auto-generates _id for each institute
+// Define the schema for individual institutes
+const institutesDataSchema = new mongoose.Schema({
+  instituteName: {
+    type: String,
+    required: true,
+  },
+  address: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  district: {
+    type: String,
+  },
+  state: {
+    type: String,
+    required: true,
+  },
+  country: {
+    type: String,
+    required: true,
+  },
+  pinCode: {
+    type: Number,
+    required: true,
+  },
+  contactNo1: {
+    type: String,
+    required: true,
+  },
+  contactNo2: {
+    type: String,
+  },
+  emailId: {
+    type: String,
+    required: true,
+  },
+}, { collection: 'instituteData' }); // Use a new collection for institutes data
 
-// Define the schema for institutes collection
-const institutesSchema = new mongoose.Schema({
-    _id: String, // This will be 'institutes'
-    data: [instituteSchema] // Array of institutes, each with an auto-generated _id
-}, { collection: 'instituteData' });
-
-const createInstitutesModel = (connection) => {
-    return connection.model('institutes', institutesSchema);
+const createInstitutesDataModel = (connection) => {
+  return connection.model('instituteData', institutesDataSchema);
 };
 
-module.exports = createInstitutesModel;
+module.exports = createInstitutesDataModel;

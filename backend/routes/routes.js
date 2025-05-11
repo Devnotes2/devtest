@@ -3,22 +3,21 @@ const authMiddleware = require('../Utilities/authUtils');
 
 const router = express.Router();
 
-// const SampleRt = require('./SampleRt');
-// const regLoginRt = require('./regLoginRt');
-// const asideDataRt = require('./asideDataRt');
-
-
+// authentication 
 router.use('/regLoginRt', require('./authentication/regLoginRt'));
 router.use('/asideDataRt', require('./asideData/asideDataRt'));
 
 // instituteData
-router.use('/instituteDataRt', require('./instituteData/instituteDataRt'));
-router.use('/instituteAggreRt', require('./aggregation/locationTypesInInstituteRt'));
-router.use('/instituteAggreRt', require('./aggregation/gradesRt'));
-router.use('/instituteAggreRt', require('./aggregation/gradeSectionsRt'));
-router.use('/instituteAggreRt', require('./aggregation/gradeBatchesRt'));
-router.use('/instituteAggreRt', require('./aggregation/gradeSectionBatchesRt'));
-router.use('/instituteAggreRt', require('./aggregation/subjectsRt'));
+router.use('/instituteDataRt', require('./instituteData/institutesRt'));
+router.use('/instituteDataRt', require('./instituteData/academicYearRt'));
+
+// institution aggregation
+router.use('/instituteAggreRt', require('./instituteData/aggregation/locationTypesInInstituteRt'));
+router.use('/instituteAggreRt', require('./instituteData/aggregation/gradesRt'));
+router.use('/instituteAggreRt', require('./instituteData/aggregation/gradeSectionsRt'));
+router.use('/instituteAggreRt', require('./instituteData/aggregation/gradeBatchesRt'));
+router.use('/instituteAggreRt', require('./instituteData/aggregation/gradeSectionBatchesRt'));
+router.use('/instituteAggreRt', require('./instituteData/aggregation/subjectsRt'));
 
 //  metaData
 router.use('/generalDataRt', require('./generalData/generalDataRt'));

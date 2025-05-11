@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const subjectsCt = require('../../Controller/institueData/aggregation/subjectsCt');
+const subjectsCt = require('../../../Controller/instituteData/aggregation/subjectsCt');
 
 router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
 router.post('/subjectsInInstitute',subjectsCt.createSubjectsInInstitute);

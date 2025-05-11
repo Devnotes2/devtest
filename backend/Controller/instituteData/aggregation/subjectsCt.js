@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createSubjectsInInstituteModel = require('../../../Model/instituteData/aggregation/subjectsMd.js');
-const { handleCRUD } = require('../../../Utilities/crudUtils');
+const { handleCRUD } = require('../../../Utilities/crudUtils.js');
 
 exports.subjectsInInstituteAg = async (req, res) => {
   const { ids, aggregate, instituteId, subjectCode, isElective, learningTypeId, subjectTypeId, gradeId } = req.query;

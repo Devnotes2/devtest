@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const dataSchema = new Schema({
   instituteId: { type: Schema.Types.ObjectId, ref: 'Institute' },  // Reference to Institute collection
-  locationType: { type: Number },  // Assuming locationType is now a number, based on the given structure
+  locationType: { type: Schema.Types.ObjectId },  // Assuming locationType is now a number, based on the given structure
   capacity: { type: Number},
   description: { type: String},
   location: { type: String }

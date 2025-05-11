@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const gradeSectionBatchesCt = require('../../Controller/institueData/aggregation/gradeSectionBatchesCt');
+const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggregation/gradeSectionBatchesCt');
 
 router.get('/gradeSectionBatchesInInstitute',gradeSectionBatchesCt.gradeSectionBatchesInInstituteAg);
 router.post('/gradeSectionBatchesInInstitute',gradeSectionBatchesCt.createGradeSectionBatchesInInstitute);

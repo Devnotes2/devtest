@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const gradeSectionsCt = require('../../Controller/institueData/aggregation/gradeSectionsCt');
+const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/gradeSectionsCt');
 router.get('/gradeSectionsInInstitute',gradeSectionsCt.gradeSectionsInInstituteAg);
 // router.get('/gradeSectionsInInstitute/:_id?',gradeSectionsCt.gradeSectionsInInstitute);
 
