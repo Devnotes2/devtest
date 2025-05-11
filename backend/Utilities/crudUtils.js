@@ -8,7 +8,7 @@ exports.handleCRUD = async (Model, operation, query = {}, data = {}) => {
       case 'create':
         return await Model.create(data);
       case 'update':
-        return await Model.findOneAndUpdate(query, data, { new: true });
+        return await Model.updateOne(query, data);
       case 'delete':
         return await Model.findOneAndDelete(query);
       default:

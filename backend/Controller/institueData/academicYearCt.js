@@ -39,7 +39,7 @@ exports.insertAcademicYear = async (req, res) => {
         _id: 'academicYear',
         data: [newYear],
       });
-      return res.status(201).json({ message: 'Document created with new academic year', newDoc });
+      return res.status(200).json({ message: 'Document created with new academic year', newDoc });
     }
 
     academicYearDoc.data.push(newYear);

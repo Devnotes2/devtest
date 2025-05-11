@@ -187,7 +187,10 @@ exports.updateGradesInInstitute = async (req, res) => {
   const { _id, updatedData } = req.body;
 
   try {
+    console.log("Update Request Body:", req.body); // Log the request body
     const result = await handleCRUD(GradesInInstitute, 'update', { _id }, { $set: updatedData });
+
+    console.log("Update Result:", result); // Log the result of the update operation
 
     if (result.modifiedCount > 0) {
       res.status(200).json({ message: 'Grade updated successfully' });
@@ -197,7 +200,7 @@ exports.updateGradesInInstitute = async (req, res) => {
       res.status(404).json({ message: 'No matching grade found or values are unchanged' });
     }
   } catch (error) {
+    console.error("Update Error:", error); // Log the error
     res.status(500).json({ error: 'Failed to update grade', details: error.message });
   }
 };
-
