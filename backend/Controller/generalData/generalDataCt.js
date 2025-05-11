@@ -1,5 +1,6 @@
 const createGeneralDataModel = require('../../Model/generalData/generalDataMd');
 const { handleCRUD } = require('../../Utilities/crudUtils');
+const { ObjectId } = require('mongoose').Types;
 
 exports.getGeneraldata = async (req, res) => {
   const GeneralData = createGeneralDataModel(req.collegeDB);
@@ -83,7 +84,10 @@ exports.deleteGeneraldata = async (req, res) => {
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    const updatedData = generalDataDoc.data.filter(item => !ids.includes(item._id));
+    // Convert ids to ObjectId for comparison
+    const objectIds = ids.map(id => new ObjectId(id));
+
+    const updatedData = generalDataDoc.data.filter(item => !objectIds.some(oid => oid.equals(item._id)));
 
     if (updatedData.length === generalDataDoc.data.length) {
       return res.status(404).json({ message: 'No matching items found for deletion' });
