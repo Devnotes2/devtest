@@ -1,18 +1,14 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const dataSchema = new Schema({
-  instituteId: { type: Schema.Types.ObjectId, ref: 'Institute' },  // Reference to Institute collection
-  locationType: { type: Schema.Types.ObjectId },  // Assuming locationType is now a number, based on the given structure
-  capacity: { type: Number},
-  description: { type: String},
-  location: { type: String }
-});
-
+// Define the schema for individual location types in institutes
 const locationTypesInInstituteSchema = new Schema({
-  _id: { type: String, required: true, default: 'locationTypesInInstitute' },  // Static _id
-  data: [dataSchema]  // Array of location data as per your structure
-}, { collection: 'instituteAggre' });
+  instituteId: { type: Schema.Types.ObjectId, ref: 'Institute', required: true }, // Reference to Institute collection
+  locationType: { type: Schema.Types.ObjectId, required: true }, // Reference to location type
+  capacity: { type: Number, required: true },
+  description: { type: String, required: true },
+  location: { type: String, required: true },
+}, { collection: 'locationTypesInInstitute' }); // Use a new collection
 
 const createLocationTypesInInstituteModel = (connection) => {
   return connection.model('LocationTypesInInstitute', locationTypesInInstituteSchema);

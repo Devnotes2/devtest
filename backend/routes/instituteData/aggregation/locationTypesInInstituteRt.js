@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const locationTypesInInstituteCt = require('../../../Controller/instituteData/aggregation/locationTypesInInstituteCt');
-router.get('/locationTypesInInstitute',locationTypesInInstituteCt.getLocationTypesInInstituteAg);
+router.get('/locationTypesInInstitute',locationTypesInInstituteCt.getLocationTypesInInstituteAgs);
 // router.get('/locationTypesInInstitute',locationTypesInInstituteCt.getLocationTypesInInstitute);
 router.get('/locationTypesInInstitute/:_id?',locationTypesInInstituteCt.getLocationTypesInInstitute);
 

@@ -3,88 +3,121 @@ const { ObjectId } = require('mongoose').Types;
 const createLocationTypesInInstituteModel = require('../../../Model/instituteData/aggregation/locationTypesInInstituteMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
 
-exports.getLocationTypesInInstituteAgs = async (req, res) => {
-  try {
-    const aggregationPipeline = [
-      { "$unwind": "$data" },
-      {
-        "$lookup": {
-          "from": "instituteData",
-          "let": { "instituteId": { "$toString": "$data.instituteId" } },
-          "pipeline": [
-            { "$match": { "_id": "institutes" } },
-            { "$unwind": "$data" },
-            { "$match": { "$expr": { "$eq": [{ "$toString": "$data._id" }, "$$instituteId"] } } }
-          ],
-          "as": "matchedInstitute"
-        }
-      },
-      { "$unwind": { "path": "$matchedInstitute", "preserveNullAndEmptyArrays": true } },
-      {
-        "$lookup": {
-          "from": "generalData",
-          "let": { "locationType": "$data.locationType" },
-          "pipeline": [
-            { "$match": { "_id": "locationTypes" } },
-            { "$unwind": "$data" },
-            { "$match": { "$expr": { "$eq": ["$data._id", "$$locationType"] } } }
-          ],
-          "as": "locationInfo"
-        }
-      },
-      { "$unwind": { "path": "$locationInfo", "preserveNullAndEmptyArrays": true } },
-      {
-        "$set": {
-          "data.instituteId": "$matchedInstitute.data.instituteName",
-          "data.locationType": "$locationInfo.data.value"
-        }
-      },
-      { "$unset": ["matchedInstitute", "locationInfo"] },
-      {
-        "$group": {
-          "_id": "$_id",
-          "data": { "$push": "$data" },
-          "__v": { "$first": "$__v" }
-        }
-      }
-    ];
+// Get all location types or a specific location type by ID
+exports.getLocationTypesInInstitute = async (req, res) => {
+  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
+  const { id } = req.params;
 
-    return handleCRUD.aggregate(req, res, 'LocationTypesInInstitute', aggregationPipeline);
+  try {
+    if (id) {
+      const locationType = await handleCRUD(LocationTypesInInstitute, 'findOne', { _id: new ObjectId(id) });
+      if (!locationType) {
+        return res.status(404).json({ message: 'Location type not found' });
+      }
+      return res.json(locationType);
+    } else {
+      const locationTypes = await handleCRUD(LocationTypesInInstitute, 'find', {});
+      return res.json(locationTypes);
+    }
   } catch (error) {
-    console.error('Error during aggregation:', error);
-    res.status(500).json({ error: 'Failed to fetch data', details: error.message });
+    console.error('Error fetching location types:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-exports.createLocationTypesInInstitute = (req, res) => {
-  handleCRUD.create(req, res, 'LocationTypesInInstitute');
+// Add a new location type
+exports.createLocationTypesInInstitute = async (req, res) => {
+  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
+  const { newLocationType } = req.body;
+
+  try {
+    const newDoc = await handleCRUD(LocationTypesInInstitute, 'create', {}, newLocationType);
+    res.status(200).json({ message: 'Location type added successfully', newDoc });
+  } catch (error) {
+    console.error('Error creating location type:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 };
 
-exports.updateLocationTypesInInstitute = (req, res) => {
-  handleCRUD.updateOne(req, res, 'LocationTypesInInstitute', {
-    arrayFilters: [{ "elem._id": req.body._id }],
-    updateFields: req.body.updatedData
-  });
+// Update a location type
+exports.updateLocationTypesInInstitute = async (req, res) => {
+  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
+  const { id, updatedData } = req.body;
+
+  try {
+    const result = await handleCRUD(LocationTypesInInstitute, 'update', { _id: new ObjectId(id) }, { $set: updatedData });
+
+    if (result.modifiedCount > 0) {
+      res.status(200).json({ message: 'Location type updated successfully' });
+    } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
+      res.status(200).json({ message: 'No updates were made' });
+    } else {
+      res.status(404).json({ message: 'Location type not found' });
+    }
+  } catch (error) {
+    console.error('Error updating location type:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 };
 
-exports.deleteLocationTypesInInstitute = (req, res) => {
-  handleCRUD.deleteMany(req, res, 'LocationTypesInInstitute', {
-    arrayFilters: [{ "elem._id": { $in: req.body.ids } }]
-  });
+// Delete location types
+exports.deleteLocationTypesInInstitute = async (req, res) => {
+  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
+  const { ids } = req.body;
+
+  try {
+    const result = await handleCRUD(LocationTypesInInstitute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: 'Location type(s) deleted successfully', deletedCount: result.deletedCount });
+    } else {
+      res.status(404).json({ message: 'No matching location types found for deletion' });
+    }
+  } catch (error) {
+    console.error('Error deleting location types:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 };
 
-exports.getLocationTypesInInstitute = (req, res) => {
-  handleCRUD.findById(req, res, 'LocationTypesInInstitute', req.params._id);
-};
+// Aggregation for enriched data
+exports.getLocationTypesInInstituteAgs = async (req, res) => {
+  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
 
-exports.getLocationTypesInInstituteAg = (req, res) => {
-  const { ids } = req.query;
+  try {
+    const aggregationPipeline = [
+      {
+        $lookup: {
+          from: 'instituteData',
+          localField: 'instituteId',
+          foreignField: '_id',
+          as: 'instituteDetails',
+        },
+      },
+      { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'generalData',
+          localField: 'locationType',
+          foreignField: '_id',
+          as: 'locationTypeDetails',
+        },
+      },
+      { $unwind: { path: '$locationTypeDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          instituteName: '$instituteDetails.data.instituteName',
+          locationType: '$locationTypeDetails.data.value',
+          capacity: 1,
+          description: 1,
+          location: 1,
+        },
+      },
+    ];
 
-  if (ids && Array.isArray(ids)) {
-    handleCRUD.find(req, res, 'LocationTypesInInstitute', {
-      _id: { $in: ids.map(id => new ObjectId(id)) }
-    });
-  } else {
-    exports.getLocationTypesInInstituteAgs(req, res);
+    const result = await LocationTypesInInstitute.aggregate(aggregationPipeline);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error during aggregation:', error);
+    res.status(500).json({ error: 'Failed to fetch data', details: error.message });
   }
 };
