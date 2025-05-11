@@ -6,7 +6,7 @@ const multiTenantMiddleware = require('./config/multiTenantMiddleware');
 const compression = require('compression');
 require('dotenv').config();
 const cookieParser = require('cookie-parser');
-const route = require('./Routes/routes');
+const route = require('./routes/routes');
 
 const app = express();
 const allowedOrigins = [
