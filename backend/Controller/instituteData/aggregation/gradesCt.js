@@ -26,14 +26,9 @@ exports.gradesInInstituteAg = async (req, res) => {
         { $match: { _id: { $in: objectIds }, ...matchConditions } },
         {
           $lookup: {
-            from: 'instituteData',
-            let: { gradeInstituteId: '$instituteId' },
-            pipeline: [
-              { $match: { _id: 'institutes' } },
-              { $unwind: '$data' },
-              { $match: { $expr: { $eq: ['$data._id', '$$gradeInstituteId'] } } },
-              { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
-            ],
+            from: 'instituteData', // Reference the new structure
+            localField: 'instituteId',
+            foreignField: '_id',
             as: 'instituteDetails'
           }
         },
@@ -71,7 +66,7 @@ exports.gradesInInstituteAg = async (req, res) => {
             gradeCode: 1,
             gradeDescription: 1,
             instituteName: '$instituteDetails.instituteName',
-            instituteId: '$instituteDetails.instituteId',
+            instituteId: '$instituteDetails._id',
             gradeDuration: '$gradeDurationDetails.gradeDurationValue',
             isElective: '$isElectiveDetails.isElectiveValue'
           }
@@ -85,14 +80,9 @@ exports.gradesInInstituteAg = async (req, res) => {
       { $match: { ...matchConditions } },
       {
         $lookup: {
-          from: 'instituteData',
-          let: { gradeInstituteId: '$instituteId' },
-          pipeline: [
-            { $match: { _id: 'institutes' } },
-            { $unwind: '$data' },
-            { $match: { $expr: { $eq: ['$data._id', '$$gradeInstituteId'] } } },
-            { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
-          ],
+          from: 'instituteData', // Reference the new structure
+          localField: 'instituteId',
+          foreignField: '_id',
           as: 'instituteDetails'
         }
       },
@@ -119,29 +109,29 @@ exports.gradesInInstituteAg = async (req, res) => {
             { $match: { _id: 'booleanChoices' } },
             { $unwind: '$data' },
             { $match: { $expr: { $eq: ['$data._id', '$$electiveFlag'] } } },
-            { $project: { isElectiveValue: '$data.value' } }
-          ],
-          as: 'isElectiveDetails'
+              { $project: { isElectiveValue: '$data.value' } }
+            ],
+            as: 'isElectiveDetails'
+          }
+        },
+        { $unwind: '$isElectiveDetails' },
+        {
+          $project: {
+            gradeCode: 1,
+            gradeDescription: 1,
+            instituteName: '$instituteDetails.instituteName',
+            instituteId: '$instituteDetails._id',
+            gradeDuration: '$gradeDurationDetails.gradeDurationValue',
+            isElective: '$isElectiveDetails.isElectiveValue'
+          }
         }
-      },
-      { $unwind: '$isElectiveDetails' },
-      {
-        $project: {
-          gradeCode: 1,
-          gradeDescription: 1,
-          instituteName: '$instituteDetails.instituteName',
-          instituteId: '$instituteDetails.instituteId',
-          gradeDuration: '$gradeDurationDetails.gradeDurationValue',
-          isElective: '$isElectiveDetails.isElectiveValue'
-        }
-      }
-    ]);
+      ]);
 
-    return res.status(200).json(allData);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
+      return res.status(200).json(allData);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  };
 
 exports.createGradesInInstitute = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
