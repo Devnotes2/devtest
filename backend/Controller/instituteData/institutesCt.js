@@ -1,34 +1,32 @@
 const createInstitutesModel = require('../../Model/instituteData/institutesMd');
 const { handleCRUD } = require('../../Utilities/crudUtils');
+const { ObjectId } = require('mongoose').Types;
 
-// Get Institutes or a specific Institute
+// Get all institutes or a specific institute by ID
 exports.getInstitutes = async (req, res) => {
   const Institute = createInstitutesModel(req.collegeDB);
-  const { instituteID } = req.params;
-
+  const { id } = req.params;
+  
   try {
-    const instituteDoc = await handleCRUD(Institute, 'findOne', { _id: 'institutes' });
-
-    if (!instituteDoc) {
-      return res.status(404).json({ message: 'Institutes data not found' });
-    }
-
-    if (instituteID) {
-      const institute = instituteDoc.data.find(inst => inst._id.toString() === instituteID);
+    if (id) {
+      // Fetch a specific institute by ID
+      const institute = await handleCRUD(Institute, 'findOne', { _id: new ObjectId(id) });
       if (!institute) {
         return res.status(404).json({ message: 'Institute not found' });
       }
       return res.status(200).json(institute);
     } else {
-      instituteDoc.data.sort((a, b) => a._id.toString().localeCompare(b._id.toString()));
-      return res.status(200).json(instituteDoc.data);
+      // Fetch all institutes
+      const institutes = await handleCRUD(Institute, 'find', {});
+      return res.status(200).json(institutes);
     }
   } catch (error) {
+    console.error('Error fetching institutes:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-// Add a New Institute
+// Add a new institute
 exports.insertInstitute = async (req, res) => {
   const Institute = createInstitutesModel(req.collegeDB);
   const { newInst } = req.body;
@@ -38,25 +36,15 @@ exports.insertInstitute = async (req, res) => {
   }
 
   try {
-    let instituteDoc = await handleCRUD(Institute, 'findOne', { _id: 'institutes' });
-
-    if (!instituteDoc) {
-      const newDoc = await handleCRUD(Institute, 'create', {}, {
-        _id: 'institutes',
-        data: [newInst],
-      });
-      return res.status(200).json({ message: 'Document created with new institute', newDoc });
-    }
-
-    instituteDoc.data.push(newInst);
-    await instituteDoc.save();
-    res.status(200).json({ message: 'Institute added', instituteDoc });
+    const newDoc = await handleCRUD(Institute, 'create', {}, newInst);
+    res.status(200).json({ message: 'Institute added successfully', newDoc });
   } catch (error) {
+    console.error('Error creating institute:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-// Update an Institute
+// Update an institute
 exports.updateInstitute = async (req, res) => {
   const Institute = createInstitutesModel(req.collegeDB);
   const { instituteID, updatedData } = req.body;
@@ -66,56 +54,40 @@ exports.updateInstitute = async (req, res) => {
   }
 
   try {
-    const instituteDoc = await handleCRUD(Institute, 'findOne', { _id: 'institutes' });
+    const result = await handleCRUD(Institute, 'update', { _id: new ObjectId(instituteID) }, { $set: updatedData });
 
-    if (!instituteDoc) {
-      return res.status(404).json({ message: 'Document not found' });
+    if (result.modifiedCount > 0) {
+      res.status(200).json({ message: 'Institute updated successfully' });
+    } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
+      res.status(200).json({ message: 'No updates were made' });
+    } else {
+      res.status(404).json({ message: 'Institute not found' });
     }
-
-    const instituteIndex = instituteDoc.data.findIndex(inst => inst._id.toString() === instituteID);
-    if (instituteIndex === -1) {
-      return res.status(404).json({ message: 'Institute not found' });
-    }
-
-    instituteDoc.data[instituteIndex] = {
-      ...instituteDoc.data[instituteIndex].toObject(),
-      ...updatedData,
-    };
-
-    await instituteDoc.save();
-    res.status(200).json({ message: 'Institute updated', updatedInstitute: instituteDoc.data[instituteIndex] });
   } catch (error) {
+    console.error('Error updating institute:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-// Delete Institute(s)
+// Delete institute(s)
 exports.deleteInstitutes = async (req, res) => {
   const Institute = createInstitutesModel(req.collegeDB);
   const { ids } = req.body;
 
-  if (!ids) {
+  if (!ids || !Array.isArray(ids)) {
     return res.status(400).json({ message: 'Institute ID(s) required' });
   }
 
   try {
-    const instituteDoc = await handleCRUD(Institute, 'findOne', { _id: 'institutes' });
+    const result = await handleCRUD(Institute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
 
-    if (!instituteDoc) {
-      return res.status(404).json({ message: 'Document not found' });
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: 'Institute(s) deleted successfully', deletedCount: result.deletedCount });
+    } else {
+      res.status(404).json({ message: 'No matching institutes found for deletion' });
     }
-
-    const instituteIds = Array.isArray(ids) ? ids : [ids];
-    const updatedInstitutes = instituteDoc.data.filter(inst => !instituteIds.includes(inst._id.toString()));
-
-    if (updatedInstitutes.length === instituteDoc.data.length) {
-      return res.status(404).json({ message: 'No matching institutes found for deletion' });
-    }
-
-    instituteDoc.data = updatedInstitutes;
-    await instituteDoc.save();
-    res.status(200).json({ message: 'Institute(s) deleted successfully' });
   } catch (error) {
+    console.error('Error deleting institutes:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
