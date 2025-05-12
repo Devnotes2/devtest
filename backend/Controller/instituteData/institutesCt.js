@@ -80,7 +80,6 @@ exports.deleteInstitutes = async (req, res) => {
 
   try {
     const result = await handleCRUD(Institute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
-
     if (result.deletedCount > 0) {
       res.status(200).json({ message: 'Institute(s) deleted successfully', deletedCount: result.deletedCount });
     } else {

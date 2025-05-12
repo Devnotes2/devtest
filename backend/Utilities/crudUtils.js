@@ -10,7 +10,7 @@ exports.handleCRUD = async (Model, operation, query = {}, data = {}) => {
       case 'update':
         return await Model.updateOne(query, data);
       case 'delete':
-        return await Model.findOneAndDelete(query);
+        return await Model.deleteMany(query);
       default:
         throw new Error('Invalid operation');
     }
