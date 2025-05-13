@@ -79,6 +79,7 @@ exports.deleteLocationTypesInInstitute = async (req, res) => {
   }
 };
 
+
 // Aggregation for enriched data
 exports.getLocationTypesInInstituteAgs = async (req, res) => {
   const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
@@ -87,26 +88,31 @@ exports.getLocationTypesInInstituteAgs = async (req, res) => {
     const aggregationPipeline = [
       {
         $lookup: {
-          from: 'instituteData',
+          from: 'instituteData', // Reference the new structure
           localField: 'instituteId',
           foreignField: '_id',
           as: 'instituteDetails',
         },
       },
       { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'generalData',
-          localField: 'locationType',
-          foreignField: '_id',
-          as: 'locationTypeDetails',
+        {
+          $lookup: {
+            from: 'generalData',
+            let: { locationTypes: '$locationTypes' },
+            pipeline: [
+              { $match: { _id: 'locationTypes' } },
+              { $unwind: '$data' },
+              { $match: { $expr: { $eq: ['$data._id', '$$locationTypes'] } } },
+              { $project: { locationTypeValue: '$data.value' } }
+            ],
+            as: 'locationTypesDetails'
+          }
         },
-      },
-      { $unwind: { path: '$locationTypeDetails', preserveNullAndEmptyArrays: true } },
+        { $unwind: '$locationTypesDetails' },
       {
         $project: {
-          instituteName: '$instituteDetails.data.instituteName',
-          locationType: '$locationTypeDetails.data.value',
+          instituteName: '$instituteDetails.instituteName', // Adjusted to match the new structure
+          locationTypes: '$locationTypesDetails.locationTypeValue', // Adjusted to match the new structure
           capacity: 1,
           description: 1,
           location: 1,

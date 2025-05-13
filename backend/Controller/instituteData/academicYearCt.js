@@ -10,7 +10,6 @@ exports.getAcademicYears = async (req, res) => {
   try {
     if (id) {
       // Fetch a specific academic year by ID
-      console.log(id);
       const academicYear = await handleCRUD(AcademicYear, 'findOne', { _id: new ObjectId(id) });
       if (!academicYear) {
         return res.status(404).json({ message: 'Academic year not found' });

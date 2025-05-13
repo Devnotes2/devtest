@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 // Define the schema for individual location types in institutes
 const locationTypesInInstituteSchema = new Schema({
   instituteId: { type: Schema.Types.ObjectId, ref: 'Institute', required: true }, // Reference to Institute collection
-  locationType: { type: Schema.Types.ObjectId, required: true }, // Reference to location type
+  locationTypes: { type: Schema.Types.ObjectId, required: true }, // Reference to location type
   capacity: { type: Number, required: true },
   description: { type: String, required: true },
   location: { type: String, required: true },
