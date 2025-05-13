@@ -1,19 +1,24 @@
 const mongoose = require('mongoose');
 
 // Define the schema for individual academic years
-const academicYearDataSchema = new mongoose.Schema({
+const academicYearSchema = new mongoose.Schema({
     startDate: {
-        type: String,
+        type: Date, // Use Date type for better date handling
         required: true,
     },
     endDate: {
-        type: String,
+        type: Date, // Use Date type for better date handling
         required: true,
     },
-}, { collection: 'academicYear' }); // Use a new collection for academic year data
 
-const createAcademicYearDataModel = (connection) => {
-    return connection.model('academicYear', academicYearDataSchema);
+}, { 
+    collection: 'academicYear', // Use the 'academicYear' collection
+    timestamps: true, // Automatically manage createdAt and updatedAt fields
+});
+
+// Create the model for the academic year
+const createAcademicYearModel = (connection) => {
+    return connection.model('academicYear', academicYearSchema);
 };
 
-module.exports = createAcademicYearDataModel;
+module.exports = createAcademicYearModel;

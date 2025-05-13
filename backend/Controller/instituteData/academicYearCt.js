@@ -1,26 +1,26 @@
 const createAcademicYearModel = require('../../Model/instituteData/academicYearMd');
 const { handleCRUD } = require('../../Utilities/crudUtils');
+const { ObjectId } = require('mongoose').Types;
 
 // Function to get all academic years or a specific academic year by ID
 exports.getAcademicYears = async (req, res) => {
   const AcademicYear = createAcademicYearModel(req.collegeDB);
   const { id } = req.params;
+
   try {
-    const academicYearDoc = await handleCRUD(AcademicYear, 'findOne', { _id: 'academicYear' });
-
-    if (!academicYearDoc) {
-      return res.status(404).json({ message: 'Academic year data not found' });
-    }
-
     if (id) {
-      const year = academicYearDoc.data.find(yr => yr._id.toString() === id.toString());
-      if (!year) {
+      // Fetch a specific academic year by ID
+      console.log(id);
+      const academicYear = await handleCRUD(AcademicYear, 'findOne', { _id: new ObjectId(id) });
+      if (!academicYear) {
         return res.status(404).json({ message: 'Academic year not found' });
       }
-      return res.json(year);
+      return res.json(academicYear);
     } else {
-      academicYearDoc.data.sort((a, b) => a.startDate - b.startDate);
-      return res.json(academicYearDoc.data);
+      // Fetch all academic years
+      const academicYears = await handleCRUD(AcademicYear, 'find', {});
+      academicYears.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+      return res.json(academicYears);
     }
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -31,20 +31,10 @@ exports.getAcademicYears = async (req, res) => {
 exports.insertAcademicYear = async (req, res) => {
   const AcademicYear = createAcademicYearModel(req.collegeDB);
   const { newYear } = req.body;
+
   try {
-    let academicYearDoc = await handleCRUD(AcademicYear, 'findOne', { _id: 'academicYear' });
-
-    if (!academicYearDoc) {
-      const newDoc = await handleCRUD(AcademicYear, 'create', {}, {
-        _id: 'academicYear',
-        data: [newYear],
-      });
-      return res.status(200).json({ message: 'Document created with new academic year', newDoc });
-    }
-
-    academicYearDoc.data.push(newYear);
-    await academicYearDoc.save();
-    res.status(200).json({ message: 'Academic year added' });
+    const newDoc = await handleCRUD(AcademicYear, 'create', {}, newYear);
+    res.status(200).json({ message: 'Academic year added successfully', newDoc });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -54,25 +44,16 @@ exports.insertAcademicYear = async (req, res) => {
 exports.updateAcademicYear = async (req, res) => {
   const AcademicYear = createAcademicYearModel(req.collegeDB);
   const { id, updatedData } = req.body;
+
   try {
-    const academicYearDoc = await handleCRUD(AcademicYear, 'findOne', { _id: 'academicYear' });
+    const result = await handleCRUD(AcademicYear, 'update', { _id: id }, { $set: updatedData });
 
-    if (!academicYearDoc) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-
-    const yearIndex = academicYearDoc.data.findIndex(yr => yr._id.toString() === id);
-    if (yearIndex !== -1) {
-      const existingYear = academicYearDoc.data[yearIndex];
-      academicYearDoc.data[yearIndex] = {
-        _id: existingYear._id,
-        ...existingYear,
-        ...updatedData,
-      };
-      await academicYearDoc.save();
-      res.json({ message: 'Academic year updated' });
+    if (result.modifiedCount > 0) {
+      res.status(200).json({ message: 'Academic year updated successfully' });
+    } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
+      res.status(200).json({ message: 'No updates were made' });
     } else {
-      return res.status(404).json({ message: 'Academic year not found' });
+      res.status(404).json({ message: 'Academic year not found' });
     }
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -84,27 +65,19 @@ exports.deleteAcademicYear = async (req, res) => {
   const AcademicYear = createAcademicYearModel(req.collegeDB);
   const { ids } = req.body;
 
+  if (!ids || !Array.isArray(ids)) {
+    return res.status(400).json({ message: 'Academic year ID(s) required' });
+  }
+
   try {
-    const academicYearDoc = await handleCRUD(AcademicYear, 'findOne', { _id: 'academicYear' });
+    const result = await handleCRUD(AcademicYear, 'delete', { _id: { $in: ids } });
 
-    if (!academicYearDoc) {
-      return res.status(404).json({ message: 'Document not found' });
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: 'Academic year(s) deleted successfully', deletedCount: result.deletedCount });
+    } else {
+      res.status(404).json({ message: 'No matching academic years found for deletion' });
     }
-
-    const updatedAcademicYears = academicYearDoc.data.filter(
-      yr => !ids.includes(yr._id.toString())
-    );
-
-    if (updatedAcademicYears.length === academicYearDoc.data.length) {
-      return res.status(404).json({ message: 'No matching academic years found for deletion' });
-    }
-
-    academicYearDoc.data = updatedAcademicYears;
-    await academicYearDoc.save();
-
-    res.json({ message: 'Academic year(s) deleted successfully', deletedCount: ids.length });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
-
