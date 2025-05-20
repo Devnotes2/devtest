@@ -14,7 +14,7 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
     if (section) matchConditions.section = String(section);
 
     const query = { ...matchConditions };
-
+    console.log('');
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
       query._id = { $in: objectIds };
