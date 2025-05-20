@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types;
-const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionsMd');
+const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradesectionsMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
 
 exports.gradeSectionsInInstituteAg = async (req, res) => {
