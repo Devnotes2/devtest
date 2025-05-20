@@ -22,4 +22,5 @@ const createGradeSectionsInInstituteModel = (connection) => {
   return connection.model('GradeSections', GradeSectionsSchema);
 };
 
+
 module.exports = createGradeSectionsInInstituteModel;
