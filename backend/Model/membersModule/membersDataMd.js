@@ -3,31 +3,31 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const MembersDataSchema = new Schema({
-    memberType: { type: mongoose.Schema.Types.ObjectId }, // Member type (e.g., student, staff)
-    firstName: { type: String },
+    memberType: { type: mongoose.Schema.Types.ObjectId ,required: true}, // Member type (e.g., student, staff)
+    firstName: { type: String ,required: true},
     middleName: { type: String },
-    lastName: { type: String },
-    gender: { type: mongoose.Schema.Types.ObjectId },
-    DOB: { type: String },
-    bloodGroup: { type: mongoose.Schema.Types.ObjectId },
-    instituteId: { type: mongoose.Schema.Types.ObjectId },
-    department: { type: mongoose.Schema.Types.ObjectId },
-    gradeId: { type: mongoose.Schema.Types.ObjectId },
-    createdDate: { type: String },
-    expiryDate: { type: String },
-    password: { type: String },
-    image: { type: String },  // Array to store multiple image paths
-    mobileNo1: { type: String },
-    mobileNo2: { type: String },
-    email: { type: String },
-    fatherName: { type: String },
-    motherName: { type: String },
-    guardian: { type: String },
-    parentGuardianNo: { type: String },
-    parentGuardianEmail: { type: String },
-    parentGuardianOccupation: { type: String },
-    tempAddress: { type: String },
-    permAddress: { type: String },
+    lastName: { type: String ,required: true},
+    gender: { type: mongoose.Schema.Types.ObjectId ,required: true},
+    DOB: { type: String ,required: true},
+    bloodGroup: { type: mongoose.Schema.Types.ObjectId ,required: true},
+    instituteId: { type: mongoose.Schema.Types.ObjectId ,required: true},
+    department: { type: mongoose.Schema.Types.ObjectId ,required: true},
+    gradeId: { type: mongoose.Schema.Types.ObjectId ,required: true},
+    createdDate: { type: String ,required: true},
+    expiryDate: { type: String ,required: true},
+    password: { type: String ,required: true},
+    image: { type: String ,required: true},  // Array to store multiple image paths
+    mobileNo1: { type: String ,required: true},
+    mobileNo2: { type: String ,required: false},
+    email: { type: String ,required: true},
+    fatherName: { type: String ,required: true},
+    motherName: { type: String ,required: true},
+    guardian: { type: String ,required: true},
+    parentGuardianNo: { type: String ,required: true},
+    parentGuardianEmail: { type: String ,required: true},
+    parentGuardianOccupation: { type: String ,required: true},
+    tempAddress: { type: String ,required: true},
+    permAddress: { type: String ,required: true},
 }, { timestamps: true });
 
 const createMembersDataModel = (connection) => {

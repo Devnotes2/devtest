@@ -21,6 +21,7 @@ exports.createMembersData = async (req, res) => {
             createdDate,
             expiryDate,
             password,
+            image,
             mobileNo1,
             mobileNo2,
             email,
@@ -36,8 +37,8 @@ exports.createMembersData = async (req, res) => {
         } = req.body;
 
         // Get the image path from the uploaded file
-        const subdomain = req.get('host').split('.')[0];  // Extract subdomain (e.g., college name)
-        const imagePath = req.file ? `/uploads/${subdomain}/${req.file.filename}` : null;  // Save the image path
+        // const subdomain = req.get('host').split('.')[0];  // Extract subdomain (e.g., college name)
+        // const imagePath = req.file ? `/uploads/${subdomain}/${req.file.filename}` : null;  // Save the image path
 
         // Create a new member document
         const newMember = new MemberData({
@@ -54,7 +55,7 @@ exports.createMembersData = async (req, res) => {
             createdDate,
             expiryDate,
             password,
-            image: imagePath,  // Store the image path for the single image
+            image,  // Store the image path for the single image
             mobileNo1,
             mobileNo2,
             email,
