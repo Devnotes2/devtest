@@ -12,27 +12,27 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
     if (batch) matchConditions.batch = batch;
-
+    console.log('Match conditions:', ids);
+    // If specific IDs are requested
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
-      const matchingData = await handleCRUD(GradeBatchesInInstitute, 'find', { _id: { $in: objectIds }, ...matchConditions });
+      const matchingData = await handleCRUD(
+        GradeBatchesInInstitute,
+        'find',
+        { _id: { $in: objectIds }, ...matchConditions }
+      );
 
       if (aggregate === 'false') {
         return res.status(200).json(matchingData);
       }
-
+      console.log('Matching data:', matchingData);
       const aggregatedData = await GradeBatchesInInstitute.aggregate([
         { $match: { _id: { $in: objectIds }, ...matchConditions } },
         {
           $lookup: {
             from: 'instituteData',
-            let: { gradeInstituteId: '$instituteId' },
-            pipeline: [
-              { $match: { _id: 'institutes' } },
-              { $unwind: '$data' },
-              { $match: { $expr: { $eq: ['$data._id', '$$gradeInstituteId'] } } },
-              { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
-            ],
+            localField: 'instituteId',
+            foreignField: '_id',
             as: 'instituteDetails'
           }
         },
@@ -40,18 +40,8 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
         {
           $lookup: {
             from: 'grades',
-            let: { gradeId: '$gradeId' },
-            pipeline: [
-              { $match: { $expr: { $eq: ['$_id', '$$gradeId'] } } },
-              {
-                $project: {
-                  gradeCode: 1,
-                  gradeDescription: 1,
-                  isElective: 1,
-                  gradeDuration: 1
-                }
-              }
-            ],
+            localField: 'gradeId',
+            foreignField: '_id',
             as: 'gradeDetails'
           }
         },
@@ -60,7 +50,7 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
           $project: {
             batch: 1,
             instituteName: '$instituteDetails.instituteName',
-            instituteId: '$instituteDetails.instituteId',
+            instituteId: '$instituteDetails._id',
             gradeCode: '$gradeDetails.gradeCode',
             gradeDescription: '$gradeDetails.gradeDescription',
             gradeDuration: '$gradeDetails.gradeDuration',
@@ -72,18 +62,14 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
       return res.status(200).json(aggregatedData);
     }
 
+    // If no specific IDs, fetch all data
     const allData = await GradeBatchesInInstitute.aggregate([
       { $match: { ...matchConditions } },
       {
         $lookup: {
           from: 'instituteData',
-          let: { gradeInstituteId: '$instituteId' },
-          pipeline: [
-            { $match: { _id: 'institutes' } },
-            { $unwind: '$data' },
-            { $match: { $expr: { $eq: ['$data._id', '$$gradeInstituteId'] } } },
-            { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
-          ],
+          localField: 'instituteId',
+          foreignField: '_id',
           as: 'instituteDetails'
         }
       },
@@ -91,18 +77,8 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
       {
         $lookup: {
           from: 'grades',
-          let: { gradeId: '$gradeId' },
-          pipeline: [
-            { $match: { $expr: { $eq: ['$_id', '$$gradeId'] } } },
-            {
-              $project: {
-                gradeCode: 1,
-                gradeDescription: 1,
-                isElective: 1,
-                gradeDuration: 1
-              }
-            }
-          ],
+          localField: 'gradeId',
+          foreignField: '_id',
           as: 'gradeDetails'
         }
       },
@@ -111,7 +87,7 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
         $project: {
           batch: 1,
           instituteName: '$instituteDetails.instituteName',
-          instituteId: '$instituteDetails.instituteId',
+          instituteId: '$instituteDetails._id',
           gradeCode: '$gradeDetails.gradeCode',
           gradeDescription: '$gradeDetails.gradeDescription',
           gradeDuration: '$gradeDetails.gradeDuration',
@@ -138,11 +114,11 @@ exports.createGradeBatchesInInstitute = async (req, res) => {
     });
 
     res.status(200).json({
-      message: 'GradeSection added successfully!',
+      message: 'GradeBatch added successfully!',
       data: newGradeSection
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to add grade', details: error.message });
+    res.status(500).json({ error: 'Failed to add gradeBatch', details: error.message });
   }
 };
 

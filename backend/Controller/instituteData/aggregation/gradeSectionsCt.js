@@ -1,36 +1,36 @@
 const mongoose = require('mongoose');
-const { ObjectId } = require('mongoose').Types;
+const { ObjectId } = mongoose.Types;
+const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionsMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
 
 exports.gradeSectionsInInstituteAg = async (req, res) => {
+  const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
   const { ids, instituteId, gradeId, section, aggregate } = req.query;
 
   try {
     const matchConditions = {};
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
-    if (section) matchConditions.section = section;
+    if (section) matchConditions.section = String(section);
+
+    const query = { ...matchConditions };
 
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
-      const query = { _id: { $in: objectIds }, ...matchConditions };
-
+      query._id = { $in: objectIds };
       if (aggregate === 'false') {
-        return handleCRUD.find(req, res, 'GradeSectionsInInstitute', query);
+        console.log('without aggre');
+        const matchingData = await handleCRUD(GradeSectionsInInstitute, 'find', query);
+        return res.status(200).json(matchingData);
       }
 
-      const aggregationPipeline = [
+      const aggregatedData = await GradeSectionsInInstitute.aggregate([
         { $match: query },
         {
           $lookup: {
             from: 'instituteData',
-            let: { instituteId: '$instituteId' },
-            pipeline: [
-              { $match: { _id: 'institutes' } },
-              { $unwind: '$data' },
-              { $match: { $expr: { $eq: ['$data._id', '$$instituteId'] } } },
-              { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
-            ],
+            localField: 'instituteId',
+            foreignField: '_id',
             as: 'instituteDetails'
           }
         },
@@ -38,11 +38,8 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
         {
           $lookup: {
             from: 'grades',
-            let: { gradeId: '$gradeId' },
-            pipeline: [
-              { $match: { $expr: { $eq: ['$_id', '$$gradeId'] } } },
-              { $project: { gradeCode: 1, gradeDescription: 1, isElective: 1, gradeDuration: 1 } }
-            ],
+            localField: 'gradeId',
+            foreignField: '_id',
             as: 'gradeDetails'
           }
         },
@@ -51,30 +48,26 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
           $project: {
             section: 1,
             instituteName: '$instituteDetails.instituteName',
-            instituteId: '$instituteDetails.instituteId',
+            instituteId: '$instituteDetails._id',
             gradeCode: '$gradeDetails.gradeCode',
             gradeDescription: '$gradeDetails.gradeDescription',
             gradeDuration: '$gradeDetails.gradeDuration',
             isElective: '$gradeDetails.isElective'
           }
         }
-      ];
+      ]);
 
-      return handleCRUD.aggregate(req, res, 'GradeSectionsInInstitute', aggregationPipeline);
+      return res.status(200).json(aggregatedData);
     }
 
-    const aggregationPipeline = [
-      { $match: { ...matchConditions } },
+    // Aggregate all data without ID filtering
+    const allData = await GradeSectionsInInstitute.aggregate([
+      { $match: query },
       {
         $lookup: {
           from: 'instituteData',
-          let: { instituteId: '$instituteId' },
-          pipeline: [
-            { $match: { _id: 'institutes' } },
-            { $unwind: '$data' },
-            { $match: { $expr: { $eq: ['$data._id', '$$instituteId'] } } },
-            { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
-          ],
+          localField: 'instituteId',
+          foreignField: '_id',
           as: 'instituteDetails'
         }
       },
@@ -82,11 +75,8 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
       {
         $lookup: {
           from: 'grades',
-          let: { gradeId: '$gradeId' },
-          pipeline: [
-            { $match: { $expr: { $eq: ['$_id', '$$gradeId'] } } },
-            { $project: { gradeCode: 1, gradeDescription: 1, isElective: 1, gradeDuration: 1 } }
-          ],
+          localField: 'gradeId',
+          foreignField: '_id',
           as: 'gradeDetails'
         }
       },
@@ -95,30 +85,75 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
         $project: {
           section: 1,
           instituteName: '$instituteDetails.instituteName',
-          instituteId: '$instituteDetails.instituteId',
+          instituteId: '$instituteDetails._id',
           gradeCode: '$gradeDetails.gradeCode',
           gradeDescription: '$gradeDetails.gradeDescription',
           gradeDuration: '$gradeDetails.gradeDuration',
           isElective: '$gradeDetails.isElective'
         }
       }
-    ];
+    ]);
 
-    return handleCRUD.aggregate(req, res, 'GradeSectionsInInstitute', aggregationPipeline);
+    return res.status(200).json(allData);
   } catch (error) {
     console.error('Error in gradeSectionsInInstituteAg:', error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-exports.createGradeSectionsInInstitute = (req, res) => {
-  handleCRUD.create(req, res, 'GradeSectionsInInstitute');
+exports.createGradeSectionsInInstitute = async (req, res) => {
+  const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
+  const { instituteId, gradeId, section } = req.body;
+
+  try {
+    const newSection = await handleCRUD(GradeSectionsInInstitute, 'create', {}, {
+      instituteId,
+      gradeId,
+      section
+    });
+
+    res.status(200).json({
+      message: 'Grade section added successfully!',
+      data: newSection
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add grade section', details: error.message });
+  }
 };
 
-exports.deleteGradeSectionsInInstitute = (req, res) => {
-  handleCRUD.deleteMany(req, res, 'GradeSectionsInInstitute');
+exports.deleteGradeSectionsInInstitute = async (req, res) => {
+  const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
+  const { ids } = req.body;
+
+  try {
+    const objectIds = ids.map(id => new ObjectId(id));
+    const result = await handleCRUD(GradeSectionsInInstitute, 'delete', { _id: { $in: objectIds } });
+
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: 'Grade sections deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'No matching grade sections found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete grade sections', details: error.message });
+  }
 };
 
-exports.updateGradeSectionsInInstitute = (req, res) => {
-  handleCRUD.updateOne(req, res, 'GradeSectionsInInstitute');
+exports.updateGradeSectionsInInstitute = async (req, res) => {
+  const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
+  const { _id, updatedData } = req.body;
+
+  try {
+    const result = await handleCRUD(GradeSectionsInInstitute, 'update', { _id: new ObjectId(_id) }, { $set: updatedData });
+
+    if (result.modifiedCount > 0) {
+      res.status(200).json({ message: 'Grade section updated successfully' });
+    } else if (result.matchedCount > 0) {
+      res.status(200).json({ message: 'No updates were made' });
+    } else {
+      res.status(404).json({ message: 'No matching grade section found or values are unchanged' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update grade section', details: error.message });
+  }
 };
