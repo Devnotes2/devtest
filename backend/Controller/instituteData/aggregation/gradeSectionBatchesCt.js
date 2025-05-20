@@ -21,22 +21,19 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
         return res.status(200).json(matchingData);
       }
 
-      const aggregatedData = await GradeSectionBatchesInInstitute.aggregate([
-        { $match: { _id: { $in: objectIds }, ...matchConditions } },
-        {
-          $lookup: {
-            from: 'instituteData',
-            let: { instituteId: '$instituteId' },
-            pipeline: [
-              { $match: { _id: 'institutes' } },
-              { $unwind: '$data' },
-              { $match: { $expr: { $eq: ['$data._id', '$$instituteId'] } } },
-              { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
-            ],
-            as: 'instituteDetails'
-          }
-        },
-        { $unwind: '$instituteDetails' },
+
+    const aggregatedData = await GradeSectionBatchesInInstitute.aggregate([
+      { $match: { _id: { $in: objectIds }, ...matchConditions } },
+      {
+        $lookup: {
+        from: 'instituteData',
+        localField: 'instituteId',
+        foreignField: '_id',
+        as: 'instituteDetails'
+      }
+    },
+    { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
+  
         {
           $lookup: {
             from: 'grades',
@@ -73,16 +70,16 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
         },
         { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
         {
-          $project: {
-            gradeSectionBatch: 1,
-            instituteName: '$instituteDetails.instituteName',
-            instituteId: '$instituteDetails.instituteId',
-            gradeCode: '$gradeDetails.gradeCode',
-            gradeDescription: '$gradeDetails.gradeDescription',
-            gradeDuration: '$gradeDetails.gradeDuration',
-            isElective: '$gradeDetails.isElective',
-            section: '$gradeSectionDetails.section'
-          }
+    $project: {
+      gradeSectionBatch: 1,
+      instituteName: '$instituteDetails.instituteName',
+      instituteId: '$instituteDetails._id',
+      gradeCode: '$gradeDetails.gradeCode',
+      gradeDescription: '$gradeDetails.gradeDescription',
+      gradeDuration: '$gradeDetails.gradeDuration',
+      isElective: '$gradeDetails.isElective',
+      section: '$gradeSectionDetails.section'
+    }
         }
       ]);
 
