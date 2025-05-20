@@ -13,19 +13,19 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
     if (gradeSectionId) matchConditions.gradeSectionId = new ObjectId(gradeSectionId);
 
-    if (ids && Array.isArray(ids)) {
-      const objectIds = ids.map(id => new ObjectId(id));
-      const matchingData = await handleCRUD(GradeSectionBatchesInInstitute, 'find', { _id: { $in: objectIds }, ...matchConditions });
+// ...existing code...
+if (ids && Array.isArray(ids)) {
+  const objectIds = ids.map(id => new ObjectId(id));
+  const matchingData = await handleCRUD(GradeSectionBatchesInInstitute, 'find', { _id: { $in: objectIds }, ...matchConditions });
 
-      if (aggregate === 'false') {
-        return res.status(200).json(matchingData);
-      }
+  if (aggregate === 'false') {
+    return res.status(200).json(matchingData);
+  }
 
-
-    const aggregatedData = await GradeSectionBatchesInInstitute.aggregate([
-      { $match: { _id: { $in: objectIds }, ...matchConditions } },
-      {
-        $lookup: {
+  const aggregatedData = await GradeSectionBatchesInInstitute.aggregate([
+    { $match: { _id: { $in: objectIds }, ...matchConditions } },
+    {
+      $lookup: {
         from: 'instituteData',
         localField: 'instituteId',
         foreignField: '_id',
@@ -33,43 +33,72 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
       }
     },
     { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-  
-        {
-          $lookup: {
-            from: 'grades',
-            let: { gradeId: '$gradeId' },
-            pipeline: [
-              { $match: { $expr: { $eq: ['$_id', '$$gradeId'] } } },
-              {
-                $project: {
-                  gradeCode: 1,
-                  gradeDescription: 1,
-                  isElective: 1,
-                  gradeDuration: 1
-                }
-              }
-            ],
-            as: 'gradeDetails'
-          }
-        },
-        { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'gradesections',
-            let: { gradeSectionId: '$gradeSectionId' },
-            pipeline: [
-              { $match: { $expr: { $eq: ['$_id', '$$gradeSectionId'] } } },
-              {
-                $project: {
-                  section: 1
-                }
-              }
-            ],
-            as: 'gradeSectionDetails'
-          }
-        },
-        { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
-        {
+    {
+      $lookup: {
+        from: 'grades',
+        localField: 'gradeId',
+        foreignField: '_id',
+        as: 'gradeDetails'
+      }
+    },
+    { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'gradesections',
+        localField: 'gradeSectionId',
+        foreignField: '_id',
+        as: 'gradeSectionDetails'
+      }
+    },
+    { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
+    {
+      $project: {
+        gradeSectionBatch: 1,
+        instituteName: '$instituteDetails.instituteName',
+        instituteId: '$instituteDetails._id',
+        gradeCode: '$gradeDetails.gradeCode',
+        gradeDescription: '$gradeDetails.gradeDescription',
+        gradeDuration: '$gradeDetails.gradeDuration',
+        isElective: '$gradeDetails.isElective',
+        section: '$gradeSectionDetails.section'
+      }
+    }
+  ]);
+
+  return res.status(200).json(aggregatedData);
+}
+
+// If no specific IDs, fetch all data
+const allData = await GradeSectionBatchesInInstitute.aggregate([
+  { $match: { ...matchConditions } },
+  {
+    $lookup: {
+      from: 'instituteData',
+      localField: 'instituteId',
+      foreignField: '_id',
+      as: 'instituteDetails'
+    }
+  },
+  { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'grades',
+      localField: 'gradeId',
+      foreignField: '_id',
+      as: 'gradeDetails'
+    }
+  },
+  { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'gradesections',
+      localField: 'gradeSectionId',
+      foreignField: '_id',
+      as: 'gradeSectionDetails'
+    }
+  },
+  { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
+  {
     $project: {
       gradeSectionBatch: 1,
       instituteName: '$instituteDetails.instituteName',
@@ -80,78 +109,11 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
       isElective: '$gradeDetails.isElective',
       section: '$gradeSectionDetails.section'
     }
-        }
-      ]);
+  }
+]);
 
-      return res.status(200).json(aggregatedData);
-    }
+return res.status(200).json(allData);
 
-    const allData = await GradeSectionBatchesInInstitute.aggregate([
-      { $match: { ...matchConditions } },
-      {
-        $lookup: {
-          from: 'instituteData',
-          let: { instituteId: '$instituteId' },
-          pipeline: [
-            { $match: { _id: 'institutes' } },
-            { $unwind: '$data' },
-            { $match: { $expr: { $eq: ['$data._id', '$$instituteId'] } } },
-            { $project: { instituteName: '$data.instituteName', instituteId: '$data._id' } }
-          ],
-          as: 'instituteDetails'
-        }
-      },
-      { $unwind: '$instituteDetails' },
-      {
-        $lookup: {
-          from: 'grades',
-          let: { gradeId: '$gradeId' },
-          pipeline: [
-            { $match: { $expr: { $eq: ['$_id', '$$gradeId'] } } },
-            {
-              $project: {
-                gradeCode: 1,
-                gradeDescription: 1,
-                isElective: 1,
-                gradeDuration: 1
-              }
-            }
-          ],
-          as: 'gradeDetails'
-        }
-      },
-      { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'gradesections',
-          let: { gradeSectionId: '$gradeSectionId' },
-          pipeline: [
-            { $match: { $expr: { $eq: ['$_id', '$$gradeSectionId'] } } },
-            {
-              $project: {
-                section: 1
-              }
-            }
-          ],
-          as: 'gradeSectionDetails'
-        }
-      },
-      { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
-      {
-        $project: {
-          gradeSectionBatch: 1,
-          instituteName: '$instituteDetails.instituteName',
-          instituteId: '$instituteDetails.instituteId',
-          gradeCode: '$gradeDetails.gradeCode',
-          gradeDescription: '$gradeDetails.gradeDescription',
-          gradeDuration: '$gradeDetails.gradeDuration',
-          isElective: '$gradeDetails.isElective',
-          section: '$gradeSectionDetails.section'
-        }
-      }
-    ]);
-
-    return res.status(200).json(allData);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
