@@ -5,6 +5,8 @@ const membersDataCt = require('../../Controller/membersModule/membersDataCt');  
 const upload = require('../../Utilities/multerUtils');  // Import multer configuration
 
 // POST route for adding member data with image upload
-router.post('/member', upload, membersDataCt.createMembersData);  // Apply upload middleware before the controller
-
+router.post('/member', upload, membersDataCt.createMember);  // Apply upload middleware before the controller
+router.get('/member', membersDataCt.getMembersData);
+router.put('/member', membersDataCt.updateMember);
+router.delete('/member', membersDataCt.deleteMembers);
 module.exports = router;
