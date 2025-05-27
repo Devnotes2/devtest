@@ -7,6 +7,10 @@ const buildGenericAggregation = require('../../Utilities/genericAggregatorUtils'
 const addPaginationAndSort = require('../../Utilities/paginationControllsUtils');
 const { generalDataLookup } = require('../../Utilities/aggregations/generalDataLookups');
 const { instituteLookup } = require('../../Utilities/aggregations/instituteDataLookups');
+const { gradesLookup } = require('../../Utilities/aggregations/gradesLookups');
+const { gradeBatchesLookup } = require('../../Utilities/aggregations/gradesBatchesLookups');
+const { gradeSectionLookup } = require('../../Utilities/aggregations/gradesSectionLookups');
+const { gradeSectionBatchesLookup } = require('../../Utilities/aggregations/gradesSectionBatchesLookups');
 
 exports.getMembersData = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
@@ -15,6 +19,9 @@ exports.getMembersData = async (req, res) => {
     const matchConditions = {};
     if (filters.instituteId) matchConditions.instituteId = new ObjectId(filters.instituteId);
     if (filters.gradeId) matchConditions.gradeId = new ObjectId(filters.gradeId);
+    if (filters.gradeBatchesId) matchConditions.gradeBatchesId = new ObjectId(filters.gradeBatchesId);
+    if (filters.gradeSectionId) matchConditions.gradeSectionId = new ObjectId(filters.gradeSectionId);
+    if (filters.gradeSectionBatchId) matchConditions.gradeSectionBatchId = new ObjectId(filters.gradeSectionBatchId);
     if (filters.memberType) matchConditions.memberType = new ObjectId(filters.memberType);
     if (filters.gender) matchConditions.gender = new ObjectId(filters.gender);
     if (filters.bloodGroup) matchConditions.bloodGroup = new ObjectId(filters.bloodGroup);
@@ -47,7 +54,10 @@ exports.getMembersData = async (req, res) => {
         ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
         ...generalDataLookup('memberType', 'memberType', 'memberTypeDetails', 'memberTypeValue'),
         ...generalDataLookup('department', 'department', 'departmentDetails', 'departmentName'),
-        ...generalDataLookup('grade', 'gradeId', 'gradeDetails', 'gradeName'),
+        ...gradesLookup(),
+        ...gradeBatchesLookup(),
+        ...gradeSectionLookup(),
+        ...gradeSectionBatchesLookup(),
         {
           $project: {
             firstName: 1,
@@ -57,6 +67,9 @@ exports.getMembersData = async (req, res) => {
             memberType: '$memberTypeDetails.memberTypeValue',
             instituteName: '$instituteDetails.instituteName',
             grade: '$gradeDetails.gradeName',
+            batch: '$gradeBatchesDetails.batch',
+            section: '$gradeSectionDetails.section',
+            gradeSectionBatch: '$gradeSectionBatchDetails.gradeSectionBatch',
             department: '$departmentDetails.departmentName',
             gender: '$genderDetails.genderValue',
             bloodGroup: '$bloodGroupDetails.bloodGroupValue',
@@ -91,7 +104,10 @@ exports.getMembersData = async (req, res) => {
         ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
         ...generalDataLookup('memberType', 'memberType', 'memberTypeDetails', 'memberTypeValue'),
         ...generalDataLookup('department', 'department', 'departmentDetails', 'departmentName'),
-        ...generalDataLookup('grade', 'gradeId', 'gradeDetails', 'gradeName')
+        ...gradesLookup(),
+        ...gradeBatchesLookup(),
+        ...gradeSectionLookup(),
+        ...gradeSectionBatchesLookup(),
       ];
       let pipeline = buildGenericAggregation({ filters: matchConditions, lookups });
       pipeline.push({
@@ -102,7 +118,10 @@ exports.getMembersData = async (req, res) => {
           memberId: 1,
           memberType: '$memberTypeDetails.memberTypeValue',
           instituteName: '$instituteDetails.instituteName',
-          grade: '$gradeDetails.gradeName',
+          grade: '$gradesDetails.gradeCode',
+          batch: '$gradeBatchesDetails.batch',
+          section: '$gradeSectionDetails.section',
+          gradeSectionBatch: '$gradeSectionBatchDetails.gradeSectionBatch',
           department: '$departmentDetails.departmentName',
           gender: '$genderDetails.genderValue',
           bloodGroup: '$bloodGroupDetails.bloodGroupValue',
