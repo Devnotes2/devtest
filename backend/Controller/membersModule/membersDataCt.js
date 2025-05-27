@@ -10,7 +10,7 @@ const { instituteLookup } = require('../../Utilities/aggregations/instituteDataL
 
 exports.getMembersData = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
-  const { ids, aggregate, page, limit, ...filters } = req.query;
+  const { ids, aggregate, page, limit,validate,memberId, ...filters } = req.query;
   try {
     const matchConditions = {};
     if (filters.instituteId) matchConditions.instituteId = new ObjectId(filters.instituteId);
@@ -20,6 +20,16 @@ exports.getMembersData = async (req, res) => {
     if (filters.bloodGroup) matchConditions.bloodGroup = new ObjectId(filters.bloodGroup);
     if (filters.department) matchConditions.department = new ObjectId(filters.department);
     if (filters.email) matchConditions.email = filters.email;
+
+        // Validation: Check if memberId already exists
+    if (validate === 'true' && memberId) {
+      const exists = await MembersData.exists({ memberId });
+      if (exists) {
+        return res.status(200).json({ message: 'already present', exists: true });
+      } else {
+        return res.status(200).json({ message: 'not present', exists: false });
+      }
+    }
 
     // Total docs in the collection (not just filtered)
     const totalDocs = await MembersData.countDocuments();
