@@ -4,6 +4,7 @@ const { Schema } = mongoose;
 
 const MembersDataSchema = new Schema({
     memberType: { type: mongoose.Schema.Types.ObjectId ,required: true}, // Member type (e.g., student, staff)
+    memberId: {type:String ,required:true},
     firstName: { type: String ,required: true},
     middleName: { type: String },
     lastName: { type: String ,required: true},
@@ -16,7 +17,7 @@ const MembersDataSchema = new Schema({
     createdDate: { type: String ,required: true},
     expiryDate: { type: String ,required: true},
     password: { type: String ,required: true},
-    image: { type: String ,required: true},  // Array to store multiple image paths
+    image: { type: String ,required: false},  // Array to store multiple image paths
     mobileNo1: { type: String ,required: true},
     mobileNo2: { type: String ,required: false},
     email: { type: String ,required: true},

@@ -20,7 +20,7 @@ exports.getMembersData = async (req, res) => {
     if (filters.bloodGroup) matchConditions.bloodGroup = new ObjectId(filters.bloodGroup);
     if (filters.department) matchConditions.department = new ObjectId(filters.department);
     if (filters.email) matchConditions.email = filters.email;
-
+    console.log(validate,memberId);
         // Validation: Check if memberId already exists
     if (validate === 'true' && memberId) {
       const exists = await MembersData.exists({ memberId });
