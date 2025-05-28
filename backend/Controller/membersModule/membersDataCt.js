@@ -14,9 +14,10 @@ const { gradeSectionBatchesLookup } = require('../../Utilities/aggregations/grad
 
 exports.getMembersData = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
-  const { ids, aggregate, page, limit,validate,memberId, ...filters } = req.query;
+  const { ids, aggregate, page, limit, validate, memberId, filterField, operator, value, sortField, sort, ...filters } = req.query;
   try {
     const matchConditions = {};
+    // Standard filters
     if (filters.instituteId) matchConditions.instituteId = new ObjectId(filters.instituteId);
     if (filters.gradeId) matchConditions.gradeId = new ObjectId(filters.gradeId);
     if (filters.gradeBatchesId) matchConditions.gradeBatchesId = new ObjectId(filters.gradeBatchesId);
@@ -27,8 +28,78 @@ exports.getMembersData = async (req, res) => {
     if (filters.bloodGroup) matchConditions.bloodGroup = new ObjectId(filters.bloodGroup);
     if (filters.department) matchConditions.department = new ObjectId(filters.department);
     if (filters.email) matchConditions.email = filters.email;
-    console.log(validate,memberId);
-        // Validation: Check if memberId already exists
+
+    // Dynamic filterField/operator/value logic
+    if (filterField && operator) {
+      let cond = {};
+      switch (operator) {
+        // String operators
+        case 'contains':
+          cond[filterField] = { $regex: value, $options: 'i' };
+          break;
+        case 'equals':
+          cond[filterField] = value;
+          break;
+        case 'startsWith':
+          cond[filterField] = { $regex: `^${value}`, $options: 'i' };
+          break;
+        case 'endsWith':
+          cond[filterField] = { $regex: `${value}$`, $options: 'i' };
+          break;
+        case 'isEmpty':
+          cond[filterField] = { $in: [null, ''] };
+          break;
+        case 'isNotEmpty':
+          cond[filterField] = { $nin: [null, ''] };
+          break;
+        case 'isAnyOf':
+          cond[filterField] = { $in: Array.isArray(value) ? value : [value] };
+          break;
+        // Number operators
+        case '=':
+          cond[filterField] = Number(value);
+          break;
+        case '!=':
+          cond[filterField] = { $ne: Number(value) };
+          break;
+        case '>':
+          cond[filterField] = { $gt: Number(value) };
+          break;
+        case '<':
+          cond[filterField] = { $lt: Number(value) };
+          break;
+        case '>=':
+          cond[filterField] = { $gte: Number(value) };
+          break;
+        case '<=':
+          cond[filterField] = { $lte: Number(value) };
+          break;
+        // Date operators
+        case 'is':
+          cond[filterField] = new Date(value);
+          break;
+        case 'not':
+          cond[filterField] = { $ne: new Date(value) };
+          break;
+        case 'after':
+          cond[filterField] = { $gt: new Date(value) };
+          break;
+        case 'onOrAfter':
+          cond[filterField] = { $gte: new Date(value) };
+          break;
+        case 'before':
+          cond[filterField] = { $lt: new Date(value) };
+          break;
+        case 'onOrBefore':
+          cond[filterField] = { $lte: new Date(value) };
+          break;
+        default:
+          break;
+      }
+      Object.assign(matchConditions, cond);
+    }
+
+    // Validation: Check if memberId already exists
     if (validate === 'true' && memberId) {
       const exists = await MembersData.exists({ memberId });
       if (exists) {
@@ -40,6 +111,12 @@ exports.getMembersData = async (req, res) => {
 
     // Total docs in the collection (not just filtered)
     const totalDocs = await MembersData.countDocuments();
+
+    // Sorting logic
+    let sortObj = { createdAt: -1 };
+    if (sortField && sort) {
+      sortObj = { [sortField]: sort === 'asc' ? 1 : -1 };
+    }
 
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
@@ -58,6 +135,7 @@ exports.getMembersData = async (req, res) => {
         ...gradeBatchesLookup(),
         ...gradeSectionLookup(),
         ...gradeSectionBatchesLookup(),
+        { $sort: sortObj },
         {
           $project: {
             firstName: 1,
@@ -66,7 +144,7 @@ exports.getMembersData = async (req, res) => {
             memberId: 1,
             memberType: '$memberTypeDetails.memberTypeValue',
             instituteName: '$instituteDetails.instituteName',
-            grade: '$gradeDetails.gradeName',
+            grade: '$gradesDetails.gradeCode',
             batch: '$gradeBatchesDetails.batch',
             section: '$gradeSectionDetails.section',
             gradeSectionBatch: '$gradeSectionBatchDetails.gradeSectionBatch',
@@ -110,6 +188,7 @@ exports.getMembersData = async (req, res) => {
         ...gradeSectionBatchesLookup(),
       ];
       let pipeline = buildGenericAggregation({ filters: matchConditions, lookups });
+      pipeline.push({ $sort: sortObj });
       pipeline.push({
         $project: {
           firstName: 1,
@@ -147,14 +226,18 @@ exports.getMembersData = async (req, res) => {
       addPaginationAndSort(pipeline, {
         page: parseInt(page) || 1,
         limit: parseInt(limit) || 10,
-        sort: { createdAt: -1 }
+        sort: sortObj
       });
       const data = await MembersData.aggregate(pipeline);
       return res.status(200).json({ count: data.length, totalDocs, data });
     }
 
     // Non-aggregate fetch (simple find)
-    const members = await MembersData.find(matchConditions);
+    let query = MembersData.find(matchConditions);
+    if (sortField && sort) {
+      query = query.sort({ [sortField]: sort === 'asc' ? 1 : -1 });
+    }
+    const members = await query;
     return res.status(200).json({ count: members.length, totalDocs, data: members });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
