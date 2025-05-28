@@ -2,26 +2,23 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createGradesInInstituteModel = require('../../../Model/instituteData/aggregation/gradesMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
+const { buildMatchConditions, buildSortObject } = require('../../../Utilities/filterSortUtils');
 
 exports.gradesInInstituteAg = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { ids, aggregate, instituteId, gradeCode, isElective, gradeDuration } = req.query;
-
   try {
-    const matchConditions = {};
-    if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
-    if (gradeCode) matchConditions.gradeCode = String(gradeCode);
-    if (isElective) matchConditions.isElective = new ObjectId(isElective);
-    if (gradeDuration) matchConditions.gradeDuration = new ObjectId(gradeDuration);
+    // Use utility for filtering
+    const matchConditions = buildMatchConditions(req.query);
+    // Use utility for sorting
+    const sortObj = buildSortObject(req.query);
+    const { ids, aggregate } = req.query;
 
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
       const matchingData = await handleCRUD(GradesInInstitute, 'find', { _id: { $in: objectIds }, ...matchConditions });
-
       if (aggregate === 'false') {
         return res.status(200).json(matchingData);
       }
-
       const aggregatedData = await GradesInInstitute.aggregate([
         { $match: { _id: { $in: objectIds }, ...matchConditions } },
         {
@@ -70,9 +67,9 @@ exports.gradesInInstituteAg = async (req, res) => {
             gradeDuration: '$gradeDurationDetails.gradeDurationValue',
             isElective: '$isElectiveDetails.isElectiveValue'
           }
-        }
+        },
+        { $sort: sortObj }
       ]);
-
       return res.status(200).json(aggregatedData);
     }
 
@@ -109,29 +106,29 @@ exports.gradesInInstituteAg = async (req, res) => {
             { $match: { _id: 'booleanChoices' } },
             { $unwind: '$data' },
             { $match: { $expr: { $eq: ['$data._id', '$$electiveFlag'] } } },
-              { $project: { isElectiveValue: '$data.value' } }
-            ],
-            as: 'isElectiveDetails'
-          }
-        },
-        { $unwind: '$isElectiveDetails' },
-        {
-          $project: {
-            gradeCode: 1,
-            gradeDescription: 1,
-            instituteName: '$instituteDetails.instituteName',
-            instituteId: '$instituteDetails._id',
-            gradeDuration: '$gradeDurationDetails.gradeDurationValue',
-            isElective: '$isElectiveDetails.isElectiveValue'
-          }
+            { $project: { isElectiveValue: '$data.value' } }
+          ],
+          as: 'isElectiveDetails'
         }
-      ]);
-
-      return res.status(200).json(allData);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error', error: error.message });
-    }
-  };
+      },
+      { $unwind: '$isElectiveDetails' },
+      {
+        $project: {
+          gradeCode: 1,
+          gradeDescription: 1,
+          instituteName: '$instituteDetails.instituteName',
+          instituteId: '$instituteDetails._id',
+          gradeDuration: '$gradeDurationDetails.gradeDurationValue',
+          isElective: '$isElectiveDetails.isElectiveValue'
+        }
+      },
+      { $sort: sortObj }
+    ]);
+    return res.status(200).json(allData);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 
 exports.createGradesInInstitute = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);

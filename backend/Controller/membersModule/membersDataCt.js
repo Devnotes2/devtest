@@ -11,112 +11,26 @@ const { gradesLookup } = require('../../Utilities/aggregations/gradesLookups');
 const { gradeBatchesLookup } = require('../../Utilities/aggregations/gradesBatchesLookups');
 const { gradeSectionLookup } = require('../../Utilities/aggregations/gradesSectionLookups');
 const { gradeSectionBatchesLookup } = require('../../Utilities/aggregations/gradesSectionBatchesLookups');
+const { buildMatchConditions, buildSortObject, validateUniqueField } = require('../../Utilities/filterSortUtils');
 
 exports.getMembersData = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
-  const { ids, aggregate, page, limit, validate, memberId, filterField, operator, value, sortField, sort, ...filters } = req.query;
+  const { ids, aggregate, page, limit, validate, memberId } = req.query;
   try {
-    const matchConditions = {};
-    // Standard filters
-    if (filters.instituteId) matchConditions.instituteId = new ObjectId(filters.instituteId);
-    if (filters.gradeId) matchConditions.gradeId = new ObjectId(filters.gradeId);
-    if (filters.gradeBatchesId) matchConditions.gradeBatchesId = new ObjectId(filters.gradeBatchesId);
-    if (filters.gradeSectionId) matchConditions.gradeSectionId = new ObjectId(filters.gradeSectionId);
-    if (filters.gradeSectionBatchId) matchConditions.gradeSectionBatchId = new ObjectId(filters.gradeSectionBatchId);
-    if (filters.memberType) matchConditions.memberType = new ObjectId(filters.memberType);
-    if (filters.gender) matchConditions.gender = new ObjectId(filters.gender);
-    if (filters.bloodGroup) matchConditions.bloodGroup = new ObjectId(filters.bloodGroup);
-    if (filters.department) matchConditions.department = new ObjectId(filters.department);
-    if (filters.email) matchConditions.email = filters.email;
+    // Use utility for filtering
+    const matchConditions = buildMatchConditions(req.query);
 
-    // Dynamic filterField/operator/value logic
-    if (filterField && operator) {
-      let cond = {};
-      switch (operator) {
-        // String operators
-        case 'contains':
-          cond[filterField] = { $regex: value, $options: 'i' };
-          break;
-        case 'equals':
-          cond[filterField] = value;
-          break;
-        case 'startsWith':
-          cond[filterField] = { $regex: `^${value}`, $options: 'i' };
-          break;
-        case 'endsWith':
-          cond[filterField] = { $regex: `${value}$`, $options: 'i' };
-          break;
-        case 'isEmpty':
-          cond[filterField] = { $in: [null, ''] };
-          break;
-        case 'isNotEmpty':
-          cond[filterField] = { $nin: [null, ''] };
-          break;
-        case 'isAnyOf':
-          cond[filterField] = { $in: Array.isArray(value) ? value : [value] };
-          break;
-        // Number operators
-        case '=':
-          cond[filterField] = Number(value);
-          break;
-        case '!=':
-          cond[filterField] = { $ne: Number(value) };
-          break;
-        case '>':
-          cond[filterField] = { $gt: Number(value) };
-          break;
-        case '<':
-          cond[filterField] = { $lt: Number(value) };
-          break;
-        case '>=':
-          cond[filterField] = { $gte: Number(value) };
-          break;
-        case '<=':
-          cond[filterField] = { $lte: Number(value) };
-          break;
-        // Date operators
-        case 'is':
-          cond[filterField] = new Date(value);
-          break;
-        case 'not':
-          cond[filterField] = { $ne: new Date(value) };
-          break;
-        case 'after':
-          cond[filterField] = { $gt: new Date(value) };
-          break;
-        case 'onOrAfter':
-          cond[filterField] = { $gte: new Date(value) };
-          break;
-        case 'before':
-          cond[filterField] = { $lt: new Date(value) };
-          break;
-        case 'onOrBefore':
-          cond[filterField] = { $lte: new Date(value) };
-          break;
-        default:
-          break;
-      }
-      Object.assign(matchConditions, cond);
-    }
-
-    // Validation: Check if memberId already exists
+    // Validation: Check if memberId already exists (reusable utility)
     if (validate === 'true' && memberId) {
-      const exists = await MembersData.exists({ memberId });
-      if (exists) {
-        return res.status(200).json({ message: 'already present', exists: true });
-      } else {
-        return res.status(200).json({ message: 'not present', exists: false });
-      }
+      const exists = await validateUniqueField(MembersData, 'memberId', memberId);
+      return res.status(200).json({ message: exists ? 'already present' : 'not present', exists });
     }
 
     // Total docs in the collection (not just filtered)
     const totalDocs = await MembersData.countDocuments();
 
-    // Sorting logic
-    let sortObj = { createdAt: -1 };
-    if (sortField && sort) {
-      sortObj = { [sortField]: sort === 'asc' ? 1 : -1 };
-    }
+    // Use utility for sorting
+    const sortObj = buildSortObject(req.query);
 
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
@@ -234,8 +148,8 @@ exports.getMembersData = async (req, res) => {
 
     // Non-aggregate fetch (simple find)
     let query = MembersData.find(matchConditions);
-    if (sortField && sort) {
-      query = query.sort({ [sortField]: sort === 'asc' ? 1 : -1 });
+    if (sortObj) {
+      query = query.sort(sortObj);
     }
     const members = await query;
     return res.status(200).json({ count: members.length, totalDocs, data: members });
