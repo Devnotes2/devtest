@@ -151,6 +151,9 @@ exports.getMembersData = async (req, res) => {
     if (sortObj) {
       query = query.sort(sortObj);
     }
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
     const members = await query;
     return res.status(200).json({ count: members.length, totalDocs, data: members });
   } catch (error) {
