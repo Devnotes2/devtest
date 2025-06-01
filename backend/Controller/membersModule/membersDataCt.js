@@ -13,6 +13,46 @@ const { gradeSectionLookup } = require('../../Utilities/aggregations/gradesSecti
 const { gradeSectionBatchesLookup } = require('../../Utilities/aggregations/gradesSectionBatchesLookups');
 const { buildMatchConditions, buildSortObject, validateUniqueField } = require('../../Utilities/filterSortUtils');
 
+// Helper to build a $match stage for value-based filtering on joined fields
+function buildValueBasedMatchStage(__valueBasedField, joinedFieldMap) {
+  if (!__valueBasedField) return null;
+  const { filterField, operator, value } = __valueBasedField;
+  const joinedField = joinedFieldMap[filterField];
+  if (!joinedField) return null;
+  let matchStage = {};
+  switch (operator) {
+    case 'contains':
+      matchStage[joinedField] = { $regex: value, $options: 'i' };
+      break;
+    case 'equals':
+    case 'eq':
+      if (typeof value === 'string') {
+        matchStage[joinedField] = { $regex: `^${value}$`, $options: 'i' };
+      } else {
+        matchStage[joinedField] = value;
+      }
+      break;
+    case 'startsWith':
+      matchStage[joinedField] = { $regex: `^${value}`, $options: 'i' };
+      break;
+    case 'endsWith':
+      matchStage[joinedField] = { $regex: `${value}$`, $options: 'i' };
+      break;
+    case 'isEmpty':
+      matchStage[joinedField] = { $in: [null, ''] };
+      break;
+    case 'isNotEmpty':
+      matchStage[joinedField] = { $nin: [null, ''] };
+      break;
+    case 'isAnyOf':
+      matchStage[joinedField] = { $in: Array.isArray(value) ? value : [value] };
+      break;
+    default:
+      matchStage[joinedField] = value;
+  }
+  return { $match: matchStage };
+}
+
 exports.getMembersData = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
   const { ids, aggregate, page, limit, validate, memberId } = req.query;
@@ -20,77 +60,47 @@ exports.getMembersData = async (req, res) => {
     // Use utility for filtering
     const matchConditions = buildMatchConditions(req.query);
 
+    // Remove __valueBasedField from matchConditions for aggregation
+    let valueBasedField = matchConditions.__valueBasedField;
+    if (valueBasedField) delete matchConditions.__valueBasedField;
+
     // Validation: Check if memberId already exists (reusable utility)
     if (validate === 'true' && memberId) {
       const exists = await validateUniqueField(MembersData, 'memberId', memberId);
       return res.status(200).json({ message: exists ? 'already present' : 'not present', exists });
     }
 
-    // Total docs in the collection (not just filtered)
-    const totalDocs = await MembersData.countDocuments();
-
     // Use utility for sorting
     const sortObj = buildSortObject(req.query);
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
 
+    // Helper for joined field mapping
+    const joinedFieldMap = {
+      gender: 'genderDetails.genderValue',
+      bloodGroup: 'bloodGroupDetails.bloodGroupValue',
+      memberType: 'memberTypeDetails.memberTypeValue',
+      department: 'departmentDetails.departmentName',
+    };
+
+    // Total docs in the collection (filtered count)
+    // For value-based filter, filteredDocs must be counted after aggregation match
+    let filteredDocs, totalDocs;
+    totalDocs = await MembersData.countDocuments();
+
+    // If IDs are provided
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
       if (aggregate === 'false') {
-        const matchingData = await handleCRUD(MembersData, 'find', { _id: { $in: objectIds }, ...matchConditions });
-        return res.status(200).json({ count: matchingData.length, totalDocs, data: matchingData });
+        let query = MembersData.find({ _id: { $in: objectIds }, ...matchConditions });
+        if (sortObj) query = query.sort(sortObj);
+        query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
+        const matchingData = await query;
+        filteredDocs = await MembersData.countDocuments({ _id: { $in: objectIds }, ...matchConditions });
+        return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
-      const pipeline = [
-        { $match: { _id: { $in: objectIds }, ...matchConditions } },
-        ...instituteLookup(),
-        ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),
-        ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
-        ...generalDataLookup('memberType', 'memberType', 'memberTypeDetails', 'memberTypeValue'),
-        ...generalDataLookup('department', 'department', 'departmentDetails', 'departmentName'),
-        ...gradesLookup(),
-        ...gradeBatchesLookup(),
-        ...gradeSectionLookup(),
-        ...gradeSectionBatchesLookup(),
-        { $sort: sortObj },
-        {
-          $project: {
-            firstName: 1,
-            middleName: 1,
-            lastName: 1,
-            memberId: 1,
-            memberType: '$memberTypeDetails.memberTypeValue',
-            instituteName: '$instituteDetails.instituteName',
-            grade: '$gradesDetails.gradeCode',
-            batch: '$gradeBatchesDetails.batch',
-            section: '$gradeSectionDetails.section',
-            gradeSectionBatch: '$gradeSectionBatchDetails.gradeSectionBatch',
-            department: '$departmentDetails.departmentName',
-            gender: '$genderDetails.genderValue',
-            bloodGroup: '$bloodGroupDetails.bloodGroupValue',
-            DOB: 1,
-            createdDate: 1,
-            expiryDate: 1,
-            email: 1,
-            contactNo1: 1,
-            contactNo2: 1,
-            image: 1,
-            fatherName: 1,
-            motherName: 1,
-            guardian: 1,
-            parentOrGuardianNo: 1,
-            parentOrGuardianEmail: 1,
-            parentOrGuardianOccupation: 1,
-            tempAddress: 1,
-            permAddress: 1,
-            createdAt: 1,
-            updatedAt: 1
-          }
-        }
-      ];
-      const data = await MembersData.aggregate(pipeline);
-      return res.status(200).json({ count: data.length, totalDocs, data });
-    }
-
-    if (aggregate === 'true') {
-      const lookups = [
+      // Aggregate branch with IDs
+      let lookups = [
         ...instituteLookup(),
         ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),
         ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
@@ -101,7 +111,10 @@ exports.getMembersData = async (req, res) => {
         ...gradeSectionLookup(),
         ...gradeSectionBatchesLookup(),
       ];
-      let pipeline = buildGenericAggregation({ filters: matchConditions, lookups });
+      let pipeline = buildGenericAggregation({ filters: { _id: { $in: objectIds }, ...matchConditions }, lookups });
+      // DRY: Use helper for value-based filter
+      const valueMatch = buildValueBasedMatchStage(valueBasedField, joinedFieldMap);
+      if (valueMatch) pipeline.push(valueMatch);
       pipeline.push({ $sort: sortObj });
       pipeline.push({
         $project: {
@@ -122,40 +135,97 @@ exports.getMembersData = async (req, res) => {
           createdDate: 1,
           expiryDate: 1,
           email: 1,
-          mobileNo1: 1,
-          mobileNo2: 1,
+          contactNo1: 1,
+          contactNo2: 1,
           image: 1,
           fatherName: 1,
           motherName: 1,
           guardian: 1,
-          parentGuardianNo: 1,
-          parentGuardianEmail: 1,
-          parentGuardianOccupation: 1,
+          parentOrGuardianNo: 1,
+          parentOrGuardianEmail: 1,
+          parentOrGuardianOccupation: 1,
           tempAddress: 1,
           permAddress: 1,
           createdAt: 1,
           updatedAt: 1
         }
       });
-      addPaginationAndSort(pipeline, {
-        page: parseInt(page) || 1,
-        limit: parseInt(limit) || 10,
-        sort: sortObj
-      });
+      // Count after all matches
+      const countPipeline = pipeline.filter(stage => !stage.$skip && !stage.$limit && !stage.$sort && !stage.$project);
+      const filteredDocsArr = await MembersData.aggregate([...countPipeline, { $count: 'count' }]);
+      filteredDocs = filteredDocsArr[0]?.count || 0;
+      addPaginationAndSort(pipeline, { page: pageNum, limit: limitNum, sort: {} });
       const data = await MembersData.aggregate(pipeline);
-      return res.status(200).json({ count: data.length, totalDocs, data });
+      return res.status(200).json({ count: data.length, filteredDocs, totalDocs, data });
+    }
+    // Aggregate branch (no IDs)
+    if (aggregate === 'true') {
+      let lookups = [
+        ...instituteLookup(),
+        ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),
+        ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
+        ...generalDataLookup('memberType', 'memberType', 'memberTypeDetails', 'memberTypeValue'),
+        ...generalDataLookup('department', 'department', 'departmentDetails', 'departmentName'),
+        ...gradesLookup(),
+        ...gradeBatchesLookup(),
+        ...gradeSectionLookup(),
+        ...gradeSectionBatchesLookup(),
+      ];
+      let pipeline = buildGenericAggregation({ filters: matchConditions, lookups });
+      // DRY: Use helper for value-based filter
+      const valueMatch = buildValueBasedMatchStage(valueBasedField, joinedFieldMap);
+      if (valueMatch) pipeline.push(valueMatch);
+      pipeline.push({ $sort: sortObj });
+      pipeline.push({
+        $project: {
+          firstName: 1,
+          middleName: 1,
+          lastName: 1,
+          memberId: 1,
+          memberType: '$memberTypeDetails.memberTypeValue',
+          instituteName: '$instituteDetails.instituteName',
+          grade: '$gradesDetails.gradeCode',
+          batch: '$gradeBatchesDetails.batch',
+          section: '$gradeSectionDetails.section',
+          gradeSectionBatch: '$gradeSectionBatchDetails.gradeSectionBatch',
+          department: '$departmentDetails.departmentName',
+          gender: '$genderDetails.genderValue',
+          bloodGroup: '$bloodGroupDetails.bloodGroupValue',
+          DOB: 1,
+          createdDate: 1,
+          expiryDate: 1,
+          email: 1,
+          contactNo1: 1,
+          contactNo2: 1,
+          image: 1,
+          fatherName: 1,
+          motherName: 1,
+          guardian: 1,
+          parentOrGuardianNo: 1,
+          parentOrGuardianEmail: 1,
+          parentOrGuardianOccupation: 1,
+          tempAddress: 1,
+          permAddress: 1,
+          createdAt: 1,
+          updatedAt: 1
+        }
+      });
+      // Count after all matches
+      const countPipeline = pipeline.filter(stage => !stage.$skip && !stage.$limit && !stage.$sort && !stage.$project);
+      const filteredDocsArr = await MembersData.aggregate([...countPipeline, { $count: 'count' }]);
+      filteredDocs = filteredDocsArr[0]?.count || 0;
+      addPaginationAndSort(pipeline, { page: pageNum, limit: limitNum, sort: {} });
+      const data = await MembersData.aggregate(pipeline);
+      return res.status(200).json({ count: data.length, filteredDocs, totalDocs, data });
     }
 
     // Non-aggregate fetch (simple find)
     let query = MembersData.find(matchConditions);
-    if (sortObj) {
-      query = query.sort(sortObj);
-    }
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 10;
+    if (sortObj) query = query.sort(sortObj);
     query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
     const members = await query;
-    return res.status(200).json({ count: members.length, totalDocs, data: members });
+    filteredDocs = await MembersData.countDocuments(matchConditions);
+    return res.status(200).json({ count: members.length, filteredDocs, totalDocs, data: members });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

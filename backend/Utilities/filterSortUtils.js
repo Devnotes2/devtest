@@ -3,7 +3,7 @@
 const { ObjectId } = require('mongoose').Types;
 
 function buildMatchConditions(query) {
-  const {
+  let {
     filterField, operator, value, ...filters
   } = query;
   const matchConditions = {};
@@ -17,72 +17,88 @@ function buildMatchConditions(query) {
   });
   if (filters.email) matchConditions.email = filters.email;
 
+  // Only process the first filterField/operator/value if arrays
+  if (Array.isArray(filterField)) filterField = filterField[0];
+  if (Array.isArray(operator)) operator = operator[0];
+  if (Array.isArray(value)) value = value[0];
+
+  // Default operator to 'eq' if filterField and value are present but operator is missing
+  if (filterField && value && !operator) operator = 'eq';
+
   // Dynamic filterField/operator/value logic
   if (filterField && operator) {
     let cond = {};
-    switch (operator) {
-      // String operators
-      case 'contains':
-        cond[filterField] = { $regex: value, $options: 'i' };
-        break;
-      case 'equals':
-        cond[filterField] = value;
-        break;
-      case 'startsWith':
-        cond[filterField] = { $regex: `^${value}`, $options: 'i' };
-        break;
-      case 'endsWith':
-        cond[filterField] = { $regex: `${value}$`, $options: 'i' };
-        break;
-      case 'isEmpty':
-        cond[filterField] = { $in: [null, ''] };
-        break;
-      case 'isNotEmpty':
-        cond[filterField] = { $nin: [null, ''] };
-        break;
-      case 'isAnyOf':
-        cond[filterField] = { $in: Array.isArray(value) ? value : [value] };
-        break;
-      // Number operators
-      case '=':
-        cond[filterField] = Number(value);
-        break;
-      case '!=':
-        cond[filterField] = { $ne: Number(value) };
-        break;
-      case '>':
-        cond[filterField] = { $gt: Number(value) };
-        break;
-      case '<':
-        cond[filterField] = { $lt: Number(value) };
-        break;
-      case '>=':
-        cond[filterField] = { $gte: Number(value) };
-        break;
-      case '<=':
-        cond[filterField] = { $lte: Number(value) };
-        break;
-      // Date operators
-      case 'is':
-        cond[filterField] = new Date(value);
-        break;
-      case 'not':
-        cond[filterField] = { $ne: new Date(value) };
-        break;
-      case 'after':
-        cond[filterField] = { $gt: new Date(value) };
-        break;
-      case 'onOrAfter':
-        cond[filterField] = { $gte: new Date(value) };
-        break;
-      case 'before':
-        cond[filterField] = { $lt: new Date(value) };
-        break;
-      case 'onOrBefore':
-        cond[filterField] = { $lte: new Date(value) };
-        break;
-      default:
-        break;
+    // Special handling for value-based filtering on joined fields (e.g. gender)
+    const valueBasedFields = ['gender', 'bloodGroup', 'memberType', 'department'];
+    if (valueBasedFields.includes(filterField) && typeof value === 'string' && !ObjectId.isValid(value)) {
+      // This will be handled in the aggregation pipeline, not here
+      cond['__valueBasedField'] = { filterField, operator, value };
+    } else {
+      switch (operator) {
+        // String operators
+        case 'contains':
+          cond[filterField] = { $regex: value, $options: 'i' };
+          break;
+        case 'equals':
+        case 'eq':
+          cond[filterField] = value;
+          break;
+        case 'startsWith':
+          cond[filterField] = { $regex: `^${value}`, $options: 'i' };
+          break;
+        case 'endsWith':
+          cond[filterField] = { $regex: `${value}$`, $options: 'i' };
+          break;
+        case 'isEmpty':
+          cond[filterField] = { $in: [null, ''] };
+          break;
+        case 'isNotEmpty':
+          cond[filterField] = { $nin: [null, ''] };
+          break;
+        case 'isAnyOf':
+          cond[filterField] = { $in: Array.isArray(value) ? value : [value] };
+          break;
+        // Number operators
+        case '=':
+          cond[filterField] = Number(value);
+          break;
+        case '!=':
+          cond[filterField] = { $ne: Number(value) };
+          break;
+        case '>':
+          cond[filterField] = { $gt: Number(value) };
+          break;
+        case '<':
+          cond[filterField] = { $lt: Number(value) };
+          break;
+        case '>=':
+          cond[filterField] = { $gte: Number(value) };
+          break;
+        case '<=':
+          cond[filterField] = { $lte: Number(value) };
+          break;
+        // Date operators
+        case 'is':
+          cond[filterField] = new Date(value);
+          break;
+        case 'not':
+          cond[filterField] = { $ne: new Date(value) };
+          break;
+        case 'after':
+          cond[filterField] = { $gt: new Date(value) };
+          break;
+        case 'onOrAfter':
+          cond[filterField] = { $gte: new Date(value) };
+          break;
+        case 'before':
+          cond[filterField] = { $lt: new Date(value) };
+          break;
+        case 'onOrBefore':
+          cond[filterField] = { $lte: new Date(value) };
+          break;
+        default:
+          break;
+      }
     }
     Object.assign(matchConditions, cond);
   }
