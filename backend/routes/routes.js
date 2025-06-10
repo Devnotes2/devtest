@@ -10,6 +10,7 @@ router.use('/asideDataRt', require('./asideData/asideDataRt'));
 // instituteData
 router.use('/instituteDataRt', require('./instituteData/institutesRt'));
 router.use('/instituteDataRt', require('./instituteData/academicYearRt'));
+router.use('/instituteDataRt', require('./instituteData/departmentRt'));
 
 // institution aggregation
 router.use('/instituteAggreRt', require('./instituteData/aggregation/locationTypesInInstituteRt'));

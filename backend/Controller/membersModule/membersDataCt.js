@@ -11,47 +11,9 @@ const { gradesLookup } = require('../../Utilities/aggregations/gradesLookups');
 const { gradeBatchesLookup } = require('../../Utilities/aggregations/gradesBatchesLookups');
 const { gradeSectionLookup } = require('../../Utilities/aggregations/gradesSectionLookups');
 const { gradeSectionBatchesLookup } = require('../../Utilities/aggregations/gradesSectionBatchesLookups');
-const { buildMatchConditions, buildSortObject, validateUniqueField } = require('../../Utilities/filterSortUtils');
+const { buildMatchConditions, buildSortObject, validateUniqueField, buildValueBasedMatchStage } = require('../../Utilities/filterSortUtils');
 
-// Helper to build a $match stage for value-based filtering on joined fields
-function buildValueBasedMatchStage(__valueBasedField, joinedFieldMap) {
-  if (!__valueBasedField) return null;
-  const { filterField, operator, value } = __valueBasedField;
-  const joinedField = joinedFieldMap[filterField];
-  if (!joinedField) return null;
-  let matchStage = {};
-  switch (operator) {
-    case 'contains':
-      matchStage[joinedField] = { $regex: value, $options: 'i' };
-      break;
-    case 'equals':
-    case 'eq':
-      if (typeof value === 'string') {
-        matchStage[joinedField] = { $regex: `^${value}$`, $options: 'i' };
-      } else {
-        matchStage[joinedField] = value;
-      }
-      break;
-    case 'startsWith':
-      matchStage[joinedField] = { $regex: `^${value}`, $options: 'i' };
-      break;
-    case 'endsWith':
-      matchStage[joinedField] = { $regex: `${value}$`, $options: 'i' };
-      break;
-    case 'isEmpty':
-      matchStage[joinedField] = { $in: [null, ''] };
-      break;
-    case 'isNotEmpty':
-      matchStage[joinedField] = { $nin: [null, ''] };
-      break;
-    case 'isAnyOf':
-      matchStage[joinedField] = { $in: Array.isArray(value) ? value : [value] };
-      break;
-    default:
-      matchStage[joinedField] = value;
-  }
-  return { $match: matchStage };
-}
+
 
 exports.getMembersData = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
