@@ -2,8 +2,8 @@ function departmentLookup() {
   return [
     {
       $lookup: {
-        from: 'instituteData',
-        localField: 'departmentId',
+        from: 'departmentdatas',
+        localField: 'department',
         foreignField: '_id',
         as: 'departmentDetails'
       }

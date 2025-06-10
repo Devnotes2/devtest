@@ -30,6 +30,15 @@ exports.gradesInInstituteAg = async (req, res) => {
           }
         },
         { $unwind: '$instituteDetails' },
+                {
+          $lookup: {
+            from: 'departmentdatas', // Reference the new structure
+            localField: 'department',
+            foreignField: '_id',
+            as: 'departmentDetails'
+          }
+        },
+        { $unwind: '$departmentDetails' },
         {
           $lookup: {
             from: 'generalData',
@@ -63,6 +72,7 @@ exports.gradesInInstituteAg = async (req, res) => {
             gradeCode: 1,
             gradeDescription: 1,
             instituteName: '$instituteDetails.instituteName',
+            departmentName:'$departmentDetails.departmentName',
             instituteId: '$instituteDetails._id',
             gradeDuration: '$gradeDurationDetails.gradeDurationValue',
             isElective: '$isElectiveDetails.isElectiveValue'
@@ -84,6 +94,15 @@ exports.gradesInInstituteAg = async (req, res) => {
         }
       },
       { $unwind: '$instituteDetails' },
+      {
+          $lookup: {
+            from: 'departmentdatas', // Reference the new structure
+            localField: 'department',
+            foreignField: '_id',
+            as: 'departmentDetails'
+          }
+        },
+        { $unwind: '$departmentDetails' },
       {
         $lookup: {
           from: 'generalData',
@@ -117,6 +136,7 @@ exports.gradesInInstituteAg = async (req, res) => {
           gradeCode: 1,
           gradeDescription: 1,
           instituteName: '$instituteDetails.instituteName',
+          departmentName:'$departmentDetails.departmentName',
           instituteId: '$instituteDetails._id',
           gradeDuration: '$gradeDurationDetails.gradeDurationValue',
           isElective: '$isElectiveDetails.isElectiveValue'
@@ -132,12 +152,13 @@ exports.gradesInInstituteAg = async (req, res) => {
 
 exports.createGradesInInstitute = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { instituteId, gradeCode, gradeDescription, gradeDuration, isElective } = req.body;
+  const { instituteId, gradeCode, gradeDescription, gradeDuration, isElective,department } = req.body;
 
   try {
     const newGrade = await handleCRUD(GradesInInstitute, 'create', {}, {
       instituteId,
       gradeCode,
+      department,
       gradeDescription,
       gradeDuration,
       isElective

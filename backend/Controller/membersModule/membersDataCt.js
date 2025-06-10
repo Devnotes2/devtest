@@ -8,6 +8,7 @@ const addPaginationAndSort = require('../../Utilities/paginationControllsUtils')
 const { generalDataLookup } = require('../../Utilities/aggregations/generalDataLookups');
 const { instituteLookup } = require('../../Utilities/aggregations/instituteDataLookups');
 const { gradesLookup } = require('../../Utilities/aggregations/gradesLookups');
+const { departmentLookup } = require('../../Utilities/aggregations/departmentLookups');
 const { gradeBatchesLookup } = require('../../Utilities/aggregations/gradesBatchesLookups');
 const { gradeSectionLookup } = require('../../Utilities/aggregations/gradesSectionLookups');
 const { gradeSectionBatchesLookup } = require('../../Utilities/aggregations/gradesSectionBatchesLookups');
@@ -67,7 +68,7 @@ exports.getMembersData = async (req, res) => {
         ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),
         ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
         ...generalDataLookup('memberType', 'memberType', 'memberTypeDetails', 'memberTypeValue'),
-        ...generalDataLookup('department', 'department', 'departmentDetails', 'departmentName'),
+        ...departmentLookup(),
         ...gradesLookup(),
         ...gradeBatchesLookup(),
         ...gradeSectionLookup(),
@@ -127,7 +128,7 @@ exports.getMembersData = async (req, res) => {
         ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),
         ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
         ...generalDataLookup('memberType', 'memberType', 'memberTypeDetails', 'memberTypeValue'),
-        ...generalDataLookup('department', 'department', 'departmentDetails', 'departmentName'),
+        ...departmentLookup(),
         ...gradesLookup(),
         ...gradeBatchesLookup(),
         ...gradeSectionLookup(),

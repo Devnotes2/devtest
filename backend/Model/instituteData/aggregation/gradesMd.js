@@ -6,6 +6,10 @@ const GradesSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
+  department:{
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
+  },
   gradeCode: {
     type: String,  // Numeric code for the grade
     required: true
