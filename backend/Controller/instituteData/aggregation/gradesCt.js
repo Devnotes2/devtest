@@ -29,7 +29,7 @@ exports.gradesInInstituteAg = async (req, res) => {
             as: 'instituteDetails'
           }
         },
-        { $unwind: '$instituteDetails' },
+{ $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
                 {
           $lookup: {
             from: 'departmentdatas', // Reference the new structure
@@ -38,7 +38,7 @@ exports.gradesInInstituteAg = async (req, res) => {
             as: 'departmentDetails'
           }
         },
-        { $unwind: '$departmentDetails' },
+{ $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
         {
           $lookup: {
             from: 'generalData',
@@ -52,7 +52,7 @@ exports.gradesInInstituteAg = async (req, res) => {
             as: 'gradeDurationDetails'
           }
         },
-        { $unwind: '$gradeDurationDetails' },
+{ $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
         {
           $lookup: {
             from: 'generalData',
@@ -66,7 +66,7 @@ exports.gradesInInstituteAg = async (req, res) => {
             as: 'isElectiveDetails'
           }
         },
-        { $unwind: '$isElectiveDetails' },
+{ $unwind: { path: '$isElectiveDetails', preserveNullAndEmptyArrays: true } },
         {
           $project: {
             gradeCode: 1,
@@ -93,7 +93,7 @@ exports.gradesInInstituteAg = async (req, res) => {
           as: 'instituteDetails'
         }
       },
-      { $unwind: '$instituteDetails' },
+{ $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
       {
           $lookup: {
             from: 'departmentdatas', // Reference the new structure
@@ -102,7 +102,7 @@ exports.gradesInInstituteAg = async (req, res) => {
             as: 'departmentDetails'
           }
         },
-        { $unwind: '$departmentDetails' },
+{ $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'generalData',
@@ -116,7 +116,7 @@ exports.gradesInInstituteAg = async (req, res) => {
           as: 'gradeDurationDetails'
         }
       },
-      { $unwind: '$gradeDurationDetails' },
+{ $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'generalData',
@@ -130,7 +130,7 @@ exports.gradesInInstituteAg = async (req, res) => {
           as: 'isElectiveDetails'
         }
       },
-      { $unwind: '$isElectiveDetails' },
+{ $unwind: { path: '$isElectiveDetails', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           gradeCode: 1,
