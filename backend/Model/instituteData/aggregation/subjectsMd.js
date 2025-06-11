@@ -10,12 +10,16 @@ const SubjectsSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
+    department:{
+      type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+      required: true,
+    },
   subjectTypeId: {
-    type: Number,  // Reference to the institute (ObjectId)
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
   learningTypeId :{
-    type: Number,  // Reference to the institute (ObjectId)
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
   description :{
@@ -31,7 +35,7 @@ const SubjectsSchema = new Schema({
     required: true,
   },
 
-});  // Optionally, you can use timestamps to track creation and update times
+}, { timestamps: true });  // Optionally, you can use timestamps to track creation and update times
 
 
 
