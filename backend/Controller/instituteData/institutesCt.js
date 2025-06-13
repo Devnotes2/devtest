@@ -1,6 +1,17 @@
 const createInstitutesModel = require('../../Model/instituteData/institutesMd');
 const { handleCRUD } = require('../../Utilities/crudUtils');
 const { ObjectId } = require('mongoose').Types;
+const createDepartmentDataModel = require('../../Model/instituteData/departmentMd');
+const createGradesInInstituteModel = require('../../Model/instituteData/aggregation/gradesMd');
+const createSubjectsInInstituteModel = require('../../Model/instituteData/aggregation/subjectsMd');
+
+// --- INSTITUTE DEPENDENTS CONFIG ---
+const instituteDependents = [
+  { model: 'DepartmentData', field: 'instituteId', name: 'departments' },
+  { model: 'Grades', field: 'instituteId', name: 'grades' },
+  { model: 'Subjects', field: 'instituteId', name: 'subjects' },
+  // Add more as needed
+];
 
 // Get all institutes or a specific institute by ID
 exports.getInstitutes = async (req, res) => {
@@ -69,16 +80,50 @@ exports.updateInstitute = async (req, res) => {
   }
 };
 
-// Delete institute(s)
+// Delete institute(s) with dependency options
 exports.deleteInstitutes = async (req, res) => {
+  // Register all dependent models for the current connection
+  createDepartmentDataModel(req.collegeDB);
+  createGradesInInstituteModel(req.collegeDB);
+  createSubjectsInInstituteModel(req.collegeDB);
+
   const Institute = createInstitutesModel(req.collegeDB);
-  const { ids } = req.body;
+  const { ids, deleteDependents, transferTo } = req.body;
 
   if (!ids || !Array.isArray(ids)) {
     return res.status(400).json({ message: 'Institute ID(s) required' });
   }
 
+  // Import generic cascade utils
+  const { countDependents, deleteWithDependents, transferDependents } = require('../../Utilities/instituteCascadeUtils');
+
   try {
+    // 1. Count dependents for each institute
+    const depCounts = await countDependents(req.collegeDB, ids, instituteDependents);
+    // If neither deleteDependents nor transferTo, just return counts (dry run)
+    if (!deleteDependents && !transferTo) {
+      return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
+    }
+    // 2. Transfer dependents if requested
+    if (transferTo) {
+      if (ids.length !== 1) {
+        return res.status(400).json({ message: 'Please select one institute to transfer dependents from.' });
+      }
+      const transferRes = await transferDependents(req.collegeDB, ids[0], transferTo, instituteDependents);
+      // After transfer, delete the original institute(s)
+      const result = await handleCRUD(Institute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+      return res.status(200).json({ message: 'Dependents transferred and institute(s) deleted', transfer: transferRes, deletedCount: result.deletedCount });
+    }
+    // 3. Delete dependents and institute(s) in a transaction
+    if (deleteDependents) {
+      const results = [];
+      for (const id of ids) {
+        const delRes = await deleteWithDependents(req.collegeDB, id, instituteDependents, 'instituteData');
+        results.push({ instituteId: id, ...delRes });
+      }
+      return res.status(200).json({ message: 'Deleted with dependents', results });
+    }
+    // Default: just delete the institute(s) if no dependents
     const result = await handleCRUD(Institute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
     if (result.deletedCount > 0) {
       res.status(200).json({ message: 'Institute(s) deleted successfully', deletedCount: result.deletedCount });

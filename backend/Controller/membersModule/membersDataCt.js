@@ -22,7 +22,7 @@ exports.getMembersData = async (req, res) => {
   try {
     // Use utility for filtering
     const matchConditions = buildMatchConditions(req.query);
-
+    console.log(matchConditions);
     // Remove __valueBasedField from matchConditions for aggregation
     let valueBasedField = matchConditions.__valueBasedField;
     if (valueBasedField) delete matchConditions.__valueBasedField;
