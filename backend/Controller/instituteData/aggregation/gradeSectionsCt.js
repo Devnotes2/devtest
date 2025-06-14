@@ -2,6 +2,15 @@ const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types;
 const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradesectionsMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
+const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
+const createMembersDataModel = require('../../../Model/membersModule/membersDataMd');
+
+// --- Grade Section DEPENDENTS CONFIG ---
+const gradeSectionDependents = [
+  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
+  { model: 'GradeSectionBatches', field: 'instituteId', name: 'gradesectionbatches' }
+  // Add more as needed
+];
 
 exports.gradeSectionsInInstituteAg = async (req, res) => {
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
@@ -121,23 +130,7 @@ exports.createGradeSectionsInInstitute = async (req, res) => {
   }
 };
 
-exports.deleteGradeSectionsInInstitute = async (req, res) => {
-  const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
-  const { ids } = req.body;
 
-  try {
-    const objectIds = ids.map(id => new ObjectId(id));
-    const result = await handleCRUD(GradeSectionsInInstitute, 'delete', { _id: { $in: objectIds } });
-
-    if (result.deletedCount > 0) {
-      res.status(200).json({ message: 'Grade sections deleted successfully' });
-    } else {
-      res.status(404).json({ message: 'No matching grade sections found' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete grade sections', details: error.message });
-  }
-};
 
 exports.updateGradeSectionsInInstitute = async (req, res) => {
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
@@ -155,5 +148,82 @@ exports.updateGradeSectionsInInstitute = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: 'Failed to update grade section', details: error.message });
+  }
+};
+
+// exports.deleteGradeSectionsInInstitute = async (req, res) => {
+//   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
+//   const { ids } = req.body;
+
+//   try {
+//     const objectIds = ids.map(id => new ObjectId(id));
+//     const result = await handleCRUD(GradeSectionsInInstitute, 'delete', { _id: { $in: objectIds } });
+
+//     if (result.deletedCount > 0) {
+//       res.status(200).json({ message: 'Grade sections deleted successfully' });
+//     } else {
+//       res.status(404).json({ message: 'No matching grade sections found' });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ error: 'Failed to delete grade sections', details: error.message });
+//   }
+// };
+
+
+// Delete Grade Section(s) with dependency options
+exports.deleteGradeSectionsInInstitute = async (req, res) => {
+  // Register all dependent models for the current connection
+  createGradeSectionBatchesInInstituteModel(req.collegeDB);
+  createMembersDataModel(req.collegeDB);
+
+  const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
+  const { ids, deleteDependents, transferTo } = req.body;
+
+  if (!ids || !Array.isArray(ids)) {
+    return res.status(400).json({ message: 'Grade Section ID(s) required' });
+  }
+
+  // Import generic cascade utils
+  const { countDependents, deleteWithDependents, transferDependents } = require('../../../Utilities/dependencyCascadeUtils');
+
+  try {
+    // 1. Count dependents for each Grade Section
+    const depCounts = await countDependents(req.collegeDB, ids, gradeSectionDependents);
+    // If neither deleteDependents nor transferTo, just return counts (dry run)
+    if (!deleteDependents && !transferTo) {
+      return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
+    }
+    if (deleteDependents && transferTo) {
+      return res.status(400).json({ message: 'Either transfer or delete dependencies'});
+    }
+    // 2. Transfer dependents if requested
+    if (transferTo) {
+      if (ids.length !== 1) {
+        return res.status(400).json({ message: 'Please select one Grade Section to transfer dependents from.' });
+      }
+      const transferRes = await transferDependents(req.collegeDB, ids[0], transferTo, gradeSectionDependents);
+      // After transfer, delete the original Grade Section(s)
+      const result = await handleCRUD(GradeSectionsInInstitute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+      return res.status(200).json({ message: 'Dependents transferred and Grade Section(s) deleted', transfer: transferRes, deletedCount: result.deletedCount });
+    }
+    // 3. Delete dependents and Grade Section(s) in a transaction
+    if (deleteDependents) {
+      const results = [];
+      for (const id of ids) {
+        const delRes = await deleteWithDependents(req.collegeDB, id, gradeSectionDependents, 'GradeSections');
+        results.push({ gradeSectionId: id, ...delRes });
+      }
+      return res.status(200).json({ message: 'Deleted with dependents', results });
+    }
+    // Default: just delete the Grade Section(s) if no dependents
+    const result = await handleCRUD(GradeSectionsInInstitute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: 'Grade Section(s) deleted successfully', deletedCount: result.deletedCount });
+    } else {
+      res.status(404).json({ message: 'No matching Grade Section found for deletion' });
+    }
+  } catch (error) {
+    console.error('Error deleting Grade Section:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

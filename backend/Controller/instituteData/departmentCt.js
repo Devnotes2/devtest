@@ -7,6 +7,17 @@ const { buildMatchConditions, buildSortObject, validateUniqueField, buildValueBa
 const buildGenericAggregation = require('../../Utilities/genericAggregatorUtils');
 const addPaginationAndSort = require('../../Utilities/paginationControllsUtils');
 const { instituteLookup } = require('../../Utilities/aggregations/instituteDataLookups');
+const createGradesInInstituteModel = require('../../Model/instituteData/aggregation/gradesMd');
+const createSubjectsInInstituteModel = require('../../Model/instituteData/aggregation/subjectsMd');
+const createMembersDataModel = require('../../Model/membersModule/membersDataMd');
+
+// --- INSTITUTE DEPENDENTS CONFIG ---
+const departmentDependents = [
+  { model: 'Grades', field: 'instituteId', name: 'grades' },
+  { model: 'Subjects', field: 'instituteId', name: 'subjects' },
+  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
+  // Add more as needed
+];
 
 exports.createDepartment = async (req, res) => {
   const DepartmentData = createDepartmentDataModel(req.collegeDB);
@@ -39,21 +50,6 @@ exports.updateDepartment = async (req, res) => {
   }
 };
 
-
-exports.deleteDepartment = async (req, res) => {
-  const DepartmentData = createDepartmentDataModel(req.collegeDB);
-  const { ids } = req.body;
-  try {
-    const result = await handleCRUD(DepartmentData, 'delete', { _id: { $in: ids.map(id => id) } });
-    if (result.deletedCount > 0) {
-      res.status(200).json({ message: 'Departments deleted successfully' });
-    } else {
-      res.status(404).json({ message: 'No matching departments found' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete departments', details: error.message });
-  }
-};
 
 
 // Get Departments Data (DRY: aggregation, lookup, pagination, sorting)
@@ -158,6 +154,79 @@ exports.getDepartment = async (req, res) => {
     filteredDocs = await DepartmentData.countDocuments(matchConditions);
     return res.status(200).json({ count: departments.length, filteredDocs, totalDocs, data: departments });
   } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+
+
+// exports.deleteDepartment = async (req, res) => {
+//   const DepartmentData = createDepartmentDataModel(req.collegeDB);
+//   const { ids } = req.body;
+//   try {
+//     const result = await handleCRUD(DepartmentData, 'delete', { _id: { $in: ids.map(id => id) } });
+//     if (result.deletedCount > 0) {
+//       res.status(200).json({ message: 'Departments deleted successfully' });
+//     } else {
+//       res.status(404).json({ message: 'No matching departments found' });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ error: 'Failed to delete departments', details: error.message });
+//   }
+// };
+
+// Delete institute(s) with dependency options
+exports.deleteDepartment = async (req, res) => {
+  // Register all dependent models for the current connection
+  createGradesInInstituteModel(req.collegeDB);
+  createSubjectsInInstituteModel(req.collegeDB);
+  createMembersDataModel(req.collegeDB);
+
+  const Department = createDepartmentDataModel(req.collegeDB);
+  const { ids, deleteDependents, transferTo } = req.body;
+
+  if (!ids || !Array.isArray(ids)) {
+    return res.status(400).json({ message: 'Department ID(s) required' });
+  }
+
+  // Import generic cascade utils
+  const { countDependents, deleteWithDependents, transferDependents } = require('../../Utilities/dependencyCascadeUtils');
+
+  try {
+    // 1. Count dependents for each institute
+    const depCounts = await countDependents(req.collegeDB, ids, departmentDependents);
+    // If neither deleteDependents nor transferTo, just return counts (dry run)
+    if (!deleteDependents && !transferTo) {
+      return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
+    }
+    // 2. Transfer dependents if requested
+    if (transferTo) {
+      if (ids.length !== 1) {
+        return res.status(400).json({ message: 'Please select one department to transfer dependents from.' });
+      }
+      const transferRes = await transferDependents(req.collegeDB, ids[0], transferTo, departmentDependents);
+      // After transfer, delete the original institute(s)
+      const result = await handleCRUD(Department, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+      return res.status(200).json({ message: 'Dependents transferred and department(s) deleted', transfer: transferRes, deletedCount: result.deletedCount });
+    }
+    // 3. Delete dependents and institute(s) in a transaction
+    if (deleteDependents) {
+      const results = [];
+      for (const id of ids) {
+        const delRes = await deleteWithDependents(req.collegeDB, id, departmentDependents, 'DepartmentData');
+        results.push({ department: id, ...delRes });
+      }
+      return res.status(200).json({ message: 'Deleted with dependents', results });
+    }
+    // Default: just delete the institute(s) if no dependents
+    const result = await handleCRUD(Department, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: 'Department(s) deleted successfully', deletedCount: result.deletedCount });
+    } else {
+      res.status(404).json({ message: 'No matching departments found for deletion' });
+    }
+  } catch (error) {
+    console.error('Error deleting departments:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

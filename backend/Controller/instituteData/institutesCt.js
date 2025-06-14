@@ -4,12 +4,23 @@ const { ObjectId } = require('mongoose').Types;
 const createDepartmentDataModel = require('../../Model/instituteData/departmentMd');
 const createGradesInInstituteModel = require('../../Model/instituteData/aggregation/gradesMd');
 const createSubjectsInInstituteModel = require('../../Model/instituteData/aggregation/subjectsMd');
+const createLocationTypesInInstituteModel = require('../../Model/instituteData/aggregation/locationTypesInInstituteMd');
+const createGradeBatchesInInstituteModel = require('../../Model/instituteData/aggregation/gradeBatchesMd');
+const createGradeSectionsInInstituteModel = require('../../Model/instituteData/aggregation/gradesectionsMd');
+const createGradeSectionBatchesInInstituteModel = require('../../Model/instituteData/aggregation/gradeSectionBatchesMd');
+const createMembersDataModel = require('../../Model/membersModule/membersDataMd');
+
 
 // --- INSTITUTE DEPENDENTS CONFIG ---
 const instituteDependents = [
   { model: 'DepartmentData', field: 'instituteId', name: 'departments' },
   { model: 'Grades', field: 'instituteId', name: 'grades' },
   { model: 'Subjects', field: 'instituteId', name: 'subjects' },
+  { model: 'LocationTypesInInstitute', field: 'instituteId', name: 'LocationTypesInInstitute' },
+  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
+  { model: 'GradeBatches', field: 'instituteId', name: 'gradebatches' },
+  { model: 'GradeSections', field: 'instituteId', name: 'gradesections' },
+  { model: 'GradeSectionBatches', field: 'instituteId', name: 'gradesectionbatches' }
   // Add more as needed
 ];
 
@@ -86,6 +97,11 @@ exports.deleteInstitutes = async (req, res) => {
   createDepartmentDataModel(req.collegeDB);
   createGradesInInstituteModel(req.collegeDB);
   createSubjectsInInstituteModel(req.collegeDB);
+  createLocationTypesInInstituteModel(req.collegeDB);
+  createGradeBatchesInInstituteModel(req.collegeDB);
+  createGradeSectionsInInstituteModel(req.collegeDB);
+  createGradeSectionBatchesInInstituteModel(req.collegeDB);
+  createMembersDataModel(req.collegeDB);
 
   const Institute = createInstitutesModel(req.collegeDB);
   const { ids, deleteDependents, transferTo } = req.body;
@@ -95,7 +111,7 @@ exports.deleteInstitutes = async (req, res) => {
   }
 
   // Import generic cascade utils
-  const { countDependents, deleteWithDependents, transferDependents } = require('../../Utilities/instituteCascadeUtils');
+  const { countDependents, deleteWithDependents, transferDependents } = require('../../Utilities/dependencyCascadeUtils');
 
   try {
     // 1. Count dependents for each institute

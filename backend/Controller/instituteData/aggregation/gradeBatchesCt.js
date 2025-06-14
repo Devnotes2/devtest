@@ -2,6 +2,13 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createGradeBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeBatchesMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
+const createMembersDataModel = require('../../../Model/membersModule/membersDataMd');
+
+// --- Grade DEPENDENTS CONFIG ---
+const gradeBatchDependents = [
+  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
+  // Add more as needed
+];
 
 exports.gradeBatchesInInstituteAg = async (req, res) => {
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
@@ -122,22 +129,7 @@ exports.createGradeBatchesInInstitute = async (req, res) => {
   }
 };
 
-exports.deleteGradeBatchesInInstitute = async (req, res) => {
-  const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
-  const { ids } = req.body;
 
-  try {
-    const result = await handleCRUD(GradeBatchesInInstitute, 'delete', { _id: { $in: ids.map(id => id) } });
-
-    if (result.deletedCount > 0) {
-      res.status(200).json({ message: 'GradeBatches deleted successfully' });
-    } else {
-      res.status(404).json({ message: 'No matching gradeBatches found' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete gradeBatches', details: error.message });
-  }
-};
 
 exports.updateGradeBatchesInInstitute = async (req, res) => {
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
@@ -155,5 +147,80 @@ exports.updateGradeBatchesInInstitute = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: 'Failed to update grade', details: error.message });
+  }
+};
+
+
+// exports.deleteGradeBatchesInInstitute = async (req, res) => {
+//   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
+//   const { ids } = req.body;
+
+//   try {
+//     const result = await handleCRUD(GradeBatchesInInstitute, 'delete', { _id: { $in: ids.map(id => id) } });
+
+//     if (result.deletedCount > 0) {
+//       res.status(200).json({ message: 'GradeBatches deleted successfully' });
+//     } else {
+//       res.status(404).json({ message: 'No matching gradeBatches found' });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ error: 'Failed to delete gradeBatches', details: error.message });
+//   }
+// };
+
+// Delete Grade Batch(s) with dependency options
+exports.deleteGradeBatchesInInstitute = async (req, res) => {
+  // Register all dependent models for the current connection
+  createMembersDataModel(req.collegeDB);
+
+  const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
+  const { ids, deleteDependents, transferTo } = req.body;
+
+  if (!ids || !Array.isArray(ids)) {
+    return res.status(400).json({ message: 'Grade Batch ID(s) required' });
+  }
+
+  // Import generic cascade utils
+  const { countDependents, deleteWithDependents, transferDependents } = require('../../../Utilities/dependencyCascadeUtils');
+
+  try {
+    // 1. Count dependents for each Grade Batch
+    const depCounts = await countDependents(req.collegeDB, ids, gradeBatchDependents);
+    // If neither deleteDependents nor transferTo, just return counts (dry run)
+    if (!deleteDependents && !transferTo) {
+      return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
+    }
+    if (deleteDependents && transferTo) {
+      return res.status(400).json({ message: 'Either transfer or delete dependencies'});
+    }
+    // 2. Transfer dependents if requested
+    if (transferTo) {
+      if (ids.length !== 1) {
+        return res.status(400).json({ message: 'Please select one Grade Batch to transfer dependents from.' });
+      }
+      const transferRes = await transferDependents(req.collegeDB, ids[0], transferTo, gradeBatchDependents);
+      // After transfer, delete the original Grade Batch(s)
+      const result = await handleCRUD(GradeBatchesInInstitute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+      return res.status(200).json({ message: 'Dependents transferred and Grade Batch(s) deleted', transfer: transferRes, deletedCount: result.deletedCount });
+    }
+    // 3. Delete dependents and Grade(s) in a transaction
+    if (deleteDependents) {
+      const results = [];
+      for (const id of ids) {
+        const delRes = await deleteWithDependents(req.collegeDB, id, gradeBatchDependents, 'GradeBatches');
+        results.push({ gradeBatchId: id, ...delRes });
+      }
+      return res.status(200).json({ message: 'Deleted with dependents', results });
+    }
+    // Default: just delete the Grade Batch(s) if no dependents
+    const result = await handleCRUD(GradeBatchesInInstitute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: 'Grade Batch(s) deleted successfully', deletedCount: result.deletedCount });
+    } else {
+      res.status(404).json({ message: 'No matching Grade Batch found for deletion' });
+    }
+  } catch (error) {
+    console.error('Error deleting Grade Batch:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

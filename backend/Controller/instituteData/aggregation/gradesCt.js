@@ -3,6 +3,22 @@ const { ObjectId } = require('mongoose').Types;
 const createGradesInInstituteModel = require('../../../Model/instituteData/aggregation/gradesMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
 const { buildMatchConditions, buildSortObject } = require('../../../Utilities/filterSortUtils');
+const createSubjectsInInstituteModel = require('../../../Model/instituteData/aggregation/subjectsMd');
+const createGradeBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeBatchesMd');
+const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradesectionsMd');
+const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
+const createMembersDataModel = require('../../../Model/membersModule/membersDataMd');
+
+// --- Grade DEPENDENTS CONFIG ---
+const gradesDependents = [
+  { model: 'Subjects', field: 'instituteId', name: 'subjects' },
+  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
+  { model: 'GradeBatches', field: 'instituteId', name: 'gradebatches' },
+  { model: 'GradeSections', field: 'instituteId', name: 'gradesections' },
+  { model: 'GradeSectionBatches', field: 'instituteId', name: 'gradesectionbatches' }
+  // Add more as needed
+];
+
 
 exports.gradesInInstituteAg = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
@@ -173,22 +189,7 @@ exports.createGradesInInstitute = async (req, res) => {
   }
 };
 
-exports.deleteGradesInInstitute = async (req, res) => {
-  const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { ids } = req.body;
 
-  try {
-    const result = await handleCRUD(GradesInInstitute, 'delete', { _id: { $in: ids.map(id => id) } });
-
-    if (result.deletedCount > 0) {
-      res.status(200).json({ message: 'Grades deleted successfully' });
-    } else {
-      res.status(404).json({ message: 'No matching grades found' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete grades', details: error.message });
-  }
-};
 
 exports.updateGradesInInstitute = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
@@ -210,5 +211,85 @@ exports.updateGradesInInstitute = async (req, res) => {
   } catch (error) {
     console.error("Update Error:", error); // Log the error
     res.status(500).json({ error: 'Failed to update grade', details: error.message });
+  }
+};
+
+
+// exports.deleteGradesInInstitute = async (req, res) => {
+//   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
+//   const { ids } = req.body;
+
+//   try {
+//     const result = await handleCRUD(GradesInInstitute, 'delete', { _id: { $in: ids.map(id => id) } });
+
+//     if (result.deletedCount > 0) {
+//       res.status(200).json({ message: 'Grades deleted successfully' });
+//     } else {
+//       res.status(404).json({ message: 'No matching grades found' });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ error: 'Failed to delete grades', details: error.message });
+//   }
+// };
+
+
+// Delete grades(s) with dependency options
+exports.deleteGradesInInstitute = async (req, res) => {
+  // Register all dependent models for the current connection
+  createSubjectsInInstituteModel(req.collegeDB);
+  createGradeBatchesInInstituteModel(req.collegeDB);
+  createGradeSectionsInInstituteModel(req.collegeDB);
+  createGradeSectionBatchesInInstituteModel(req.collegeDB);
+  createMembersDataModel(req.collegeDB);
+
+  const Grade = createGradesInInstituteModel(req.collegeDB);
+  const { ids, deleteDependents, transferTo } = req.body;
+
+  if (!ids || !Array.isArray(ids)) {
+    return res.status(400).json({ message: 'Grade ID(s) required' });
+  }
+
+  // Import generic cascade utils
+  const { countDependents, deleteWithDependents, transferDependents } = require('../../../Utilities/dependencyCascadeUtils');
+
+  try {
+    // 1. Count dependents for each grade
+    const depCounts = await countDependents(req.collegeDB, ids, gradesDependents);
+    // If neither deleteDependents nor transferTo, just return counts (dry run)
+    if (!deleteDependents && !transferTo) {
+      return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
+    }
+    if (deleteDependents && transferTo) {
+      return res.status(400).json({ message: 'Either transfer or delete dependencies'});
+    }
+    // 2. Transfer dependents if requested
+    if (transferTo) {
+      if (ids.length !== 1) {
+        return res.status(400).json({ message: 'Please select one grade to transfer dependents from.' });
+      }
+      const transferRes = await transferDependents(req.collegeDB, ids[0], transferTo, gradesDependents);
+      // After transfer, delete the original Grade(s)
+      const result = await handleCRUD(Grade, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+      return res.status(200).json({ message: 'Dependents transferred and Grade(s) deleted', transfer: transferRes, deletedCount: result.deletedCount });
+    }
+    // 3. Delete dependents and Grade(s) in a transaction
+    if (deleteDependents) {
+      const results = [];
+      for (const id of ids) {
+        const delRes = await deleteWithDependents(req.collegeDB, id, gradesDependents, 'Grades');
+        results.push({ gradeId: id, ...delRes });
+      }
+      return res.status(200).json({ message: 'Deleted with dependents', results });
+    }
+    // Default: just delete the Grade(s) if no dependents
+    const result = await handleCRUD(Grade, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: 'Grade(s) deleted successfully', deletedCount: result.deletedCount });
+    } else {
+      res.status(404).json({ message: 'No matching Grades found for deletion' });
+    }
+  } catch (error) {
+    console.error('Error deleting Grades:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
