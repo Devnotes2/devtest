@@ -1,7 +1,7 @@
-// membersDataCt.js (Controller for handling member data)
+// studentsDataCt.js (Controller for handling student data)
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const createMembersDataModel = require('../../Model/membersModule/membersDataMd');
+const createStudentsDataModel = require('../../Model/membersModule/studentDataMd');
 const { handleCRUD } = require('../../Utilities/crudUtils');
 const buildGenericAggregation = require('../../Utilities/genericAggregatorUtils');
 const addPaginationAndSort = require('../../Utilities/paginationControllsUtils');
@@ -16,20 +16,20 @@ const { buildMatchConditions, buildSortObject, validateUniqueField, buildValueBa
 
 
 
-exports.getMembersData = async (req, res) => {
-  const MembersData = createMembersDataModel(req.collegeDB);
-  const { ids, aggregate, page, limit, validate, memberId } = req.query;
+exports.getStudentsData = async (req, res) => {
+  const StudentsData = createStudentsDataModel(req.collegeDB);
+  const { ids, aggregate, page, limit, validate, studentId } = req.query;
   try {
     // Use utility for filtering
     const matchConditions = buildMatchConditions(req.query);
-    console.log(matchConditions);
+    // console.log(matchConditions);
     // Remove __valueBasedField from matchConditions for aggregation
     let valueBasedField = matchConditions.__valueBasedField;
     if (valueBasedField) delete matchConditions.__valueBasedField;
 
-    // Validation: Check if memberId already exists (reusable utility)
-    if (validate === 'true' && memberId) {
-      const exists = await validateUniqueField(MembersData, 'memberId', memberId);
+    // Validation: Check if studentId already exists (reusable utility)
+    if (validate === 'true' && studentId) {
+      const exists = await validateUniqueField(StudentsData, 'studentId', studentId);
       return res.status(200).json({ message: exists ? 'already present' : 'not present', exists });
     }
 
@@ -42,24 +42,24 @@ exports.getMembersData = async (req, res) => {
     const joinedFieldMap = {
       gender: 'genderDetails.genderValue',
       bloodGroup: 'bloodGroupDetails.bloodGroupValue',
-      memberType: 'memberTypeDetails.memberTypeValue',
+      studentType: 'studentTypeDetails.studentTypeValue',
       department: 'departmentDetails.departmentName',
     };
 
     // Total docs in the collection (filtered count)
     // For value-based filter, filteredDocs must be counted after aggregation match
     let filteredDocs, totalDocs;
-    totalDocs = await MembersData.countDocuments();
+    totalDocs = await StudentsData.countDocuments();
 
     // If IDs are provided
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
       if (aggregate === 'false') {
-        let query = MembersData.find({ _id: { $in: objectIds }, ...matchConditions });
+        let query = StudentsData.find({ _id: { $in: objectIds }, ...matchConditions });
         if (sortObj) query = query.sort(sortObj);
         query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
         const matchingData = await query;
-        filteredDocs = await MembersData.countDocuments({ _id: { $in: objectIds }, ...matchConditions });
+        filteredDocs = await StudentsData.countDocuments({ _id: { $in: objectIds }, ...matchConditions });
         return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
       // Aggregate branch with IDs
@@ -67,7 +67,7 @@ exports.getMembersData = async (req, res) => {
         ...instituteLookup(),
         ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),
         ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
-        ...generalDataLookup('memberType', 'memberType', 'memberTypeDetails', 'memberTypeValue'),
+        ...generalDataLookup('studentType', 'studentType', 'studentTypeDetails', 'studentTypeValue'),
         ...departmentLookup(),
         ...gradesLookup(),
         ...gradeBatchesLookup(),
@@ -84,8 +84,8 @@ exports.getMembersData = async (req, res) => {
           firstName: 1,
           middleName: 1,
           lastName: 1,
-          memberId: 1,
-          memberType: '$memberTypeDetails.memberTypeValue',
+          studentId: 1,
+          studentType: '$studentTypeDetails.studentTypeValue',
           instituteName: '$instituteDetails.instituteName',
           grade: '$gradesDetails.gradeCode',
           batch: '$gradeBatchesDetails.batch',
@@ -115,10 +115,10 @@ exports.getMembersData = async (req, res) => {
       });
       // Count after all matches
       const countPipeline = pipeline.filter(stage => !stage.$skip && !stage.$limit && !stage.$sort && !stage.$project);
-      const filteredDocsArr = await MembersData.aggregate([...countPipeline, { $count: 'count' }]);
+      const filteredDocsArr = await StudentsData.aggregate([...countPipeline, { $count: 'count' }]);
       filteredDocs = filteredDocsArr[0]?.count || 0;
       addPaginationAndSort(pipeline, { page: pageNum, limit: limitNum, sort: {} });
-      const data = await MembersData.aggregate(pipeline);
+      const data = await StudentsData.aggregate(pipeline);
       return res.status(200).json({ count: data.length, filteredDocs, totalDocs, data });
     }
     // Aggregate branch (no IDs)
@@ -127,7 +127,7 @@ exports.getMembersData = async (req, res) => {
         ...instituteLookup(),
         ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),
         ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
-        ...generalDataLookup('memberType', 'memberType', 'memberTypeDetails', 'memberTypeValue'),
+        ...generalDataLookup('studentType', 'studentType', 'studentTypeDetails', 'studentTypeValue'),
         ...departmentLookup(),
         ...gradesLookup(),
         ...gradeBatchesLookup(),
@@ -144,8 +144,8 @@ exports.getMembersData = async (req, res) => {
           firstName: 1,
           middleName: 1,
           lastName: 1,
-          memberId: 1,
-          memberType: '$memberTypeDetails.memberTypeValue',
+          studentId: 1,
+          studentType: '$studentTypeDetails.studentTypeValue',
           instituteName: '$instituteDetails.instituteName',
           grade: '$gradesDetails.gradeCode',
           batch: '$gradeBatchesDetails.batch',
@@ -175,66 +175,66 @@ exports.getMembersData = async (req, res) => {
       });
       // Count after all matches
       const countPipeline = pipeline.filter(stage => !stage.$skip && !stage.$limit && !stage.$sort && !stage.$project);
-      const filteredDocsArr = await MembersData.aggregate([...countPipeline, { $count: 'count' }]);
+      const filteredDocsArr = await StudentsData.aggregate([...countPipeline, { $count: 'count' }]);
       filteredDocs = filteredDocsArr[0]?.count || 0;
       addPaginationAndSort(pipeline, { page: pageNum, limit: limitNum, sort: {} });
-      const data = await MembersData.aggregate(pipeline);
+      const data = await StudentsData.aggregate(pipeline);
       return res.status(200).json({ count: data.length, filteredDocs, totalDocs, data });
     }
 
     // Non-aggregate fetch (simple find)
-    let query = MembersData.find(matchConditions);
+    let query = StudentsData.find(matchConditions);
     if (sortObj) query = query.sort(sortObj);
     query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
-    const members = await query;
-    filteredDocs = await MembersData.countDocuments(matchConditions);
-    return res.status(200).json({ count: members.length, filteredDocs, totalDocs, data: members });
+    const students = await query;
+    filteredDocs = await StudentsData.countDocuments(matchConditions);
+    return res.status(200).json({ count: students.length, filteredDocs, totalDocs, data: students });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-exports.createMember = async (req, res) => {
-  const MembersData = createMembersDataModel(req.collegeDB);
+exports.createStudent = async (req, res) => {
+  const StudentsData = createStudentsDataModel(req.collegeDB);
   try {
-    const newMember = await handleCRUD(MembersData, 'create', {}, req.body);
+    const newStudent = await handleCRUD(StudentsData, 'create', {}, req.body);
     res.status(200).json({
-      message: 'Member created successfully!',
-      data: newMember
+      message: 'Student created successfully!',
+      data: newStudent
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create member', details: error.message });
+    res.status(500).json({ error: 'Failed to create student', details: error.message });
   }
 };
 
-exports.updateMember = async (req, res) => {
-  const MembersData = createMembersDataModel(req.collegeDB);
+exports.updateStudent = async (req, res) => {
+  const StudentsData = createStudentsDataModel(req.collegeDB);
   const { _id, updatedData } = req.body;
   try {
-    const result = await handleCRUD(MembersData, 'update', { _id }, { $set: updatedData });
+    const result = await handleCRUD(StudentsData, 'update', { _id }, { $set: updatedData });
     if (result.modifiedCount > 0) {
-      res.status(200).json({ message: 'Member updated successfully' });
+      res.status(200).json({ message: 'Student updated successfully' });
     } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
       res.status(200).json({ message: 'No updates were made' });
     } else {
-      res.status(404).json({ message: 'No matching member found or values are unchanged' });
+      res.status(404).json({ message: 'No matching student found or values are unchanged' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update member', details: error.message });
+    res.status(500).json({ error: 'Failed to update student', details: error.message });
   }
 };
 
-exports.deleteMembers = async (req, res) => {
-  const MembersData = createMembersDataModel(req.collegeDB);
+exports.deleteStudents = async (req, res) => {
+  const StudentsData = createStudentsDataModel(req.collegeDB);
   const { ids } = req.body;
   try {
-    const result = await handleCRUD(MembersData, 'delete', { _id: { $in: ids.map(id => id) } });
+    const result = await handleCRUD(StudentsData, 'delete', { _id: { $in: ids.map(id => id) } });
     if (result.deletedCount > 0) {
-      res.status(200).json({ message: 'Members deleted successfully' });
+      res.status(200).json({ message: 'Students deleted successfully' });
     } else {
-      res.status(404).json({ message: 'No matching members found' });
+      res.status(404).json({ message: 'No matching students found' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete members', details: error.message });
+    res.status(500).json({ error: 'Failed to delete students', details: error.message });
   }
 };

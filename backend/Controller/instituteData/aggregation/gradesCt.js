@@ -7,12 +7,12 @@ const createSubjectsInInstituteModel = require('../../../Model/instituteData/agg
 const createGradeBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeBatchesMd');
 const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradesectionsMd');
 const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
-const createMembersDataModel = require('../../../Model/membersModule/membersDataMd');
+const createStudentDataModel = require('../../../Model/membersModule/studentDataMd');
 
 // --- Grade DEPENDENTS CONFIG ---
 const gradesDependents = [
   { model: 'Subjects', field: 'instituteId', name: 'subjects' },
-  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
+  { model: 'StudentData', field: 'instituteId', name: 'StudentData' },
   { model: 'GradeBatches', field: 'instituteId', name: 'gradebatches' },
   { model: 'GradeSections', field: 'instituteId', name: 'gradesections' },
   { model: 'GradeSectionBatches', field: 'instituteId', name: 'gradesectionbatches' }
@@ -240,7 +240,7 @@ exports.deleteGradesInInstitute = async (req, res) => {
   createGradeBatchesInInstituteModel(req.collegeDB);
   createGradeSectionsInInstituteModel(req.collegeDB);
   createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  createMembersDataModel(req.collegeDB);
+  createStudentDataModel(req.collegeDB);
 
   const Grade = createGradesInInstituteModel(req.collegeDB);
   const { ids, deleteDependents, transferTo } = req.body;
