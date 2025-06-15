@@ -36,7 +36,7 @@ const MembersDataSchema = new Schema({
 }, { timestamps: true });
 
 const createMembersDataModel = (connection) => {
-    return connection.model('StudentData', MembersDataSchema);
+    return connection.model('MembersData', MembersDataSchema);
 };
 
 module.exports = createMembersDataModel;
