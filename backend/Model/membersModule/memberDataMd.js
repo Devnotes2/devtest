@@ -30,6 +30,7 @@ const MembersDataSchema = new Schema({
     parentOrGuardianNo: { type: String ,required: true},
     parentOrGuardianEmail: { type: String ,required: true},
     parentOrGuardianOccupation: { type: String ,required: true},
+    parentOrGuardianPassword: { type: String ,required: true},
     tempAddress: { type: String ,required: true},
     permAddress: { type: String ,required: true},
 }, { timestamps: true });
