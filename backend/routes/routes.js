@@ -24,6 +24,6 @@ router.use('/instituteAggreRt', require('./instituteData/aggregation/subjectsRt'
 router.use('/generalDataRt', require('./generalData/generalDataRt'));
 
 // member Module
-router.use('/memberDataRt', require('./membersModule/memberDataRt'));
+router.use('/membersDataRt', require('./membersModule/memberDataRt'));
 
 module.exports = router;
