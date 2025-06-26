@@ -55,7 +55,7 @@ exports.updateDepartment = async (req, res) => {
 // Get Departments Data (DRY: aggregation, lookup, pagination, sorting)
 exports.getDepartment = async (req, res) => {
   const DepartmentData = createDepartmentDataModel(req.collegeDB);
-  const { ids, aggregate, page, limit, validate, departmentName } = req.query;
+  const { ids, aggregate, page, limit, validate, departmentName ,dropdown} = req.query;
   try {
     // Filtering
     const matchConditions = buildMatchConditions(req.query);
@@ -64,7 +64,12 @@ exports.getDepartment = async (req, res) => {
     const sortObj = buildSortObject(req.query);
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;
-
+    if (dropdown === 'true') {
+      let findQuery = DepartmentData.find(matchConditions, { _id: 1, departmentName: 1 });
+      findQuery = findQuery.sort({ departmentName: 1 });
+      const data = await findQuery;
+      return res.status(200).json({ data });
+    }
     // Validation: Check if departmentName already exists
     if (validate === 'true' && departmentName) {
       const exists = await validateUniqueField(DepartmentData, 'departmentName', departmentName);

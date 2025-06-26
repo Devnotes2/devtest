@@ -6,13 +6,21 @@ const { buildMatchConditions, buildSortObject } = require('../../../Utilities/fi
 
 exports.subjectsInInstituteAg = async (req, res) => {
   const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
-  const { ids, aggregate, page, limit, sortField, sort } = req.query;
+  const { ids, aggregate, page, limit, sortField, sort, dropdown } = req.query;
   try {
     // Filtering
     const matchConditions = buildMatchConditions(req.query);
     const sortObj = buildSortObject(req.query);
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;
+
+    // Dropdown mode: return only _id and subject, with sorting and filtering
+    if (dropdown === 'true') {
+      let findQuery = SubjectsInInstitute.find(matchConditions, { _id: 1, subject: 1 });
+      findQuery = findQuery.sort({ subject: 1 });
+      const data = await findQuery;
+      return res.status(200).json({ data });
+    }
 
     // Helper: get ids as array
     let idsArr = Array.isArray(ids) ? ids : (typeof ids === 'string' ? ids.split(',') : undefined);

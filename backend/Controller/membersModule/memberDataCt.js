@@ -18,7 +18,7 @@ const { buildMatchConditions, buildSortObject, validateUniqueField, buildValueBa
 
 exports.getMembersData = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
-  const { ids, aggregate, page, limit, validate, memberId } = req.query;
+  const { ids, aggregate, page, limit, validate, memberId, dropdown } = req.query;
   try {
     // Use utility for filtering
     const matchConditions = buildMatchConditions(req.query);
@@ -26,7 +26,12 @@ exports.getMembersData = async (req, res) => {
     // Remove __valueBasedField from matchConditions for aggregation
     let valueBasedField = matchConditions.__valueBasedField;
     if (valueBasedField) delete matchConditions.__valueBasedField;
-
+    if (dropdown === 'true') {
+      let findQuery = MembersData.find(matchConditions, { _id: 1, firstName: 1, middleName: 1, lastName: 1});
+      findQuery = findQuery.sort({firstName:1});
+      const data = await findQuery;
+      return res.status(200).json({ data });
+    }
     // Validation: Check if memberId already exists (reusable utility)
     if (validate === 'true' && memberId) {
       const exists = await validateUniqueField(MembersData, 'memberId', memberId);

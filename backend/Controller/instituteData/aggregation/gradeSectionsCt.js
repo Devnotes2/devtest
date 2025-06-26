@@ -14,14 +14,19 @@ const gradeSectionDependents = [
 
 exports.gradeSectionsInInstituteAg = async (req, res) => {
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
-  const { ids, instituteId, gradeId, section, aggregate } = req.query;
+  const { ids, instituteId, gradeId, section, aggregate ,dropdown} = req.query;
 
   try {
     const matchConditions = {};
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
     if (section) matchConditions.section = String(section);
-
+    if (dropdown === 'true') {
+      let findQuery = GradeSectionsInInstitute.find(matchConditions, { _id: 1, section: 1 });
+      findQuery = findQuery.sort({section:1});
+      const data = await findQuery;
+      return res.status(200).json({ data });
+    }
     const query = { ...matchConditions };
     console.log('');
     if (ids && Array.isArray(ids)) {

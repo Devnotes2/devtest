@@ -27,8 +27,14 @@ exports.gradesInInstituteAg = async (req, res) => {
     const matchConditions = buildMatchConditions(req.query);
     // Use utility for sorting
     const sortObj = buildSortObject(req.query);
-    const { ids, aggregate } = req.query;
-
+    const { ids, aggregate ,dropdown} = req.query;
+    // Dropdown mode: return only _id and subject, with sorting and filtering
+    if (dropdown === 'true') {
+      let findQuery = GradesInInstitute.find(matchConditions, { _id: 1, gradeDescription: 1 });
+      findQuery = findQuery.sort({gradeDescription:1});
+      const data = await findQuery;
+      return res.status(200).json({ data });
+    }
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
       const matchingData = await handleCRUD(GradesInInstitute, 'find', { _id: { $in: objectIds }, ...matchConditions });

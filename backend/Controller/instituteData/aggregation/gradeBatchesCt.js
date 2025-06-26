@@ -12,7 +12,7 @@ const gradeBatchDependents = [
 
 exports.gradeBatchesInInstituteAg = async (req, res) => {
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
-  const { ids, aggregate, instituteId, gradeId, batch } = req.query;
+  const { ids, aggregate, instituteId, gradeId, batch ,dropdown} = req.query;
 
   try {
     const matchConditions = {};
@@ -20,6 +20,14 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
     if (batch) matchConditions.batch = batch;
     console.log('Match conditions:', ids);
+    
+        // Dropdown mode: return only _id and subject, with sorting and filtering
+    if (dropdown === 'true') {
+      let findQuery = GradeBatchesInInstitute.find(matchConditions, { _id: 1, batch: 1 });
+      findQuery = findQuery.sort({batch:1});
+      const data = await findQuery;
+      return res.status(200).json({ data });
+    }
     // If specific IDs are requested
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
