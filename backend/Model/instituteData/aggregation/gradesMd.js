@@ -6,7 +6,7 @@ const GradesSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
-  department:{
+  departmentId:{
     type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },

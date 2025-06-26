@@ -49,7 +49,7 @@ exports.gradesInInstituteAg = async (req, res) => {
                 {
           $lookup: {
             from: 'departmentdatas', // Reference the new structure
-            localField: 'department',
+            localField: 'departmentId',
             foreignField: '_id',
             as: 'departmentDetails'
           }
@@ -113,7 +113,7 @@ exports.gradesInInstituteAg = async (req, res) => {
       {
           $lookup: {
             from: 'departmentdatas', // Reference the new structure
-            localField: 'department',
+            localField: 'departmentId',
             foreignField: '_id',
             as: 'departmentDetails'
           }

@@ -5,6 +5,7 @@ const { Schema } = mongoose;
 const DepartmentDataSchema = new Schema({
     instituteId: { type: mongoose.Schema.Types.ObjectId ,required: true}, // department type (e.g., student, staff)
     departmentName: {type: mongoose.Schema.Types.String, required:true},
+    departmentCode: {type: mongoose.Schema.Types.String, required:true},
     description:{type: mongoose.Schema.Types.String, required:false},
 }, { timestamps: true });
 

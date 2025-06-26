@@ -3,7 +3,7 @@ function departmentLookup() {
     {
       $lookup: {
         from: 'departmentdatas',
-        localField: 'department',
+        localField: 'departmentId',
         foreignField: '_id',
         as: 'departmentDetails'
       }

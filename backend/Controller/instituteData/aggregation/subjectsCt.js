@@ -43,7 +43,7 @@ exports.subjectsInInstituteAg = async (req, res) => {
         {
           $lookup: {
             from: 'departmentdatas',
-            localField: 'department',
+            localField: 'departmentId',
             foreignField: '_id',
             as: 'departmentDetails'
           }
@@ -129,7 +129,7 @@ exports.subjectsInInstituteAg = async (req, res) => {
         {
           $lookup: {
             from: 'departmentdatas',
-            localField: 'department',
+            localField: 'departmentId',
             foreignField: '_id',
             as: 'departmentDetails'
           }

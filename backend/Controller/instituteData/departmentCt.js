@@ -103,6 +103,7 @@ exports.getDepartment = async (req, res) => {
           departmentName: 1,
           description: 1,
           instituteId: 1,
+          departmentCode:1,
           createdAt: 1,
           updatedAt: 1,
           'instituteDetails._id': 1,
@@ -131,6 +132,7 @@ exports.getDepartment = async (req, res) => {
           departmentName: 1,
           description: 1,
           instituteId: 1,
+          departmentCode:1,
           createdAt: 1,
           updatedAt: 1,
           'instituteDetails._id': 1,
@@ -214,7 +216,7 @@ exports.deleteDepartment = async (req, res) => {
       const results = [];
       for (const id of ids) {
         const delRes = await deleteWithDependents(req.collegeDB, id, departmentDependents, 'DepartmentData');
-        results.push({ department: id, ...delRes });
+        results.push({ departmentId: id, ...delRes });
       }
       return res.status(200).json({ message: 'Deleted with dependents', results });
     }
