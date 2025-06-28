@@ -27,6 +27,7 @@ exports.subjectsInInstituteAg = async (req, res) => {
     if (idsArr && idsArr.length > 0) {
       const objectIds = idsArr.map(id => new ObjectId(id));
       const query = { _id: { $in: objectIds }, ...matchConditions };
+      // Use aggregation by default, only use find if aggregate === 'false'
       if (aggregate === 'false') {
         let findQuery = SubjectsInInstitute.find(query);
         if (sortObj) findQuery = findQuery.sort(sortObj);
@@ -36,7 +37,7 @@ exports.subjectsInInstituteAg = async (req, res) => {
         const totalDocs = await SubjectsInInstitute.countDocuments();
         return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
-      // Aggregate branch with IDs
+      // Aggregate branch with IDs (default)
       const aggregationPipeline = [
         { $match: query },
         {
@@ -122,7 +123,7 @@ exports.subjectsInInstituteAg = async (req, res) => {
     }
 
     // Aggregate branch (no IDs)
-    if (aggregate === 'true') {
+    if (aggregate !== 'false') {
       const aggregationPipeline = [
         { $match: { ...matchConditions } },
         {

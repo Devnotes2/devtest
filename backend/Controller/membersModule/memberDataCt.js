@@ -59,6 +59,7 @@ exports.getMembersData = async (req, res) => {
     // If IDs are provided
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
+      // Use aggregation by default, only use find if aggregate === 'false'
       if (aggregate === 'false') {
         let query = MembersData.find({ _id: { $in: objectIds }, ...matchConditions });
         if (sortObj) query = query.sort(sortObj);
@@ -67,7 +68,7 @@ exports.getMembersData = async (req, res) => {
         filteredDocs = await MembersData.countDocuments({ _id: { $in: objectIds }, ...matchConditions });
         return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
-      // Aggregate branch with IDs
+      // Aggregate branch with IDs (default)
       let lookups = [
         ...instituteLookup(),
         ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),
@@ -128,7 +129,7 @@ exports.getMembersData = async (req, res) => {
       return res.status(200).json({ count: data.length, filteredDocs, totalDocs, data });
     }
     // Aggregate branch (no IDs)
-    if (aggregate === 'true') {
+    if (aggregate !== 'false') {
       let lookups = [
         ...instituteLookup(),
         ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),

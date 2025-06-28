@@ -88,6 +88,7 @@ exports.getDepartment = async (req, res) => {
     // If IDs are provided
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
+      // Use aggregation by default, only use find if aggregate === 'false'
       if (aggregate === 'false') {
         let query = DepartmentData.find({ _id: { $in: objectIds }, ...matchConditions });
         if (sortObj) query = query.sort(sortObj);
@@ -96,7 +97,7 @@ exports.getDepartment = async (req, res) => {
         filteredDocs = await DepartmentData.countDocuments({ _id: { $in: objectIds }, ...matchConditions });
         return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
-      // Aggregate branch with IDs
+      // Aggregate branch with IDs (default)
       const lookups = [ ...instituteLookup() ];
       let pipeline = buildGenericAggregation({ filters: { _id: { $in: objectIds }, ...matchConditions }, lookups });
       // Value-based filter on joined fields
@@ -125,7 +126,7 @@ exports.getDepartment = async (req, res) => {
     }
 
     // Aggregate branch (no IDs)
-    if (aggregate === 'true') {
+    if (aggregate !== 'false') {
       const lookups = [ ...instituteLookup() ];
       let pipeline = buildGenericAggregation({ filters: matchConditions, lookups });
       // Value-based filter on joined fields
