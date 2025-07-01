@@ -2,7 +2,14 @@ const { connectCollegeDB, connectGlobalDB } = require('./db');
 
 const multiTenantMiddleware = async (req, res, next) => {
   // Extract the college name from the host (e.g., 'college1.svb.local')
-  const collegeName = req.get('host').split('.')[0];
+  collegeName = req.get('host').split('.')[0];
+  if(collegeName=="svb"){
+    collegeName = "svb";
+  }
+  else{
+    collegeName = "devtest2";
+  }
+
 
   try {
     // Establish or reuse a connection to the college's specific database

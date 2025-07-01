@@ -22,14 +22,15 @@ if (process.env.NODE_ENV === 'production') {
   app.use(morgan('dev'));  // More verbose logging in development
 }
 app.use(cors({
-  origin: function (origin, callback) {
-    // If the origin is in the allowedOrigins array or if it's undefined (for non-browser requests), allow it
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  // origin: function (origin, callback) {
+  //   // If the origin is in the allowedOrigins array or if it's undefined (for non-browser requests), allow it
+  //   if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+  //     callback(null, true);
+  //   } else {
+  //     callback(new Error('Not allowed by CORS'));
+  //   }
+  // },
+  origin:true,
   credentials: true // Allow cookies to be sent with requests
 }));
 // app.use(myReqLogger);
