@@ -15,7 +15,7 @@ const createMemberDataModel = require('../../Model/membersModule/memberDataMd');
 const departmentDependents = [
   { model: 'Grades', field: 'instituteId', name: 'grades' },
   { model: 'Subjects', field: 'instituteId', name: 'subjects' },
-  { model: 'MemberData', field: 'instituteId', name: 'MemberData' },
+  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
   // Add more as needed
 ];
 
