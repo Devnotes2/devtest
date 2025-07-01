@@ -134,14 +134,13 @@ exports.getDepartment = async (req, res) => {
       pipeline.push({ $sort: sortObj });
       pipeline.push({
         $project: {
-          departmentName: 1,
+          department: '$departmentName',
           description: 1,
           instituteId: 1,
           departmentCode:1,
           createdAt: 1,
           updatedAt: 1,
-          'instituteDetails._id': 1,
-          'instituteDetails.instituteName': 1
+          institute:'$instituteDetails.instituteName'
         }
       });
       // Count after all matches
