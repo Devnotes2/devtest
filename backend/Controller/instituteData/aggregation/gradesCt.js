@@ -12,7 +12,7 @@ const createMemberDataModel = require('../../../Model/membersModule/memberDataMd
 // --- Grade DEPENDENTS CONFIG ---
 const gradesDependents = [
   { model: 'Subjects', field: 'instituteId', name: 'subjects' },
-  { model: 'MemberData', field: 'instituteId', name: 'MemberData' },
+  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
   { model: 'GradeBatches', field: 'instituteId', name: 'gradebatches' },
   { model: 'GradeSections', field: 'instituteId', name: 'gradesections' },
   { model: 'GradeSectionBatches', field: 'instituteId', name: 'gradesectionbatches' }
