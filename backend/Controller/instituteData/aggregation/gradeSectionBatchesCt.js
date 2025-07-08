@@ -6,7 +6,7 @@ const createMemberDataModel = require('../../../Model/membersModule/memberDataMd
 
 // --- Grade Section Batch DEPENDENTS CONFIG ---
 const gradeSectionBatchDependents = [
-  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
+  { model: 'MembersData', field: 'gradeSectionBatchId', name: 'MembersData' },
   // Add more as needed
 ];
 

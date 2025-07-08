@@ -11,11 +11,11 @@ const createMemberDataModel = require('../../../Model/membersModule/memberDataMd
 
 // --- Grade DEPENDENTS CONFIG ---
 const gradesDependents = [
-  { model: 'Subjects', field: 'instituteId', name: 'subjects' },
-  { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
-  { model: 'GradeBatches', field: 'instituteId', name: 'gradebatches' },
-  { model: 'GradeSections', field: 'instituteId', name: 'gradesections' },
-  { model: 'GradeSectionBatches', field: 'instituteId', name: 'gradesectionbatches' }
+  { model: 'Subjects', field: 'gradeId', name: 'subjects' },
+  { model: 'MembersData', field: 'gradeId', name: 'MembersData' },
+  { model: 'GradeBatches', field: 'gradeId', name: 'gradebatches' },
+  { model: 'GradeSections', field: 'gradeId', name: 'gradesections' },
+  { model: 'GradeSectionBatches', field: 'gradeId', name: 'gradesectionbatches' }
   // Add more as needed
 ];
 
@@ -262,9 +262,12 @@ exports.deleteGradesInInstitute = async (req, res) => {
     // 1. Count dependents for each grade
     const depCounts = await countDependents(req.collegeDB, ids, gradesDependents);
     // If all dependent counts are zero, delete directly
+        console.log(depCounts);
     const allZero = Object.values(depCounts).every(depObj =>
       Object.values(depObj).every(count => count === 0)
-    );    if (allZero) {
+    );   
+    console.log(allZero);
+    if (allZero) {
       const result = await handleCRUD(Grade, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
       if (result.deletedCount > 0) {
         return res.status(200).json({ message: 'Grade(s) deleted successfully', deletedCount: result.deletedCount });
