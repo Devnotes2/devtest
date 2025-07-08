@@ -120,10 +120,26 @@ exports.deleteInstitutes = async (req, res) => {
 
   // Import generic cascade utils
   const { countDependents, deleteWithDependents, transferDependents } = require('../../Utilities/dependencyCascadeUtils');
-
   try {
     // 1. Count dependents for each institute
     const depCounts = await countDependents(req.collegeDB, ids, instituteDependents);
+
+    // Check if all dependents are zero for all institutes
+    const allZero = depCounts.every(depObj => {
+      // depObj is { id, dependents: { ... } }
+      return Object.values(depObj.dependents || {}).every(count => count === 0);
+    });
+
+    if (allZero) {
+      // No dependents at all, delete immediately
+      const result = await handleCRUD(Institute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+      if (result.deletedCount > 0) {
+        return res.status(200).json({ message: 'Institute(s) deleted successfully', deletedCount: result.deletedCount });
+      } else {
+        return res.status(404).json({ message: 'No matching institutes found for deletion' });
+      }
+    }
+
     // If neither deleteDependents nor transferTo, just return counts (dry run)
     if (!deleteDependents && !transferTo) {
       return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
@@ -147,7 +163,7 @@ exports.deleteInstitutes = async (req, res) => {
       }
       return res.status(200).json({ message: 'Deleted with dependents', results });
     }
-    // Default: just delete the institute(s) if no dependents
+    // Default: just delete the institute(s) if no dependents (should not reach here)
     const result = await handleCRUD(Institute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
     if (result.deletedCount > 0) {
       res.status(200).json({ message: 'Institute(s) deleted successfully', deletedCount: result.deletedCount });
@@ -158,4 +174,4 @@ exports.deleteInstitutes = async (req, res) => {
     console.error('Error deleting institutes:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
-};
+  };

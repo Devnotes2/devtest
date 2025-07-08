@@ -261,7 +261,17 @@ exports.deleteGradesInInstitute = async (req, res) => {
   try {
     // 1. Count dependents for each grade
     const depCounts = await countDependents(req.collegeDB, ids, gradesDependents);
-    // If neither deleteDependents nor transferTo, just return counts (dry run)
+    // If all dependent counts are zero, delete directly
+    const allZero = depCounts.every(dep => Object.values(dep).every(count => count === 0));
+    if (allZero) {
+      const result = await handleCRUD(Grade, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+      if (result.deletedCount > 0) {
+        return res.status(200).json({ message: 'Grade(s) deleted successfully', deletedCount: result.deletedCount });
+      } else {
+        return res.status(404).json({ message: 'No matching Grades found for deletion' });
+      }
+    }
+    // If not all zero, keep existing logic
     if (!deleteDependents && !transferTo) {
       return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
     }
