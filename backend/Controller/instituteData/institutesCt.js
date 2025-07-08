@@ -125,10 +125,9 @@ exports.deleteInstitutes = async (req, res) => {
     const depCounts = await countDependents(req.collegeDB, ids, instituteDependents);
 
     // Check if all dependents are zero for all institutes
-    const allZero = depCounts.every(depObj => {
-      // depObj is { id, dependents: { ... } }
-      return Object.values(depObj.dependents || {}).every(count => count === 0);
-    });
+    const allZero = Object.values(depCounts).every(depObj =>
+      Object.values(depObj).every(count => count === 0)
+    );
 
     if (allZero) {
       // No dependents at all, delete immediately

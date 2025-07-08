@@ -202,8 +202,10 @@ exports.deleteDepartment = async (req, res) => {
     // 1. Count dependents for each institute
     const depCounts = await countDependents(req.collegeDB, ids, departmentDependents);
     // If all dependent counts are zero, delete directly
-    const allZero = depCounts.every(dep => Object.values(dep).every(count => count === 0));
-    if (allZero) {
+    const allZero = Object.values(depCounts).every(depObj =>
+      Object.values(depObj).every(count => count === 0)
+    );
+        if (allZero) {
       const result = await handleCRUD(Department, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
       if (result.deletedCount > 0) {
         return res.status(200).json({ message: 'Department(s) deleted successfully', deletedCount: result.deletedCount });
