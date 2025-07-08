@@ -206,7 +206,7 @@ exports.deleteGradeBatchesInInstitute = async (req, res) => {
     }
     // If not all zero, keep existing logic
     if (!deleteDependents && !transferTo) {
-      return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
+      return res.status(201).json({ message: 'Dependency summary', dependencies: depCounts });
     }
     if (deleteDependents && transferTo) {
       return res.status(400).json({ message: 'Either transfer or delete dependencies'});

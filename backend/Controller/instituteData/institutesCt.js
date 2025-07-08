@@ -142,7 +142,7 @@ exports.deleteInstitutes = async (req, res) => {
 
     // If neither deleteDependents nor transferTo, just return counts (dry run)
     if (!deleteDependents && !transferTo) {
-      return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
+      return res.status(201).json({ message: 'Dependency summary', dependencies: depCounts });
     }
     // 2. Transfer dependents if requested
     if (transferTo) {

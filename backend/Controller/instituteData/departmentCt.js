@@ -213,7 +213,7 @@ exports.deleteDepartment = async (req, res) => {
     }
     // If not all zero, keep existing logic
     if (!deleteDependents && !transferTo) {
-      return res.status(200).json({ message: 'Dependency summary', dependencies: depCounts });
+      return res.status(201).json({ message: 'Dependency summary', dependencies: depCounts });
     }
     // 2. Transfer dependents if requested
     if (transferTo) {
