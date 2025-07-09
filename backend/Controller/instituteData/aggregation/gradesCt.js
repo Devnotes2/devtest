@@ -174,13 +174,13 @@ exports.gradesInInstituteAg = async (req, res) => {
 
 exports.createGradesInInstitute = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { instituteId, gradeCode, gradeDescription, gradeDuration, isElective,department } = req.body;
+  const { instituteId, gradeCode,departmentId, gradeDescription, gradeDuration, isElective,department } = req.body;
 
   try {
     const newGrade = await handleCRUD(GradesInInstitute, 'create', {}, {
       instituteId,
       gradeCode,
-      department,
+      departmentId,
       gradeDescription,
       gradeDuration,
       isElective
