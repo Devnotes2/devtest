@@ -268,7 +268,7 @@ exports.deleteGradesInInstitute = async (req, res) => {
     );
     const docMap = {};
     originalDocs.forEach(doc => {
-      docMap[doc._id.toString()] = doc.gradeCode || doc.gradeDescription || null;
+      docMap[doc._id.toString()] = doc.gradeDescription;
     });
 
     // If all dependent counts are zero, delete directly
