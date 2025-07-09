@@ -199,13 +199,23 @@ exports.deleteDepartment = async (req, res) => {
   const { countDependents, deleteWithDependents, transferDependents } = require('../../Utilities/dependencyCascadeUtils');
 
   try {
-    // 1. Count dependents for each institute
+    // 1. Count dependents for each department
     const depCounts = await countDependents(req.collegeDB, ids, departmentDependents);
+    // Fetch original Department docs to get the value field (e.g., departmentName)
+    const originalDocs = await Department.find(
+      { _id: { $in: ids.map(id => new ObjectId(id)) } },
+      { departmentName: 1 }
+    );
+    const docMap = {};
+    originalDocs.forEach(doc => {
+      docMap[doc._id.toString()] = doc.departmentName;
+    });
+
     // If all dependent counts are zero, delete directly
     const allZero = Object.values(depCounts).every(depObj =>
       Object.values(depObj).every(count => count === 0)
     );
-        if (allZero) {
+    if (allZero) {
       const result = await handleCRUD(Department, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
       if (result.deletedCount > 0) {
         return res.status(200).json({ message: 'Department(s) deleted successfully', deletedCount: result.deletedCount });
@@ -213,9 +223,14 @@ exports.deleteDepartment = async (req, res) => {
         return res.status(404).json({ message: 'No matching departments found for deletion' });
       }
     }
-    // If not all zero, keep existing logic
+    // If not all zero, return dependency summary in requested format
     if (!deleteDependents && !transferTo) {
-      return res.status(201).json({ message: 'Dependency summary', dependencies: depCounts });
+      const dependencies = Object.keys(depCounts).map(id => ({
+        _id: id,
+        value: docMap[id] || null,
+        dependsOn: depCounts[id]
+      }));
+      return res.status(201).json({ message: 'Dependency summary', dependencies });
     }
     // 2. Transfer dependents if requested
     if (transferTo) {

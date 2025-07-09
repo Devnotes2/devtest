@@ -261,12 +261,20 @@ exports.deleteGradesInInstitute = async (req, res) => {
   try {
     // 1. Count dependents for each grade
     const depCounts = await countDependents(req.collegeDB, ids, gradesDependents);
+    // Fetch original Grade docs to get the value field (e.g., gradeCode or gradeDescription)
+    const originalDocs = await Grade.find(
+      { _id: { $in: ids.map(id => new ObjectId(id)) } },
+      { gradeCode: 1, gradeDescription: 1 }
+    );
+    const docMap = {};
+    originalDocs.forEach(doc => {
+      docMap[doc._id.toString()] = doc.gradeCode || doc.gradeDescription || null;
+    });
+
     // If all dependent counts are zero, delete directly
-        console.log(depCounts);
     const allZero = Object.values(depCounts).every(depObj =>
       Object.values(depObj).every(count => count === 0)
-    );   
-    console.log(allZero);
+    );
     if (allZero) {
       const result = await handleCRUD(Grade, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
       if (result.deletedCount > 0) {
@@ -275,9 +283,14 @@ exports.deleteGradesInInstitute = async (req, res) => {
         return res.status(404).json({ message: 'No matching Grades found for deletion' });
       }
     }
-    // If not all zero, keep existing logic
+    // If not all zero, return dependency summary in requested format
     if (!deleteDependents && !transferTo) {
-      return res.status(201).json({ message: 'Dependency summary', dependencies: depCounts });
+      const dependencies = Object.keys(depCounts).map(id => ({
+        _id: id,
+        value: docMap[id] || null,
+        dependsOn: depCounts[id]
+      }));
+      return res.status(201).json({ message: 'Dependency summary', dependencies });
     }
     if (deleteDependents && transferTo) {
       return res.status(400).json({ message: 'Either transfer or delete dependencies'});

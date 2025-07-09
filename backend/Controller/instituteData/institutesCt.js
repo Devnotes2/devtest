@@ -123,6 +123,15 @@ exports.deleteInstitutes = async (req, res) => {
   try {
     // 1. Count dependents for each institute
     const depCounts = await countDependents(req.collegeDB, ids, instituteDependents);
+    // Fetch original Institute docs to get the value field (e.g., instituteName)
+    const originalDocs = await Institute.find(
+      { _id: { $in: ids.map(id => new ObjectId(id)) } },
+      { instituteName: 1 }
+    );
+    const docMap = {};
+    originalDocs.forEach(doc => {
+      docMap[doc._id.toString()] = doc.instituteName;
+    });
 
     // Check if all dependents are zero for all institutes
     const allZero = Object.values(depCounts).every(depObj =>
@@ -141,7 +150,12 @@ exports.deleteInstitutes = async (req, res) => {
 
     // If neither deleteDependents nor transferTo, just return counts (dry run)
     if (!deleteDependents && !transferTo) {
-      return res.status(201).json({ message: 'Dependency summary', dependencies: depCounts });
+      const dependencies = Object.keys(depCounts).map(id => ({
+        _id: id,
+        value: docMap[id] || null,
+        dependsOn: depCounts[id]
+      }));
+      return res.status(201).json({ message: 'Dependency summary', dependencies });
     }
     // 2. Transfer dependents if requested
     if (transferTo) {
