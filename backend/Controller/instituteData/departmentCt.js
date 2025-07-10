@@ -211,26 +211,24 @@ exports.deleteDepartment = async (req, res) => {
       docMap[doc._id.toString()] = doc.departmentName;
     });
 
-    // If all dependent counts are zero, delete directly
-    const allZero = Object.values(depCounts).every(depObj =>
-      Object.values(depObj).every(count => count === 0)
-    );
-    if (allZero) {
-      const result = await handleCRUD(Department, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
-      if (result.deletedCount > 0) {
-        return res.status(200).json({ message: 'Department(s) deleted successfully', deletedCount: result.deletedCount });
-      } else {
-        return res.status(404).json({ message: 'No matching departments found for deletion' });
-      }
+    // Partition IDs into zero and non-zero dependents
+    const zeroDepIds = Object.keys(depCounts).filter(id => Object.values(depCounts[id]).every(count => count === 0));
+    const nonZeroDepIds = Object.keys(depCounts).filter(id => !zeroDepIds.includes(id));
+    let deletedCount = 0;
+    if (zeroDepIds.length > 0) {
+      const result = await handleCRUD(Department, 'delete', { _id: { $in: zeroDepIds.map(id => new ObjectId(id)) } });
+      deletedCount = result.deletedCount || 0;
     }
-    // If not all zero, return dependency summary in requested format
+    if (nonZeroDepIds.length === 0) {
+      return res.status(200).json({ message: 'Department(s) deleted successfully', deleted: zeroDepIds, dependencySummary: [] });
+    }
     if (!deleteDependents && !transferTo) {
-      const dependencies = Object.keys(depCounts).map(id => ({
+      const dependencies = nonZeroDepIds.map(id => ({
         _id: id,
         value: docMap[id] || null,
         dependsOn: depCounts[id]
       }));
-      return res.status(201).json({ message: 'Dependency summary', dependencies });
+      return res.status(201).json({ message: 'Dependency summary', deleted: zeroDepIds, dependencySummary: dependencies });
     }
     // 2. Transfer dependents if requested
     if (transferTo) {
