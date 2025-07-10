@@ -220,7 +220,7 @@ exports.deleteDepartment = async (req, res) => {
       deletedCount = result.deletedCount || 0;
     }
     if (nonZeroDepIds.length === 0) {
-      return res.status(200).json({ message: 'Department(s) deleted successfully', deleted: zeroDepIds, dependencySummary: [] });
+      return res.status(200).json({ message: 'Department(s) deleted successfully', deleted: zeroDepIds, dependencies: [] });
     }
     if (!deleteDependents && !transferTo) {
       const dependencies = nonZeroDepIds.map(id => ({
@@ -228,7 +228,7 @@ exports.deleteDepartment = async (req, res) => {
         value: docMap[id] || null,
         dependsOn: depCounts[id]
       }));
-      return res.status(201).json({ message: 'Dependency summary', deleted: zeroDepIds, dependencySummary: dependencies });
+      return res.status(201).json({ message: 'Dependency summary', deleted: zeroDepIds, dependencies: dependencies });
     }
     // 2. Transfer dependents if requested
     if (transferTo) {
