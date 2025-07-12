@@ -13,6 +13,11 @@ const GradeSectionsSchema = new Schema({
   section: {
     type: String,  // Description of the grade
     required: true
+  },
+  archive: {
+    type: Boolean,
+    default: false,
+    index: true
   }
 });  // Optionally, you can use timestamps to track creation and update times
 

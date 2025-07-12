@@ -189,16 +189,26 @@ exports.deleteDepartment = async (req, res) => {
   createMemberDataModel(req.collegeDB);
 
   const Department = createDepartmentDataModel(req.collegeDB);
-  const { ids, deleteDependents, transferTo } = req.body;
+  const { ids, deleteDependents, transferTo, archive } = req.body;
 
   if (!ids || !Array.isArray(ids)) {
     return res.status(400).json({ message: 'Department ID(s) required' });
   }
+  // Only one of archive or transferTo can be requested at a time
+  if (archive !== undefined && transferTo) {
+    return res.status(400).json({ message: 'Only one of archive or transfer can be requested at a time.' });
+  }
 
   // Import generic cascade utils
-  const { countDependents, deleteWithDependents, transferDependents } = require('../../Utilities/dependencyCascadeUtils');
+  const { countDependents, deleteWithDependents, transferDependents, archiveParents } = require('../../Utilities/dependencyCascadeUtils');
 
   try {
+    // Archive/unarchive logic (match gradeBatchesCt.js)
+    if (archive !== undefined) {
+      const archiveResult = await archiveParents(req.collegeDB, ids, 'DepartmentData', Boolean(archive));
+      return res.status(200).json({ message: `Department(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });
+    }
+
     // 1. Count dependents for each department
     const depCounts = await countDependents(req.collegeDB, ids, departmentDependents);
     // Fetch original Department docs to get the value field (e.g., departmentName)
@@ -229,6 +239,9 @@ exports.deleteDepartment = async (req, res) => {
         dependsOn: depCounts[id]
       }));
       return res.status(201).json({ message: 'Dependency summary', deleted: zeroDepIds, dependencies: dependencies });
+    }
+    if (deleteDependents && transferTo) {
+      return res.status(400).json({ message: 'Either transfer or delete dependencies'});
     }
     // 2. Transfer dependents if requested
     if (transferTo) {

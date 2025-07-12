@@ -13,7 +13,12 @@ const instituteSchema = new Schema({
   contactNo1: { type: String, required: true },
   contactNo2: { type: String },
   emailId: { type: String, required: true },
-}, { collection: 'instituteData' },{ timestamps: true }); // Specify the collection name
+  archive: {
+    type: Boolean,
+    default: false,
+    index: true
+  }
+}, { collection: 'instituteData', timestamps: true }); // Specify the collection name
 
 // Create the model
 const createInstitutesModel = (connection) => {

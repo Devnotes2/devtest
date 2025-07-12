@@ -112,14 +112,30 @@ exports.deleteInstitutes = async (req, res) => {
   createMemberDataModel(req.collegeDB);
 
   const Institute = createInstitutesModel(req.collegeDB);
-  const { ids, deleteDependents, transferTo } = req.body;
+  const { ids, deleteDependents, transferTo, archive } = req.body;
 
   if (!ids || !Array.isArray(ids)) {
     return res.status(400).json({ message: 'Institute ID(s) required' });
   }
 
   // Import generic cascade utils
-  const { countDependents, deleteWithDependents, transferDependents } = require('../../Utilities/dependencyCascadeUtils');
+  const { countDependents, deleteWithDependents, transferDependents, archiveParents } = require('../../Utilities/dependencyCascadeUtils');
+
+  // Only one of archive or transferTo can be requested at a time
+  if (archive !== undefined && transferTo) {
+    return res.status(400).json({ message: 'Only one of archive or transfer can be requested at a time.' });
+  }
+
+  // Archive/unarchive logic (match gradeBatchesCt.js)
+  if (archive !== undefined) {
+    try {
+      const archiveResult = await archiveParents(req.collegeDB, ids, 'Institutes', Boolean(archive));
+      return res.status(200).json({ message: `Institute(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });
+    } catch (error) {
+      return res.status(500).json({ message: 'Failed to archive/unarchive Institute(s)', error: error.message });
+    }
+  }
+
   try {
     // 1. Count dependents for each institute
     const depCounts = await countDependents(req.collegeDB, ids, instituteDependents);

@@ -7,6 +7,11 @@ const DepartmentDataSchema = new Schema({
     departmentName: {type: mongoose.Schema.Types.String, required:true},
     departmentCode: {type: mongoose.Schema.Types.String, required:true},
     description:{type: mongoose.Schema.Types.String, required:false},
+    archive: {
+        type: Boolean,
+        default: false,
+        index: true
+    }
 }, { timestamps: true });
 
 const createDepartmentDataModel = (connection) => {

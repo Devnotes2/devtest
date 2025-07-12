@@ -25,6 +25,11 @@ const GradesSchema = new Schema({
   isElective: {
     type: mongoose.Schema.Types.ObjectId,  // Whether the grade is elective or not
     required: true
+  },
+  archive: {
+    type: Boolean,
+    default: false,
+    index: true
   }
 }, { timestamps: true });  // Optionally, you can use timestamps to track creation and update times
 

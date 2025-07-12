@@ -182,16 +182,26 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
   createMemberDataModel(req.collegeDB);
 
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
-  const { ids, deleteDependents, transferTo } = req.body;
+  const { ids, deleteDependents, transferTo, archive } = req.body;
 
   if (!ids || !Array.isArray(ids)) {
     return res.status(400).json({ message: 'Grade Section ID(s) required' });
   }
+  // Only one of archive or transferTo can be requested at a time
+  if (archive !== undefined && transferTo) {
+    return res.status(400).json({ message: 'Only one of archive or transfer can be requested at a time.' });
+  }
 
   // Import generic cascade utils
-  const { countDependents, deleteWithDependents, transferDependents } = require('../../../Utilities/dependencyCascadeUtils');
+  const { countDependents, deleteWithDependents, transferDependents, archiveParents } = require('../../../Utilities/dependencyCascadeUtils');
 
   try {
+    // Archive/unarchive logic (match gradeBatchesCt.js)
+    if (archive !== undefined) {
+      const archiveResult = await archiveParents(req.collegeDB, ids, 'GradeSections', Boolean(archive));
+      return res.status(200).json({ message: `Grade Section(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });
+    }
+
     // 1. Count dependents for each Grade Section
     const depCounts = await countDependents(req.collegeDB, ids, gradeSectionDependents);
     // Fetch original GradeSection docs to get the value field (e.g., section)
