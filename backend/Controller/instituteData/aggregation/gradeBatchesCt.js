@@ -23,7 +23,7 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
     
         // Dropdown mode: return only _id and subject, with sorting and filtering
     if (dropdown === 'true') {
-      let findQuery = GradeBatchesInInstitute.find(matchConditions, { _id: 1, batch: 1 });
+      let findQuery = GradeBatchesInInstitute.find(matchConditions,{ archive: { $ne: true } }, { _id: 1, batch: 1 });
       findQuery = findQuery.sort({batch:1});
       const data = await findQuery;
       return res.status(200).json({ data });

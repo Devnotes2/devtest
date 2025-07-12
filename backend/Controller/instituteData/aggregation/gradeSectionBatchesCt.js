@@ -20,7 +20,7 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
     if (gradeSectionId) matchConditions.gradeSectionId = new ObjectId(gradeSectionId);
     if (dropdown === 'true') {
-      let findQuery = GradeSectionBatchesInInstitute.find(matchConditions, { _id: 1, gradeSectionBatch: 1 });
+      let findQuery = GradeSectionBatchesInInstitute.find(matchConditions,{ archive: { $ne: true } }, { _id: 1, gradeSectionBatch: 1 });
       findQuery = findQuery.sort({gradeSectionBatch:1});
       const data = await findQuery;
       return res.status(200).json({ data });

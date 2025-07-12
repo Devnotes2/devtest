@@ -30,7 +30,7 @@ exports.getInstitutes = async (req, res) => {
     const {dropdown} = req.query;
 
   if (dropdown === 'true') {
-      let findQuery = Institute.find( { _id: 1, instituteName: 1 });
+      let findQuery = Institute.find({ archive: { $ne: true } }, { _id: 1, instituteName: 1 });
       findQuery = findQuery.sort({ instituteName: 1 });
       const data = await findQuery;
       return res.status(200).json({ data });

@@ -30,7 +30,7 @@ exports.gradesInInstituteAg = async (req, res) => {
     const { ids, aggregate ,dropdown} = req.query;
     // Dropdown mode: return only _id and subject, with sorting and filtering
     if (dropdown === 'true') {
-      let findQuery = GradesInInstitute.find(matchConditions, { _id: 1, gradeDescription: 1 });
+      let findQuery = GradesInInstitute.find(matchConditions,{ archive: { $ne: true } }, { _id: 1, gradeDescription: 1 });
       findQuery = findQuery.sort({gradeDescription:1});
       const data = await findQuery;
       return res.status(200).json({ data });

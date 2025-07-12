@@ -22,7 +22,7 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
     if (section) matchConditions.section = String(section);
     if (dropdown === 'true') {
-      let findQuery = GradeSectionsInInstitute.find(matchConditions, { _id: 1, section: 1 });
+      let findQuery = GradeSectionsInInstitute.find(matchConditions,{ archive: { $ne: true } }, { _id: 1, section: 1 });
       findQuery = findQuery.sort({section:1});
       const data = await findQuery;
       return res.status(200).json({ data });

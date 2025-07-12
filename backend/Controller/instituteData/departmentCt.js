@@ -65,7 +65,7 @@ exports.getDepartment = async (req, res) => {
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;
     if (dropdown === 'true') {
-      let findQuery = DepartmentData.find(matchConditions, { _id: 1, departmentName: 1 });
+      let findQuery = DepartmentData.find(matchConditions,{ archive: { $ne: true } }, { _id: 1, departmentName: 1 });
       findQuery = findQuery.sort({ departmentName: 1 });
       const data = await findQuery;
       return res.status(200).json({ data });
