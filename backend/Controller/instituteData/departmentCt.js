@@ -65,7 +65,7 @@ exports.getDepartment = async (req, res) => {
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;
     if (dropdown === 'true') {
-      let findQuery = DepartmentData.find(matchConditions,{ archive: { $ne: true } }, { _id: 1, departmentName: 1 });
+      let findQuery = DepartmentData.find({...matchConditions, archive: { $ne: true } }, { _id: 1, departmentName: 1 });
       findQuery = findQuery.sort({ departmentName: 1 });
       const data = await findQuery;
       return res.status(200).json({ data });
@@ -198,6 +198,10 @@ exports.deleteDepartment = async (req, res) => {
   if (archive !== undefined && transferTo) {
     return res.status(400).json({ message: 'Only one of archive or transfer can be requested at a time.' });
   }
+  // Archive must be a boolean if present
+  if (archive !== undefined && typeof archive !== 'boolean') {
+    return res.status(400).json({ message: 'The archive parameter must be a boolean (true or false).' });
+  }
 
   // Import generic cascade utils
   const { countDependents, deleteWithDependents, transferDependents, archiveParents } = require('../../Utilities/dependencyCascadeUtils');
@@ -207,7 +211,7 @@ exports.deleteDepartment = async (req, res) => {
     if (archive !== undefined) {
       const archiveResult = await archiveParents(req.collegeDB, ids, 'DepartmentData', Boolean(archive));
             // Check if any documents were actually updated
-      if (!archiveResult || !archiveResult.modifiedCount) {
+      if (!archiveResult || !archiveResult.archivedCount) {
         return res.status(404).json({ message: 'No matching Department found to archive/unarchive' });
       }
       return res.status(200).json({ message: `Department(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });

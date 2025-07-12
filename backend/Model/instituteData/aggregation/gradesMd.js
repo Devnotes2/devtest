@@ -28,9 +28,8 @@ const GradesSchema = new Schema({
   },
   archive: {
     type: Boolean,
-    default: false,
-    index: true
-  }
+    default: false
+    }
 }, { timestamps: true });  // Optionally, you can use timestamps to track creation and update times
 
 

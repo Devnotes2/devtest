@@ -9,9 +9,7 @@ const DepartmentDataSchema = new Schema({
     description:{type: mongoose.Schema.Types.String, required:false},
     archive: {
         type: Boolean,
-        default: false,
-        index: true
-    }
+        default: false    }
 }, { timestamps: true });
 
 const createDepartmentDataModel = (connection) => {

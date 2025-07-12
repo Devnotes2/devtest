@@ -30,7 +30,9 @@ exports.getInstitutes = async (req, res) => {
     const {dropdown} = req.query;
 
   if (dropdown === 'true') {
-      let findQuery = Institute.find({ archive: { $ne: true } }, { _id: 1, instituteName: 1 });
+      let filter = { archive: { $ne: true } };
+      // If you want to support more filters in the future, merge them here
+      let findQuery = Institute.find(filter, { _id: 1, instituteName: 1 });
       findQuery = findQuery.sort({ instituteName: 1 });
       const data = await findQuery;
       return res.status(200).json({ data });
@@ -125,13 +127,17 @@ exports.deleteInstitutes = async (req, res) => {
   if (archive !== undefined && transferTo) {
     return res.status(400).json({ message: 'Only one of archive or transfer can be requested at a time.' });
   }
+  // Archive must be a boolean if present
+  if (archive !== undefined && typeof archive !== 'boolean') {
+    return res.status(400).json({ message: 'The archive parameter must be a boolean (true or false).' });
+  }
 
   // Archive/unarchive logic (match gradeBatchesCt.js)
   if (archive !== undefined) {
     try {
       const archiveResult = await archiveParents(req.collegeDB, ids, 'instituteData', Boolean(archive));
       // Check if any documents were actually updated
-      if (!archiveResult || !archiveResult.modifiedCount) {
+      if (!archiveResult || !archiveResult.archivedCount) {
         return res.status(404).json({ message: 'No matching institutes found to archive/unarchive' });
       }
       return res.status(200).json({ message: `Institute(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });

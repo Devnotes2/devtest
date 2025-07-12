@@ -79,10 +79,10 @@ async function transferDependents(db, fromId, toId, dependents) {
  * @param {Object} db - The mongoose connection (tenant DB).
  * @param {Array<string>} parentIds - Array of parent IDs to archive/unarchive.
  * @param {string} parentModel - The parent model name.
- * @param {boolean} [archive=true] - Whether to archive (true) or unarchive (false).
+ * @param {boolean} [archive] - Whether to archive (true) or unarchive (false).
  * @returns {Promise<Object>} - Result summary.
  */
-async function archiveParents(db, parentIds, parentModel, archive = true) {
+async function archiveParents(db, parentIds, parentModel, archive) {
   const ids = parentIds.map(id => new ObjectId(id));
   const Parent = db.model(parentModel);
   // Set both 'archived' and 'archive' fields for compatibility
@@ -90,7 +90,7 @@ async function archiveParents(db, parentIds, parentModel, archive = true) {
     { _id: { $in: ids } },
     { $set: { archive: archive } }
   );
-  return { archivedCount: res.modifiedCount, archived: archive };
+  return { archivedCount: res.modifiedCount, archive: archive };
 }
 
 // Remove all hardcoded configs and wrappers below. Only export the generic functions.

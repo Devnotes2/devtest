@@ -20,9 +20,8 @@ const GradeSectionBatchesSchema = new Schema({
   },
   archive: {
     type: Boolean,
-    default: false,
-    index: true
-  }
+    default: false
+    }
 });  // Optionally, you can use timestamps to track creation and update times
 
 

@@ -15,9 +15,8 @@ const instituteSchema = new Schema({
   emailId: { type: String, required: true },
   archive: {
     type: Boolean,
-    default: false,
-    index: true
-  }
+    default: false
+    }
 }, { collection: 'instituteData', timestamps: true }); // Specify the collection name
 
 // Create the model

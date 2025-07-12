@@ -23,7 +23,7 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
     
         // Dropdown mode: return only _id and subject, with sorting and filtering
     if (dropdown === 'true') {
-      let findQuery = GradeBatchesInInstitute.find(matchConditions,{ archive: { $ne: true } }, { _id: 1, batch: 1 });
+      let findQuery = GradeBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, batch: 1 });
       findQuery = findQuery.sort({batch:1});
       const data = await findQuery;
       return res.status(200).json({ data });
@@ -191,6 +191,10 @@ exports.deleteGradeBatchesInInstitute = async (req, res) => {
   if (archive !== undefined && transferTo) {
     return res.status(400).json({ message: 'Only one of archive or transfer can be requested at a time.' });
   }
+  // Archive must be a boolean if present
+  if (archive !== undefined && typeof archive !== 'boolean') {
+    return res.status(400).json({ message: 'The archive parameter must be a boolean (true or false).' });
+  }
 
   // Import generic cascade utils
   const { countDependents, deleteWithDependents, transferDependents, archiveParents } = require('../../../Utilities/dependencyCascadeUtils');
@@ -200,7 +204,7 @@ exports.deleteGradeBatchesInInstitute = async (req, res) => {
     if (archive !== undefined) {
       const archiveResult = await archiveParents(req.collegeDB, ids, 'GradeBatches', Boolean(archive));
                   // Check if any documents were actually updated
-      if (!archiveResult || !archiveResult.modifiedCount) {
+      if (!archiveResult || !archiveResult.archivedCount) {
         return res.status(404).json({ message: 'No matching Grade Batch found to archive/unarchive' });
       }
       return res.status(200).json({ message: `Grade Batch(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });
