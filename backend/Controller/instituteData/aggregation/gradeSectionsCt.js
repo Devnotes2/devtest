@@ -199,6 +199,10 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
     // Archive/unarchive logic (match gradeBatchesCt.js)
     if (archive !== undefined) {
       const archiveResult = await archiveParents(req.collegeDB, ids, 'GradeSections', Boolean(archive));
+                              // Check if any documents were actually updated
+      if (!archiveResult || !archiveResult.modifiedCount) {
+        return res.status(404).json({ message: 'No matching Grade Section found to archive/unarchive' });
+      }
       return res.status(200).json({ message: `Grade Section(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });
     }
 

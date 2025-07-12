@@ -129,7 +129,11 @@ exports.deleteInstitutes = async (req, res) => {
   // Archive/unarchive logic (match gradeBatchesCt.js)
   if (archive !== undefined) {
     try {
-      const archiveResult = await archiveParents(req.collegeDB, ids, 'Institutes', Boolean(archive));
+      const archiveResult = await archiveParents(req.collegeDB, ids, 'instituteData', Boolean(archive));
+      // Check if any documents were actually updated
+      if (!archiveResult || !archiveResult.modifiedCount) {
+        return res.status(404).json({ message: 'No matching institutes found to archive/unarchive' });
+      }
       return res.status(200).json({ message: `Institute(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });
     } catch (error) {
       return res.status(500).json({ message: 'Failed to archive/unarchive Institute(s)', error: error.message });
