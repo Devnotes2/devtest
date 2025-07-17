@@ -8,6 +8,7 @@ const MembersDataSchema = new Schema({
     firstName: { type: String ,required: true},
     middleName: { type: String },
     lastName: { type: String ,required: true},
+    fullName: { type: String ,required: true},
     gender: { type: mongoose.Schema.Types.ObjectId ,required: true},
     dob: { type: Date ,required: true},
     bloodGroup: { type: mongoose.Schema.Types.ObjectId ,required: true},

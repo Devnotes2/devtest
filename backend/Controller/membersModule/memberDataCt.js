@@ -27,8 +27,8 @@ exports.getMembersData = async (req, res) => {
     let valueBasedField = matchConditions.__valueBasedField;
     if (valueBasedField) delete matchConditions.__valueBasedField;
     if (dropdown === 'true') {
-      let findQuery = MembersData.find(matchConditions, { _id: 1, firstName: 1, middleName: 1, lastName: 1});
-      findQuery = findQuery.sort({firstName:1});
+      let findQuery = MembersData.find(matchConditions, { _id: 1, fullName: 1});
+      findQuery = findQuery.sort({fullName:1});
       const data = await findQuery;
       return res.status(200).json({ data });
     }
@@ -90,6 +90,7 @@ exports.getMembersData = async (req, res) => {
           firstName: 1,
           middleName: 1,
           lastName: 1,
+          fullName:1,
           memberId: 1,
           memberType: '$memberTypeDetails.memberTypeValue',
           instituteName: '$instituteDetails.instituteName',
@@ -151,6 +152,7 @@ exports.getMembersData = async (req, res) => {
           firstName: 1,
           middleName: 1,
           lastName: 1,
+          fullName:1,
           memberId: 1,
           memberType: '$memberTypeDetails.memberTypeValue',
           instituteName: '$instituteDetails.instituteName',
@@ -205,7 +207,17 @@ exports.getMembersData = async (req, res) => {
 exports.createMember = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
   try {
-    const newMember = await handleCRUD(MembersData, 'create', {}, req.body);
+    // Build fullName from firstName, middleName, lastName
+    const { firstName, middleName, lastName, ...rest } = req.body;
+    let fullName = firstName;
+    if (middleName && middleName.trim()) {
+      fullName += ' ' + middleName.trim();
+    }
+    if (lastName && lastName.trim()) {
+      fullName += ' ' + lastName.trim();
+    }
+    const memberData = { firstName, middleName, lastName, fullName, ...rest };
+    const newMember = await handleCRUD(MembersData, 'create', {}, memberData);
     res.status(200).json({
       message: 'Member created successfully!',
       data: newMember
