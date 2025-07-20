@@ -27,36 +27,31 @@ const instituteDependents = [
 // Get all institutes or a specific institute by ID
 exports.getInstitutes = async (req, res) => {
   const Institute = createInstitutesModel(req.collegeDB);
-  const { dropdown, page, limit, id } = req.query;
-  try {
-    // Pagination and sorting
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 10;
-    let sortObj = { instituteName: 1 };
-    // Dropdown mode: only _id and instituteName, filter out archived
-    if (dropdown === 'true') {
+    const {dropdown} = req.query;
+
+  if (dropdown === 'true') {
       let filter = { archive: { $ne: true } };
+      // If you want to support more filters in the future, merge them here
       let findQuery = Institute.find(filter, { _id: 1, instituteName: 1 });
-      findQuery = findQuery.sort(sortObj);
+      findQuery = findQuery.sort({ instituteName: 1 });
       const data = await findQuery;
-      return res.status(200).json({ count: data.length, filteredDocs: data.length, totalDocs: data.length, data });
+      return res.status(200).json({ data });
     }
-    // Single institute by ID
+  const { id } = req.params;
+  
+  try {
     if (id) {
+      // Fetch a specific institute by ID
       const institute = await handleCRUD(Institute, 'findOne', { _id: new ObjectId(id) });
       if (!institute) {
         return res.status(404).json({ message: 'Institute not found' });
       }
-      return res.status(200).json({ data: institute });
+      return res.status(200).json(institute);
+    } else {
+      // Fetch all institutes
+      const institutes = await handleCRUD(Institute, 'find', {});
+      return res.status(200).json(institutes);
     }
-    // List all institutes with pagination
-    const totalDocs = await Institute.countDocuments();
-    let query = Institute.find();
-    query = query.sort(sortObj);
-    query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
-    const data = await query;
-    const filteredDocs = await Institute.countDocuments();
-    return res.status(200).json({ count: data.length, filteredDocs, totalDocs, data });
   } catch (error) {
     console.error('Error fetching institutes:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
