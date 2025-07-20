@@ -5,20 +5,51 @@ const { ObjectId } = require('mongoose').Types;
 // Function to get all academic years or a specific academic year by ID
 exports.getAcademicYears = async (req, res) => {
   const AcademicYear = createAcademicYearModel(req.collegeDB);
+  const dropdown = req.query.dropdown || req.body.dropdown;
   const { id } = req.params;
+  
+  function formatAcademicYear(startDate, endDate) {
+    function extractDate(val) {
+      if (val && typeof val === 'object' && val.$date) return new Date(val.$date);
+      return new Date(val);
+    }
+    const sd = extractDate(startDate);
+    const ed = extractDate(endDate);
+    if (isNaN(sd.getTime()) || isNaN(ed.getTime())) return '';
+    const pad = n => n < 10 ? '0' + n : n;
+    return `${pad(sd.getDate())}/${pad(sd.getMonth()+1)}/${sd.getFullYear()}-${pad(ed.getDate())}/${pad(ed.getMonth()+1)}/${ed.getFullYear()}`;
+  }
 
   try {
+    if (dropdown === 'true') {
+      let academicYears = await handleCRUD(AcademicYear, 'find', {});
+      academicYears = academicYears.map(ay => ({
+        academicYear: formatAcademicYear(ay.startDate, ay.endDate)
+      }));
+
+      academicYears.sort((a, b) => b.academicYear.localeCompare(a.academicYear));
+      return res.json(academicYears);
+    }
     if (id) {
+
       // Fetch a specific academic year by ID
       const academicYear = await handleCRUD(AcademicYear, 'findOne', { _id: new ObjectId(id) });
       if (!academicYear) {
+
         return res.status(404).json({ message: 'Academic year not found' });
       }
-      return res.json(academicYear);
+      // Return only plain object with academicYear field
+      return res.json({ academicYear: formatAcademicYear(academicYear.startDate, academicYear.endDate) });
     } else {
       // Fetch all academic years
-      const academicYears = await handleCRUD(AcademicYear, 'find', {});
-      academicYears.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+      let academicYears = await handleCRUD(AcademicYear, 'find', {});
+
+      academicYears = academicYears.map(ay => ({
+        startDate:ay.startDate,
+        endDate:ay.endDate,
+        academicYear: formatAcademicYear(ay.startDate, ay.endDate)
+      }));
+      academicYears.sort((a, b) => b.academicYear.localeCompare(a.academicYear));
       return res.json(academicYears);
     }
   } catch (error) {
