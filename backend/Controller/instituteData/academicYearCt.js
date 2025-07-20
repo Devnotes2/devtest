@@ -5,22 +5,34 @@ const { ObjectId } = require('mongoose').Types;
 // Function to get all academic years or a specific academic year by ID
 exports.getAcademicYears = async (req, res) => {
   const AcademicYear = createAcademicYearModel(req.collegeDB);
-  const { id } = req.params;
-
+  const { id, page, limit, dropdown } = req.query;
   try {
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    let sortObj = { startDate: -1 };
+    // Dropdown mode: only _id and yearName
+    if (dropdown === 'true') {
+      let findQuery = AcademicYear.find({}, { _id: 1, yearName: 1 });
+      findQuery = findQuery.sort(sortObj);
+      const data = await findQuery;
+      return res.status(200).json({ count: data.length, filteredDocs: data.length, totalDocs: data.length, data });
+    }
+    // Single academic year by ID
     if (id) {
-      // Fetch a specific academic year by ID
       const academicYear = await handleCRUD(AcademicYear, 'findOne', { _id: new ObjectId(id) });
       if (!academicYear) {
         return res.status(404).json({ message: 'Academic year not found' });
       }
-      return res.json(academicYear);
-    } else {
-      // Fetch all academic years
-      const academicYears = await handleCRUD(AcademicYear, 'find', {});
-      academicYears.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-      return res.json(academicYears);
+      return res.status(200).json({ data: academicYear });
     }
+    // List all academic years with pagination
+    const totalDocs = await AcademicYear.countDocuments();
+    let query = AcademicYear.find();
+    query = query.sort(sortObj);
+    query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
+    const data = await query;
+    const filteredDocs = await AcademicYear.countDocuments();
+    return res.status(200).json({ count: data.length, filteredDocs, totalDocs, data });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
