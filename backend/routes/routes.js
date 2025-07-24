@@ -26,4 +26,14 @@ router.use('/generalDataRt', require('./generalData/generalDataRt'));
 // member Module
 router.use('/membersDataRt', require('./membersModule/memberDataRt'));
 
+// member enrollment
+router.use('/memberEnrollmentRt/gradeEnrollment', require('./enrollment/gradeEnrollmentRt'));
+router.use('/memberEnrollmentRt/gradeSectionEnrollment', require('./enrollment/gradeSectionEnrollmentRt'));
+router.use('/memberEnrollmentRt/gradeBatchEnrollment', require('./enrollment/gradeBatchEnrollmentRt'));
+router.use('/memberEnrollmentRt/gradeSectionBatchEnrollment', require('./enrollment/gradeSectionBatchEnrollmentRt'));
+router.use('/memberEnrollmentRt/gradeSubjectEnrollment', require('./enrollment/gradeSubjectEnrollmentRt'));
+router.use('/memberEnrollmentRt/gradeSectionSubjectEnrollment', require('./enrollment/gradeSectionSubjectEnrollmentRt'));
+router.use('/memberEnrollmentRt/gradeBatchSubjectEnrollment', require('./enrollment/gradeBatchSubjectEnrollmentRt'));
+router.use('/memberEnrollmentRt/gradeSectionBatchSubjectEnrollment', require('./enrollment/gradeSectionBatchSubjectEnrollmentRt'));
+
 module.exports = router;
