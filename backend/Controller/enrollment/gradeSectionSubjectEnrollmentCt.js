@@ -65,22 +65,25 @@ exports.updateGradeSectionSubjectEnrollment = async (req, res) => {
     }
     const update = { $addToSet: { [arrayField]: { $each: idsToAdd } } };
     const result = await GradeSectionSubjectEnrollment.updateOne(filter, update, { upsert: true });
+    // Find the upserted document (either existing or newly created)
+    const upsertedDoc = await GradeSectionSubjectEnrollment.findOne(filter);
+    const gradeSectionSubjectId = upsertedDoc ? upsertedDoc._id : null;
 
-    // Update gradeSectionSubject field for each member
+    // Update gradeSectionSubjectId array for each member
     const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
     let updateResults = [];
     for (const memberId of idsToAdd) {
       try {
         await MembersData.updateOne(
           { _id: memberId },
-          { $set: { gradeSectionSubjectId: gradeSubjectId } }
+          { $addToSet: { gradeSectionSubjectId: gradeSectionSubjectId } }
         );
         updateResults.push({ memberId, updated: true });
       } catch (err) {
         updateResults.push({ memberId, updated: false, error: err.message });
       }
     }
-    res.status(200).json({ message: 'Enrollment updated successfully', added: idsToAdd, memberUpdates: updateResults });
+    res.status(200).json({ message: 'Enrollment updated successfully', added: idsToAdd, memberUpdates: updateResults, gradeSectionSubjectId });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

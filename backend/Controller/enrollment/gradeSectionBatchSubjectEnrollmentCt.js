@@ -38,6 +38,8 @@ exports.updateGradeSectionBatchSubjectEnrollment = async (req, res) => {
     return res.status(400).json({ message: 'Missing required query or body parameters.' });
   }
 
+
+
   // Build query for unique document
   const filter = { instituteId, academicYearId, gradeId, gradeSectionId, gradeSectionBatchId, gradeSubjectId };
   let arrayField;
@@ -64,23 +66,27 @@ exports.updateGradeSectionBatchSubjectEnrollment = async (req, res) => {
       return res.status(200).json({ message: 'No updates were made (all memberIds already present)' });
     }
     const update = { $addToSet: { [arrayField]: { $each: idsToAdd } } };
+    // Upsert and get the upserted document's _id
     const result = await GradeSectionBatchSubjectEnrollment.updateOne(filter, update, { upsert: true });
+    // Find the upserted document (either existing or newly created)
+    const upsertedDoc = await GradeSectionBatchSubjectEnrollment.findOne(filter);
+    const gradeSectionBatchSubjectId = upsertedDoc ? upsertedDoc._id : null;
 
-    // Update gradeSectionBatchSubject field for each member
+    // Update gradeSectionBatchSubjectId array for each member
     const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
     let updateResults = [];
     for (const memberId of idsToAdd) {
       try {
         await MembersData.updateOne(
           { _id: memberId },
-          { $set: { gradeSectionBatchSubjectId: gradeSubjectId } }
+          { $addToSet: { gradeSectionBatchSubjectId: gradeSectionBatchSubjectId } }
         );
         updateResults.push({ memberId, updated: true });
       } catch (err) {
         updateResults.push({ memberId, updated: false, error: err.message });
       }
     }
-    res.status(200).json({ message: 'Enrollment updated successfully', added: idsToAdd, memberUpdates: updateResults });
+    res.status(200).json({ message: 'Enrollment updated successfully', added: idsToAdd, memberUpdates: updateResults, gradeSectionBatchSubjectId });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

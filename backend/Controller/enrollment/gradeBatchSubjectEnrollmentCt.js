@@ -64,23 +64,27 @@ exports.updateGradeBatchSubjectEnrollment = async (req, res) => {
       return res.status(200).json({ message: 'No updates were made (all memberIds already present)' });
     }
     const update = { $addToSet: { [arrayField]: { $each: idsToAdd } } };
+    // Upsert and get the upserted document's _id
     const result = await GradeBatchSubjectEnrollment.updateOne(filter, update, { upsert: true });
+    // Find the upserted document (either existing or newly created)
+    const upsertedDoc = await GradeBatchSubjectEnrollment.findOne(filter);
+    const gradeBatchSubjectId = upsertedDoc ? upsertedDoc._id : null;
 
-    // Update gradeBatchSubject field for each member
+    // Update gradeBatchSubjectId array for each member
     const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
     let updateResults = [];
     for (const memberId of idsToAdd) {
       try {
         await MembersData.updateOne(
           { _id: memberId },
-          { $set: { gradeBatchSubjectId: gradeSubjectId } }
+          { $addToSet: { gradeBatchSubjectId: gradeBatchSubjectId } }
         );
         updateResults.push({ memberId, updated: true });
       } catch (err) {
         updateResults.push({ memberId, updated: false, error: err.message });
       }
     }
-    res.status(200).json({ message: 'Enrollment updated successfully', added: idsToAdd, memberUpdates: updateResults });
+    res.status(200).json({ message: 'Enrollment updated successfully', added: idsToAdd, memberUpdates: updateResults, gradeBatchSubjectId });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
