@@ -4,16 +4,79 @@ const { ObjectId } = require('mongoose').Types;
 
 exports.getGradeSubjectEnrollments = async (req, res) => {
   const GradeSubjectEnrollment = createGradeSubjectEnrollmentModel(req.collegeDB);
-  const { instituteId,academicYearId ,gradeId ,gradeSubjectId ,memberType} = req.query;
+  const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
+  // Reuse lookups from memberDataCt.js
+  const { instituteLookup } = require('../../Utilities/aggregations/instituteDataLookups');
+  const { gradesLookup } = require('../../Utilities/aggregations/gradesLookups');
+  const { academicYearLookup } = require('../../Utilities/aggregations/academicYearLookups');
+  const { ObjectId } = require('mongoose').Types;
+  const { instituteId, academicYearId, gradeId, gradeSubjectId } = req.query;
   try {
-    if (id) {
-      const enrollment = await handleCRUD(GradeSubjectEnrollment, 'findOne', { _id: new ObjectId(id) });
-      if (!enrollment) return res.status(404).json({ message: 'Enrollment not found' });
-      return res.json(enrollment);
-    } else {
-      const enrollments = await handleCRUD(GradeSubjectEnrollment, 'find', {});
-      return res.json(enrollments);
+    // Build filter from query params
+    const match = {};
+    if (instituteId) match.instituteId = new ObjectId(instituteId);
+    if (academicYearId) match.academicYearId = new ObjectId(academicYearId);
+    if (gradeId) match.gradeId = new ObjectId(gradeId);
+    if (gradeSubjectId) match.gradeSubjectId = new ObjectId(gradeSubjectId);
+
+    // If memberInfo=true, return only member data for enrolled students or staff
+    if (req.query.memberInfo === 'true' && req.query.memberType) {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const memberType = req.query.memberType;
+      // Find enrollments matching filter
+      const enrollments = await GradeSubjectEnrollment.find(match);
+      let memberIds = [];
+      enrollments.forEach(enr => {
+        if (memberType === 'student' && Array.isArray(enr.enrolledStudents))
+          memberIds.push(...enr.enrolledStudents);
+        if (memberType === 'staff' && Array.isArray(enr.enrolledStaff))
+          memberIds.push(...enr.enrolledStaff);
+      });
+      memberIds = [...new Set(memberIds.map(id => id.toString()))];
+      // Pagination
+      const pagedIds = memberIds.slice((page - 1) * limit, page * limit);
+      const members = await MembersData.find({ _id: { $in: pagedIds } }, { _id: 1, memberId: 1, fullName: 1 });
+      res.status(200).json({
+        count: members.length,
+        total: memberIds.length,
+        page,
+        limit,
+        data: members
+      });
+      return;
     }
+
+    // Always return enriched aggregation response
+    const { subjectsLookup } = require('../../Utilities/aggregations/subjectsLookups');
+    let lookups = [
+      ...instituteLookup(),
+      ...academicYearLookup(),
+      ...gradesLookup(),
+      ...subjectsLookup('gradeSubjectId')
+    ];
+    let pipeline = [
+      { $match: match },
+      ...lookups,
+      {
+        $project: {
+          _id: 1,
+          instituteId: 1,
+          academicYearId: 1,
+          gradeId: 1,
+          gradeSubjectId: 1,
+          'instituteDetails.instituteName': 1,
+          academicYear: 1,
+          'gradesDetails.gradeDescription': 1,
+          'subjectDetails.subject': 1,
+          'subjectDetails.subjectCode': 1,
+          studentCount: { $size: { $ifNull: ['$enrolledStudents', []] } },
+          staffCount: { $size: { $ifNull: ['$enrolledStaff', []] } }
+        }
+      }
+    ];
+    const enrollments = await GradeSubjectEnrollment.aggregate(pipeline);
+    res.status(200).json({ enrollments });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
