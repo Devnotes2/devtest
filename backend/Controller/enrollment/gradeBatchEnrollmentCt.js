@@ -72,7 +72,7 @@ exports.updateGradeBatchEnrollment = async (req, res) => {
       try {
         await MembersData.updateOne(
           { _id: memberId },
-          { $set: { gradeBatch: gradeBatchId } }
+          { $set: { gradeBatchId: gradeBatchId } }
         );
         updateResults.push({ memberId, updated: true });
       } catch (err) {

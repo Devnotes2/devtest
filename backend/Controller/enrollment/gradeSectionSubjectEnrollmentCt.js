@@ -73,7 +73,7 @@ exports.updateGradeSectionSubjectEnrollment = async (req, res) => {
       try {
         await MembersData.updateOne(
           { _id: memberId },
-          { $set: { gradeSectionSubject: gradeSubjectId } }
+          { $set: { gradeSectionSubjectId: gradeSubjectId } }
         );
         updateResults.push({ memberId, updated: true });
       } catch (err) {
