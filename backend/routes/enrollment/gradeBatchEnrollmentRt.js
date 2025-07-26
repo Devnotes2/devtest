@@ -3,7 +3,7 @@ const router = express.Router();
 const gradeBatchEnrollmentCt = require('../../Controller/enrollment/gradeBatchEnrollmentCt');
 
 router.get('/', gradeBatchEnrollmentCt.getGradeBatchEnrollments);
-router.post('/', gradeBatchEnrollmentCt.createGradeBatchEnrollment);
+router.post('/', gradeBatchEnrollmentCt.validateGradeBatchEnrollment);
 router.put('/', gradeBatchEnrollmentCt.updateGradeBatchEnrollment);
 router.delete('/', gradeBatchEnrollmentCt.deleteGradeBatchEnrollment);
 

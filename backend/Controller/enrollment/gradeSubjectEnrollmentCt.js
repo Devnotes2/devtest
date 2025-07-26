@@ -151,21 +151,64 @@ exports.updateGradeSubjectEnrollment = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
-
+exports.validateGradeSubjectEnrollment = async (req, res) => {
+  const GradeSubjectEnrollment = createGradeSubjectEnrollmentModel(req.collegeDB);
+  const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
+  const { instituteId, academicYearId, gradeId, gradeSubjectId, memberType } = req.query;
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids)) {
+    return res.status(400).json({ message: 'Array of member IDs required in body as "ids"' });
+  }
+  if (!memberType || (memberType !== 'student' && memberType !== 'staff')) {
+    return res.status(400).json({ message: 'memberType must be "student" or "staff"' });
+  }
+  try {
+    const filter = { instituteId, academicYearId, gradeId, gradeSubjectId };
+    let arrayField = memberType === 'student' ? 'enrolledStudents' : 'enrolledStaff';
+    const enrollmentDoc = await GradeSubjectEnrollment.findOne(filter);
+    const members = await MembersData.find({ _id: { $in: ids } }, { _id: 1, memberId: 1, fullName: 1, gradeSubjectId: 1 });
+    const memberMap = new Map();
+    members.forEach(m => memberMap.set(m._id.toString(), m));
+    let response = ids.map(id => {
+      const m = memberMap.get(id.toString());
+      let enrolled = false;
+      if (enrollmentDoc && Array.isArray(enrollmentDoc[arrayField])) {
+        enrolled = enrollmentDoc[arrayField].map(x => x.toString()).includes(id.toString());
+      }
+      return {
+        memberId: id,
+        found: !!m,
+        enrolled,
+        description: m ? m.fullName : 'Not found'
+      };
+    });
+    res.status(200).json({ results: response });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 exports.deleteGradeSubjectEnrollment = async (req, res) => {
   const GradeSubjectEnrollment = createGradeSubjectEnrollmentModel(req.collegeDB);
   const { ids } = req.body;
-    const { instituteId,academicYearId ,gradeId ,gradeSubjectId,memberType } = req.query;
+  const { instituteId, academicYearId, gradeId, gradeSubjectId, memberType } = req.query;
 
   if (!ids || !Array.isArray(ids)) {
-    return res.status(400).json({ message: 'Enrollment ID(s) required' });
+    return res.status(400).json({ message: 'Array of member IDs required in body as "ids"' });
+  }
+  if (!memberType || (memberType !== 'student' && memberType !== 'staff')) {
+    return res.status(400).json({ message: 'memberType must be "student" or "staff"' });
   }
   try {
-    const result = await handleCRUD(GradeSubjectEnrollment, 'delete', { _id: { $in: ids } });
-    if (result.deletedCount > 0) {
-      res.status(200).json({ message: 'Enrollment(s) deleted successfully', deletedCount: result.deletedCount });
+    // Find the enrollment document
+    const filter = { instituteId, academicYearId, gradeId, gradeSubjectId };
+    let arrayField = memberType === 'student' ? 'enrolledStudents' : 'enrolledStaff';
+    // Remove member IDs from the array
+    const update = { $pull: { [arrayField]: { $in: ids } } };
+    const result = await GradeSubjectEnrollment.updateOne(filter, update);
+    if (result.modifiedCount > 0) {
+      res.status(200).json({ message: `Member(s) removed from ${arrayField} array`, removed: ids });
     } else {
-      res.status(404).json({ message: 'No matching enrollments found for deletion' });
+      res.status(404).json({ message: 'No matching enrollment found or no members removed' });
     }
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
