@@ -31,18 +31,56 @@ exports.createGradeSectionEnrollment = async (req, res) => {
 
 exports.updateGradeSectionEnrollment = async (req, res) => {
   const GradeSectionEnrollment = createGradeSectionEnrollmentModel(req.collegeDB);
-  const { id, updatedData } = req.body;
-    const { instituteId,academicYearId ,gradeId ,gradeSectionId,memberType} = req.query;
+  const { instituteId, academicYearId, gradeId, gradeSectionId, memberType } = req.query;
+  const { updatedData } = req.body;
 
+  if (!instituteId || !academicYearId || !gradeId || !gradeSectionId || !memberType || !Array.isArray(updatedData)) {
+    return res.status(400).json({ message: 'Missing required query or body parameters.' });
+  }
+
+  // Build query for unique document
+  const filter = { instituteId, academicYearId, gradeId, gradeSectionId };
+  let arrayField;
+  if (memberType === 'student') {
+    arrayField = 'enrolledStudents';
+  } else if (memberType === 'staff') {
+    arrayField = 'enrolledStaff';
+  }
   try {
-    const result = await handleCRUD(GradeSectionEnrollment, 'update', { _id: id }, { $set: updatedData });
-    if (result.modifiedCount > 0) {
-      res.status(200).json({ message: 'Enrollment updated successfully' });
-    } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
-      res.status(200).json({ message: 'No updates were made' });
-    } else {
-      res.status(404).json({ message: 'Enrollment not found' });
+    // Check for duplicate documents with same filter
+    const duplicates = await GradeSectionEnrollment.find(filter);
+    if (duplicates.length > 1) {
+      return res.status(409).json({ message: 'Duplicate enrollment documents found for this combination. Please resolve duplicates.' });
     }
+    let doc = duplicates[0];
+    let newIds = updatedData.map(id => id.toString());
+    let idsToAdd = newIds;
+    if (doc) {
+      // Only add memberIds not already present
+      const existingIds = (doc[arrayField] || []).map(id => id.toString());
+      idsToAdd = newIds.filter(id => !existingIds.includes(id));
+    }
+    if (idsToAdd.length === 0) {
+      return res.status(200).json({ message: 'No updates were made (all memberIds already present)' });
+    }
+    const update = { $addToSet: { [arrayField]: { $each: idsToAdd } } };
+    const result = await GradeSectionEnrollment.updateOne(filter, update, { upsert: true });
+
+    // Update gradeSection field for each member
+    const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
+    let updateResults = [];
+    for (const memberId of idsToAdd) {
+      try {
+        await MembersData.updateOne(
+          { _id: memberId },
+          { $set: { gradeSection: gradeSectionId } }
+        );
+        updateResults.push({ memberId, updated: true });
+      } catch (err) {
+        updateResults.push({ memberId, updated: false, error: err.message });
+      }
+    }
+    res.status(200).json({ message: 'Enrollment updated successfully', added: idsToAdd, memberUpdates: updateResults });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
