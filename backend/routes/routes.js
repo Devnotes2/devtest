@@ -5,6 +5,7 @@ const router = express.Router();
 
 // authentication 
 router.use('/regLoginRt', require('./authentication/regLoginRt'));
+router.use('/authRt', require('./authentication/authRt'));
 router.use('/asideDataRt', require('./asideData/asideDataRt'));
 
 // instituteData

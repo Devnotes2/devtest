@@ -1,15 +1,22 @@
 const { connectCollegeDB, connectGlobalDB } = require('./db');
 
 const multiTenantMiddleware = async (req, res, next) => {
+  // Skip collegeDB connection for login requests (authDB is always used)
+  if (req.path === '/authRt/login' || (req.originalUrl && req.originalUrl.includes('/authRt/login'))) {
+    return next();
+  }
   // Extract the college name from the host (e.g., 'college1.svb.local')
-  collegeName = req.get('host').split('.')[0];
-  if(collegeName=="svb"){
-    collegeName = "svb";
+  let collegeName;
+  const host = req.get('host');
+  if (host) {
+    collegeName = host.split('.')[0];
+    // If host is localhost or not a subdomain, allow override via header or default
+    if (collegeName === 'localhost' || collegeName === '127' || !collegeName || collegeName === 'svb') {
+      collegeName = req.headers['x-college-name'] || 'devtest2';
+    }
+  } else {
+    collegeName = req.headers['x-college-name'] || 'devtest2';
   }
-  else{
-    collegeName = "devtest2";
-  }
-
 
   try {
     // Establish or reuse a connection to the college's specific database

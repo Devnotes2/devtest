@@ -19,6 +19,9 @@ const authMemberSchema = new mongoose.Schema({
   otp: { type: String, default: null },
   otpExpiry: { type: Date, default: null },
   lastLogin: { type: Date, default: null },
+  memberName: { type: String },
+  instituteName: { type: String },
+  memberTypeValue: { type: String },
 }, { timestamps: true });
 
 // compound unique index

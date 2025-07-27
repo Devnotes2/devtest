@@ -27,19 +27,58 @@ async function sync() {
       instituteId: mongoose.Types.ObjectId,
     }, { collection: 'membersdatas' }));
 
-    const members = await Member.find({});
+    // Aggregation utilities
+    const { memberDataLookup } = require('../Utilities/aggregations/memberDataLookups');
+    const { instituteLookup } = require('../Utilities/aggregations/instituteDataLookups');
+    const { generalDataLookup } = require('../Utilities/aggregations/generalDataLookups');
 
-    for (const m of members) {
+    // Build aggregation pipeline
+    const pipeline = [
+      ...memberDataLookup({
+        localField: 'memberId',
+        as: 'memberDetails',
+        projectFields: {
+          memberName: 'fullName',
+          email: 'email',
+          contactNo1: 'contactNo1',
+          memberType: 'memberType',
+          password: 'password',
+          instituteId: 'instituteId'
+        }
+      }),
+      ...instituteLookup(),
+      ...generalDataLookup('memberType', 'memberType', 'memberTypeDetails', 'memberTypeValue'),
+      {
+        $project: {
+          memberId: 1,
+          memberName: 1,
+          email: 1,
+          contactNo1: 1,
+          memberType: 1,
+          memberTypeValue: '$memberTypeDetails.memberTypeValue',
+          password: 1,
+          instituteId: 1,
+          instituteName: '$instituteDetails.instituteName'
+        }
+      }
+    ];
+
+    const aggregatedMembers = await Member.aggregate(pipeline);
+
+    for (const m of aggregatedMembers) {
       await AuthMember.updateOne(
         { memberId: m.memberId, instituteId: m.instituteId },
         {
           $set: {
+            memberName: m.memberName,
             email: m.email,
             contactNo1: m.contactNo1,
             password: m.password,
             memberType: m.memberType,
+            memberTypeValue: m.memberTypeValue,
             dbName: tenant.dbName,
             instituteId: m.instituteId,
+            instituteName: m.instituteName,
             isActive: true,
           },
         },
