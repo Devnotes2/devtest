@@ -35,7 +35,7 @@ exports.getGradeEnrollments = async (req, res) => {
       memberIds = [...new Set(memberIds.map(id => id.toString()))];
       // Pagination
       const pagedIds = memberIds.slice((page - 1) * limit, page * limit);
-      const members = await MembersData.find({ _id: { $in: pagedIds } }, { _id: 1, memberId: 1, fullName: 1 });
+      const members = await MembersData.find({ memberId: { $in: pagedIds } }, { _id: 1, memberId: 1, fullName: 1 });
       res.status(200).json({
         count: members.length,
         total: memberIds.length,

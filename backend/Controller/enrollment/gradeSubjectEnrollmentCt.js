@@ -166,7 +166,7 @@ exports.validateGradeSubjectEnrollment = async (req, res) => {
     const filter = { instituteId, academicYearId, gradeId, gradeSubjectId };
     let arrayField = memberType === 'student' ? 'enrolledStudents' : 'enrolledStaff';
     const enrollmentDoc = await GradeSubjectEnrollment.findOne(filter);
-    const members = await MembersData.find({ _id: { $in: ids } }, { _id: 1, memberId: 1, fullName: 1, gradeSubjectId: 1 });
+    const members = await MembersData.find({ memberId: { $in: ids } }, { _id: 1, memberId: 1, fullName: 1, gradeSubjectId: 1 });
     const memberMap = new Map();
     members.forEach(m => memberMap.set(m._id.toString(), m));
     let response = ids.map(id => {
