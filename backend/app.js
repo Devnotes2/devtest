@@ -29,15 +29,15 @@ if (process.env.NODE_ENV === 'production') {
   // app.use(morgan('dev'));  // More verbose logging in development
 }
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests from allowedOrigins, undefined (mobile fetch), or React Native (no origin)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true // Allow cookies to be sent with requests
+  // origin: function (origin, callback) {
+  //   // Allow requests from allowedOrigins, undefined (mobile fetch), or React Native (no origin)
+  //   if (!origin || allowedOrigins.includes(origin)) {
+  //     callback(null, true);
+  //   } else {
+  //     callback(new Error('Not allowed by CORS'));
+  //   }
+  // },
+  // credentials: true // Allow cookies to be sent with requests
 }));
 // app.use(myReqLogger);
 app.use(multiTenantMiddleware);
