@@ -35,7 +35,7 @@ exports.getGradeEnrollments = async (req, res) => {
       memberIds = [...new Set(memberIds.map(id => id.toString()))];
       // Pagination
       const pagedIds = memberIds.slice((page - 1) * limit, page * limit);
-      const members = await MembersData.find({ memberId: { $in: pagedIds } }, { _id: 1, memberId: 1, fullName: 1 });
+      const members = await MembersData.find({ _id: { $in: pagedIds } }, { _id: 1, memberId: 1, fullName: 1 });
       res.status(200).json({
         count: members.length,
         total: memberIds.length,
@@ -85,42 +85,58 @@ exports.createGradeEnrollment = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+// ...existing code...
 exports.validateGradeEnrollment = async (req, res) => {
   const GradeEnrollment = createGradeEnrollmentModel(req.collegeDB);
   const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
   const { instituteId, academicYearId, gradeId, memberType } = req.query;
-  const { ids } = req.body;
+  const { ids } = req.body; // ids = array of memberId (not _id)
   if (!ids || !Array.isArray(ids)) {
-    return res.status(400).json({ message: 'Array of member IDs required in body as "ids"' });
+    return res.status(400).json({ error: 'Array of memberIds required in body as "ids"' });
   }
   if (!memberType || (memberType !== 'student' && memberType !== 'staff')) {
-    return res.status(400).json({ message: 'memberType must be "student" or "staff"' });
+    return res.status(400).json({ error: 'memberType must be "student" or "staff"' });
   }
   try {
     const filter = { instituteId, academicYearId, gradeId };
     let arrayField = memberType === 'student' ? 'enrolledStudents' : 'enrolledStaff';
     const enrollmentDoc = await GradeEnrollment.findOne(filter);
-    const members = await MembersData.find({ _id: { $in: ids } }, { _id: 1, memberId: 1, fullName: 1, gradeId: 1 });
+    // Find members by memberId
+    const members = await MembersData.find({ memberId: { $in: ids } }, { _id: 1, memberId: 1, fullName: 1, gradeId: 1 });
     const memberMap = new Map();
-    members.forEach(m => memberMap.set(m._id.toString(), m));
-    let response = ids.map(id => {
-      const m = memberMap.get(id.toString());
-      let enrolled = false;
-      if (enrollmentDoc && Array.isArray(enrollmentDoc[arrayField])) {
-        enrolled = enrollmentDoc[arrayField].map(x => x.toString()).includes(id.toString());
+    members.forEach(m => memberMap.set(m.memberId, m));
+    let response = ids.map(memberId => {
+      const member = memberMap.get(memberId);
+      if (!member) {
+        return { memberId, Description: 'Member Not Found' };
       }
-      return {
-        memberId: id,
-        found: !!m,
-        enrolled,
-        description: m ? m.fullName : 'Not found'
-      };
+      // Check if enrolled under current grade
+      let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) &&
+        enrollmentDoc[arrayField].map(x => x.toString()).includes(member._id.toString());
+      if (enrolled) {
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: 'Already enrolled' };
+      }
+      // Check if member is enrolled under any grade
+      if (Array.isArray(member.gradeId)) {
+        if (member.gradeId.map(x => x.toString()).includes(gradeId)) {
+          return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: 'Already enrolled' };
+        } else if (member.gradeId.length > 0) {
+          return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: `Not Enrolled Under Current Grade` };
+        }
+      } else if (member.gradeId && member.gradeId.toString() === gradeId) {
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: 'Already enrolled' };
+      } else if (member.gradeId) {
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: `Not Enrolled Under Current Grade` };
+      }
+      // Valid for enrollment
+      return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: 'valid' };
     });
     res.status(200).json({ results: response });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+// ...existing code...
 exports.updateGradeEnrollment = async (req, res) => {
   const GradeEnrollment = createGradeEnrollmentModel(req.collegeDB);
   const { instituteId, academicYearId, gradeId, memberType } = req.query;

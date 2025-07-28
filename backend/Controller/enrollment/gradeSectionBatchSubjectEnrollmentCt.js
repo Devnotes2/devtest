@@ -162,32 +162,45 @@ exports.validateGradeSectionBatchSubjectEnrollment = async (req, res) => {
   const GradeSectionBatchSubjectEnrollment = createGradeSectionBatchSubjectEnrollmentModel(req.collegeDB);
   const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
   const { instituteId, academicYearId, gradeId, gradeSectionId, gradeSectionBatchId, gradeSubjectId, memberType } = req.query;
-  const { ids } = req.body;
+  const { ids } = req.body; // ids = array of memberId (not _id)
   if (!ids || !Array.isArray(ids)) {
-    return res.status(400).json({ message: 'Array of member IDs required in body as "ids"' });
+    return res.status(400).json({ error: 'Array of memberIds required in body as "ids"' });
   }
   if (!memberType || (memberType !== 'student' && memberType !== 'staff')) {
-    return res.status(400).json({ message: 'memberType must be "student" or "staff"' });
+    return res.status(400).json({ error: 'memberType must be "student" or "staff"' });
   }
   try {
     const filter = { instituteId, academicYearId, gradeId, gradeSectionId, gradeSectionBatchId, gradeSubjectId };
     let arrayField = memberType === 'student' ? 'enrolledStudents' : 'enrolledStaff';
     const enrollmentDoc = await GradeSectionBatchSubjectEnrollment.findOne(filter);
+    // Find members by memberId
     const members = await MembersData.find({ memberId: { $in: ids } }, { _id: 1, memberId: 1, fullName: 1, gradeSectionBatchSubjectId: 1 });
     const memberMap = new Map();
-    members.forEach(m => memberMap.set(m._id.toString(), m));
-    let response = ids.map(id => {
-      const m = memberMap.get(id.toString());
-      let enrolled = false;
-      if (enrollmentDoc && Array.isArray(enrollmentDoc[arrayField])) {
-        enrolled = enrollmentDoc[arrayField].map(x => x.toString()).includes(id.toString());
+    members.forEach(m => memberMap.set(m.memberId, m));
+    let response = ids.map(memberId => {
+      const member = memberMap.get(memberId);
+      if (!member) {
+        return { memberId, Description: 'Member Not Found' };
       }
-      return {
-        memberId: id,
-        found: !!m,
-        enrolled,
-        description: m ? m.fullName : 'Not found'
-      };
+      // Check if enrolled under current gradeSectionBatchSubject
+      let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) && enrollmentDoc[arrayField].map(x => x.toString()).includes(member._id.toString());
+      if (enrolled) {
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: 'Already enrolled' };
+      }
+      // Check if member is enrolled under any gradeSectionBatchSubject
+      if (Array.isArray(member.gradeSectionBatchSubjectId)) {
+        if (member.gradeSectionBatchSubjectId.map(x => x.toString()).includes(gradeSectionBatchSubjectId)) {
+          return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: 'Already enrolled' };
+        } else if (member.gradeSectionBatchSubjectId.length > 0) {
+          return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: `Not Enrolled Under Current GradeSectionBatchSubject` };
+        }
+      } else if (member.gradeSectionBatchSubjectId && member.gradeSectionBatchSubjectId.toString() === gradeSectionBatchSubjectId) {
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: 'Already enrolled' };
+      } else if (member.gradeSectionBatchSubjectId) {
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: `Not Enrolled Under Current GradeSectionBatchSubject` };
+      }
+      // Valid for enrollment
+      return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: 'valid' };
     });
     res.status(200).json({ results: response });
   } catch (error) {

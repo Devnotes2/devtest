@@ -158,31 +158,29 @@ exports.validateGradeSectionSubjectEnrollment = async (req, res) => {
   const GradeSectionSubjectEnrollment = createGradeSectionSubjectEnrollmentModel(req.collegeDB);
   const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
   const { instituteId, academicYearId, gradeId, gradeSectionId, gradeSubjectId, memberType } = req.query;
-  const { ids } = req.body;
+  const { ids } = req.body; // ids = array of memberId (not _id)
   if (!ids || !Array.isArray(ids)) {
-    return res.status(400).json({ message: 'Array of member IDs required in body as "ids"' });
+    return res.status(400).json({ error: 'Array of memberIds required in body as "ids"' });
   }
   if (!memberType || (memberType !== 'student' && memberType !== 'staff')) {
-    return res.status(400).json({ message: 'memberType must be "student" or "staff"' });
+    return res.status(400).json({ error: 'memberType must be "student" or "staff"' });
   }
   try {
-    // Find the enrollment document
     const filter = { instituteId, academicYearId, gradeId, gradeSectionId, gradeSubjectId };
     let arrayField = memberType === 'student' ? 'enrolledStudents' : 'enrolledStaff';
     const enrollmentDoc = await GradeSectionSubjectEnrollment.findOne(filter);
-    // Fetch all members
+    // Find members by memberId
     const members = await MembersData.find({ memberId: { $in: ids } }, { _id: 1, memberId: 1, fullName: 1, gradeSectionSubjectId: 1 });
-    // Build a map for quick lookup
     const memberMap = new Map();
-    members.forEach(m => memberMap.set(m._id.toString(), m));
-    // Prepare response
-    let response = ids.map(id => {
-      let member = memberMap.get(id.toString());
+    members.forEach(m => memberMap.set(m.memberId, m));
+    let response = ids.map(memberId => {
+      const member = memberMap.get(memberId);
       if (!member) {
-        return { _id: id, Description: 'Member Not Found' };
+        return { memberId, Description: 'Member Not Found' };
       }
       // Check if enrolled under current gradeSectionSubject
-      let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) && enrollmentDoc[arrayField].map(x => x.toString()).includes(id.toString());
+      let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) &&
+        enrollmentDoc[arrayField].map(x => x.toString()).includes(member._id.toString());
       if (enrolled) {
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, Description: 'Already enrolled' };
       }
