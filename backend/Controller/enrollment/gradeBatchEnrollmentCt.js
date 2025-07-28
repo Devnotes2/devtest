@@ -20,7 +20,7 @@ exports.validateGradeBatchEnrollment = async (req, res) => {
     let arrayField = memberType === 'student' ? 'enrolledStudents' : 'enrolledStaff';
     const enrollmentDoc = await GradeBatchEnrollment.findOne(filter);
     // Fetch all members
-    const members = await MembersData.find({ _id: { $in: ids } }, { _id: 1, memberId: 1, fullName: 1, gradeBatchId: 1 });
+    const members = await MembersData.find({ memberId: { $in: ids } }, { _id: 1, memberId: 1, fullName: 1, gradeBatchId: 1 });
     // Build a map for quick lookup
     const memberMap = new Map();
     members.forEach(m => memberMap.set(m._id.toString(), m));
