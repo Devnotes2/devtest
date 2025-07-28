@@ -24,6 +24,7 @@ exports.getAcademicYears = async (req, res) => {
     if (dropdown === 'true') {
       let academicYears = await handleCRUD(AcademicYear, 'find', {});
       academicYears = academicYears.map(ay => ({
+        _id: ay._id,
         academicYear: formatAcademicYear(ay.startDate, ay.endDate)
       }));
 
@@ -45,6 +46,7 @@ exports.getAcademicYears = async (req, res) => {
       let academicYears = await handleCRUD(AcademicYear, 'find', {});
 
       academicYears = academicYears.map(ay => ({
+        _id: ay._id,
         startDate:ay.startDate,
         endDate:ay.endDate,
         academicYear: formatAcademicYear(ay.startDate, ay.endDate)
