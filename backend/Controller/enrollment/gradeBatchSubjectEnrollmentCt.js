@@ -105,6 +105,9 @@ exports.updateGradeBatchSubjectEnrollment = async (req, res) => {
   if (!instituteId || !academicYearId || !gradeId || !gradeBatchId || !gradeSubjectId || !memberType || !Array.isArray(updatedData)) {
     return res.status(400).json({ message: 'Missing required query or body parameters.' });
   }
+  if (updatedData.length > 100) {
+    return res.status(400).json({ message: 'Maximum 100 memberIds allowed per request.' });
+  }
 
   // Build query for unique document
   const filter = { instituteId, academicYearId, gradeId, gradeBatchId, gradeSubjectId };
@@ -114,11 +117,15 @@ exports.updateGradeBatchSubjectEnrollment = async (req, res) => {
   } else if (memberType === 'staff') {
     arrayField = 'enrolledStaff';
   }
+  const session = await GradeBatchSubjectEnrollment.db.startSession();
+  session.startTransaction();
   try {
     // Check for duplicate documents with same filter
-    const duplicates = await GradeBatchSubjectEnrollment.find(filter);
+    const duplicates = await GradeBatchSubjectEnrollment.find(filter).session(session);
     if (duplicates.length > 1) {
-      return res.status(409).json({ message: 'Duplicate enrollment documents found for this combination. Please resolve duplicates.' });
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: 'Duplicate enrollment documents found for this combination. Please resolve duplicates.' });
     }
     let doc = duplicates[0];
     let newIds = updatedData.map(id => id.toString());
@@ -129,32 +136,46 @@ exports.updateGradeBatchSubjectEnrollment = async (req, res) => {
       idsToAdd = newIds.filter(id => !existingIds.includes(id));
     }
     if (idsToAdd.length === 0) {
+      await session.commitTransaction();
+      session.endSession();
       return res.status(200).json({ message: 'No updates were made (all memberIds already present)' });
     }
     const update = { $addToSet: { [arrayField]: { $each: idsToAdd } } };
-    // Upsert and get the upserted document's _id
-    const result = await GradeBatchSubjectEnrollment.updateOne(filter, update, { upsert: true });
+    await GradeBatchSubjectEnrollment.updateOne(filter, update, { upsert: true, session });
+
     // Find the upserted document (either existing or newly created)
-    const upsertedDoc = await GradeBatchSubjectEnrollment.findOne(filter);
+    const upsertedDoc = await GradeBatchSubjectEnrollment.findOne(filter).session(session);
     const gradeBatchSubjectId = upsertedDoc ? upsertedDoc._id : null;
 
     // Update gradeBatchSubjectId array for each member
     const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
     let updateResults = [];
+    let memberUpdateError = false;
     for (const memberId of idsToAdd) {
       try {
         await MembersData.updateOne(
           { _id: memberId },
-          { $addToSet: { gradeBatchSubjectId: gradeBatchSubjectId } }
+          { $addToSet: { gradeBatchSubjectId: gradeBatchSubjectId } },
+          { session }
         );
         updateResults.push({ memberId, updated: true });
       } catch (err) {
         updateResults.push({ memberId, updated: false, error: err.message });
+        memberUpdateError = true;
       }
     }
+    if (memberUpdateError) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(500).json({ message: 'Rollback: Error updating member data', memberUpdates: updateResults });
+    }
+    await session.commitTransaction();
+    session.endSession();
     res.status(200).json({ message: 'Enrollment updated successfully', added: idsToAdd, memberUpdates: updateResults, gradeBatchSubjectId });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).json({ message: 'Rollback: Server error', error: error.message });
   }
 };
 
@@ -191,6 +212,9 @@ exports.validateGradeBatchSubjectEnrollment = async (req, res) => {
   const { ids } = req.body; // ids = array of memberId (not _id)
   if (!ids || !Array.isArray(ids)) {
     return res.status(400).json({ error: 'Array of memberIds required in body as "ids"' });
+  }
+  if (ids.length > 100) {
+    return res.status(400).json({ error: 'Maximum 100 memberIds allowed per request.' });
   }
   if (!memberType || (memberType !== 'student' && memberType !== 'staff')) {
     return res.status(400).json({ error: 'memberType must be "student" or "staff"' });

@@ -154,6 +154,9 @@ exports.validateGradeSectionBatchEnrollment = async (req, res) => {
   if (!ids || !Array.isArray(ids)) {
     return res.status(400).json({ error: 'Array of memberIds required in body as "ids"' });
   }
+  if (ids.length > 100) {
+    return res.status(400).json({ error: 'Maximum 100 memberIds allowed per request.' });
+  }
   if (!memberType || (memberType !== 'student' && memberType !== 'staff')) {
     return res.status(400).json({ error: 'memberType must be "student" or "staff"' });
   }
