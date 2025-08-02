@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app",
-    "dev": "node --watch app",
-    "sync-auth": "node config/refreshAuthDb.js"
+    "dev": "node --watch app"
   },
   "author": "",
   "license": "ISC",

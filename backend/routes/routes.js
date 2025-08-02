@@ -3,9 +3,15 @@ const authMiddleware = require('../Utilities/authUtils');
 
 const router = express.Router();
 
+
 // authentication 
-router.use('/regLoginRt', require('./authentication/regLoginRt'));
 router.use('/authRt', require('./authentication/authRt'));
+
+// Tenant Map Management
+router.use('/tenantRt', require('./authentication/tenantRt'));
+
+//  metaData
+router.use('/generalDataRt', require('./generalData/generalDataRt'));
 router.use('/asideDataRt', require('./asideData/asideDataRt'));
 
 // instituteData
@@ -21,11 +27,8 @@ router.use('/instituteAggreRt', require('./instituteData/aggregation/gradeBatche
 router.use('/instituteAggreRt', require('./instituteData/aggregation/gradeSectionBatchesRt'));
 router.use('/instituteAggreRt', require('./instituteData/aggregation/subjectsRt'));
 
-//  metaData
-router.use('/generalDataRt', require('./generalData/generalDataRt'));
-
 // member Module
-router.use('/membersDataRt', require('./membersModule/memberDataRt'));
+router.use('/membersDataRt' ,require('./membersModule/memberDataRt'));
 
 // member enrollment
 router.use('/memberEnrollmentRt/gradeEnrollment', require('./enrollment/gradeEnrollmentRt'));

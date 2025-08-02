@@ -4,6 +4,7 @@ const { Schema } = mongoose;
 // Define the schema for the instituteData collection
 const instituteSchema = new Schema({
   instituteName: { type: String, required: true },
+  instituteCode: { type: String, required: true },
   address: { type: String, required: true },
   city: { type: String, required: true },
   district: { type: String,required:true },

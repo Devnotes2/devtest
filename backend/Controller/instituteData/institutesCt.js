@@ -1,5 +1,4 @@
 const createInstitutesModel = require('../../Model/instituteData/institutesMd');
-const { handleCRUD } = require('../../Utilities/crudUtils');
 const { ObjectId } = require('mongoose').Types;
 const createDepartmentDataModel = require('../../Model/instituteData/departmentMd');
 const createGradesInInstituteModel = require('../../Model/instituteData/aggregation/gradesMd');
@@ -9,6 +8,7 @@ const createGradeBatchesInInstituteModel = require('../../Model/instituteData/ag
 const createGradeSectionsInInstituteModel = require('../../Model/instituteData/aggregation/gradesectionsMd');
 const createGradeSectionBatchesInInstituteModel = require('../../Model/instituteData/aggregation/gradeSectionBatchesMd');
 const createMemberDataModel = require('../../Model/membersModule/memberDataMd');
+const { handleCRUD } = require('../../Utilities/crudUtils');
 
 
 // --- INSTITUTE DEPENDENTS CONFIG ---
@@ -63,12 +63,55 @@ exports.insertInstitute = async (req, res) => {
   const Institute = createInstitutesModel(req.collegeDB);
   const { newInst } = req.body;
 
-  if (!newInst || typeof newInst !== 'object') {
-    return res.status(400).json({ message: 'Invalid institute data' });
+  if (!newInst || typeof newInst !== 'object' || !newInst.instituteName) {
+    return res.status(400).json({ message: 'Invalid institute data: instituteName is required.' });
   }
 
   try {
-    const newDoc = await handleCRUD(Institute, 'create', {}, newInst);
+    // Generate instituteCode
+    const { instituteName } = newInst;
+    const words = instituteName.trim().split(/\s+/).filter(Boolean);
+
+    if (words.length === 0) {
+      return res.status(400).json({ message: 'Invalid institute name.' });
+    }
+
+    let baseCode = (
+      words.length > 1
+        ? (words[0][0] || '') + (words[1][0] || '')
+        : (words[0] || '').slice(0, 2)
+    ).toUpperCase();
+
+    if (baseCode.length < 2) {
+      baseCode = (baseCode + 'XX').slice(0, 2);
+    }
+
+    let counter = 1;
+    let instituteCode;
+    let isUnique = false;
+
+    while (!isUnique) {
+      const numberPart = String(counter).padStart(3, '0');
+      instituteCode = `${baseCode}${numberPart}`;
+
+      // The request mentioned checking 'authmembr', but that collection is for user authentication
+      // and does not contain institute codes. The logical place to ensure an institute code is unique
+      // is within the collection of institutes for the current tenant.
+      const existingInTenant = await Institute.findOne({ instituteCode });
+
+      if (!existingInTenant) {
+        isUnique = true;
+      } else {
+        counter++;
+      }
+    }
+
+    const instituteToCreate = {
+      ...newInst,
+      instituteCode,
+    };
+
+    const newDoc = await handleCRUD(Institute, 'create', {}, instituteToCreate);
     res.status(200).json({ message: 'Institute added successfully', newDoc });
   } catch (error) {
     console.error('Error creating institute:', error);
@@ -136,7 +179,6 @@ exports.deleteInstitutes = async (req, res) => {
   if (archive !== undefined) {
     try {
       const archiveResult = await archiveParents(req.collegeDB, ids, 'instituteData', Boolean(archive));
-      // Check if any documents were actually updated
       if (!archiveResult || !archiveResult.archivedCount) {
         return res.status(404).json({ message: 'No matching institutes found to archive/unarchive' });
       }
