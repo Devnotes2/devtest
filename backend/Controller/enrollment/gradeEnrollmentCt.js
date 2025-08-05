@@ -136,11 +136,8 @@ exports.validateGradeEnrollment = async (req, res) => {
       // Valid for enrollment
       return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'valid' };
     });
-        if(invalidCounter !== 1){
-          res.status(201).json({ results: response });
-          return;
-    }
-    res.status(200).json({ results: response });
+    invalidCounter=invalidCounter-1;
+    res.status(200).json({ results: response , total: ids.length , valid: ids.length - invalidCounter, invalid: invalidCounter});
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
