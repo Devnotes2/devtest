@@ -254,6 +254,9 @@ exports.validateGradeBatchSubjectEnrollment = async (req, res) => {
       // Valid for enrollment
       return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'valid' };
     });
+        if(invalidCounter !== 1){
+          res.status(201).json({ results: response });
+    }
     res.status(200).json({ results: response });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

@@ -26,10 +26,10 @@ exports.validateGradeBatchEnrollment = async (req, res) => {
     const memberMap = new Map();
     members.forEach(m => memberMap.set(m.memberId, m));
         let invalidCounter = 1;
-
     let response = ids.map(memberId => {
       const member = memberMap.get(memberId);
       if (!member) {
+
         return { _id: `invalid${invalidCounter++}`, memberId, description: 'Member Not Found' };
       }
       // Check if enrolled under current gradeBatch
@@ -52,6 +52,9 @@ exports.validateGradeBatchEnrollment = async (req, res) => {
       // Valid for enrollment
       return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'valid' };
     });
+    if(invalidCounter !== 1){
+          res.status(201).json({ results: response });
+    }
     res.status(200).json({ results: response });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
