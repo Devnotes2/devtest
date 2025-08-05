@@ -203,28 +203,28 @@ exports.validateGradeSectionSubjectEnrollment = async (req, res) => {
       const member = memberMap.get(memberId);
       if (!member) {
         // If member not found, assign a unique invalid key and null _id
-        return { _id: `invalid${invalidCounter++}`, memberId, description: 'Member Not Found' };
+        return { _id: `invalid${invalidCounter++}`, memberId, description: 'Member Not Found' ,isValid:false};
       }
       // Check if enrolled under current gradeSectionSubject
       let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) &&
         enrollmentDoc[arrayField].map(x => x.toString()).includes(member._id.toString());
       if (enrolled) {
-        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' };
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
       }
       // Check if member is enrolled under any gradeSectionSubject
       if (Array.isArray(member.gradeSectionSubjectId)) {
         if (member.gradeSectionSubjectId.map(x => x.toString()).includes(gradeSectionSubjectId)) {
-          return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' };
+          return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
         } else if (member.gradeSectionSubjectId.length > 0) {
-          return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `Not Enrolled Under Current GradeSectionSubject` };
+          return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `valid` ,isValid:true};
         }
       } else if (member.gradeSectionSubjectId && member.gradeSectionSubjectId.toString() === gradeSectionSubjectId) {
-        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' };
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
       } else if (member.gradeSectionSubjectId) {
-        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `Not Enrolled Under Current GradeSectionSubject` };
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `valid`,isValid:true };
       }
       // Valid for enrollment
-      return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'valid' };
+      return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'valid' ,isValid:true};
     });
     invalidCounter=invalidCounter-1;
     res.status(200).json({ results: response , total: ids.length , valid: ids.length - invalidCounter, invalid: invalidCounter});
