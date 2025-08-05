@@ -216,6 +216,7 @@ exports.validateGradeSectionEnrollment = async (req, res) => {
     });
         if(invalidCounter !== 1){
           res.status(201).json({ results: response });
+          return;
     }
     res.status(200).json({ results: response });
   } catch (error) {
