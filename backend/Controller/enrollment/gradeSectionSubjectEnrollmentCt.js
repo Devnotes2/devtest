@@ -235,6 +235,7 @@ exports.validateGradeSectionSubjectEnrollment = async (req, res) => {
 
 exports.deleteGradeSectionSubjectEnrollment = async (req, res) => {
   const GradeSectionSubjectEnrollment = createGradeSectionSubjectEnrollmentModel(req.collegeDB);
+  const MembersData = require('../../Model/membersModule/memberDataMd')(req.collegeDB);
   const { ids } = req.body;
   const { instituteId, academicYearId, gradeId, gradeSectionId, gradeSubjectId, memberType } = req.query;
 
@@ -251,8 +252,13 @@ exports.deleteGradeSectionSubjectEnrollment = async (req, res) => {
     // Remove member IDs from the array
     const update = { $pull: { [arrayField]: { $in: ids } } };
     const result = await GradeSectionSubjectEnrollment.updateOne(filter, update);
+    // Unset gradeSectionSubjectId for these members
+    await MembersData.updateMany(
+      { _id: { $in: ids } },
+      { $unset: { gradeSectionSubjectId: "" } }
+    );
     if (result.modifiedCount > 0) {
-      res.status(200).json({ message: `Member(s) removed from ${arrayField} array`, removed: ids });
+      res.status(200).json({ message: `Member(s) removed from ${arrayField} array and gradeSectionSubjectId unset`, removed: ids });
     } else {
       res.status(404).json({ message: 'No matching enrollment found or no members removed' });
     }
