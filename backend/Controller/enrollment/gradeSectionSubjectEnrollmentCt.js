@@ -205,6 +205,10 @@ exports.validateGradeSectionSubjectEnrollment = async (req, res) => {
         // If member not found, assign a unique invalid key and null _id
         return { _id: `invalid${invalidCounter++}`, memberId, description: 'Member Not Found' ,isValid:false};
       }
+      if (member.expiryDate && new Date(member.expiryDate) < new Date()) {
+              invalidCounter++;
+        return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Validity expired', isValid: false };
+      }
       // Check if enrolled under current gradeSectionSubject
       let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) &&
         enrollmentDoc[arrayField].map(x => x.toString()).includes(member._id.toString());
