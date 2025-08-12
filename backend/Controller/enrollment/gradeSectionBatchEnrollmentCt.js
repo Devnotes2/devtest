@@ -178,16 +178,19 @@ exports.validateGradeSectionBatchEnrollment = async (req, res) => {
       // Check if enrolled under current gradeSectionBatch
       let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) && enrollmentDoc[arrayField].map(x => x.toString()).includes(member._id.toString());
       if (enrolled) {
+        invalidCounter++;
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
       }
       // Check if member is enrolled under any gradeSectionBatch
       if (Array.isArray(member.gradeSectionBatchId)) {
         if (member.gradeSectionBatchId.map(x => x.toString()).includes(gradeSectionBatchId)) {
+          invalidCounter++;
           return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
         } else if (member.gradeSectionBatchId.length > 0) {
           return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `valid` , isValid:true};
         }
       } else if (member.gradeSectionBatchId && member.gradeSectionBatchId.toString() === gradeSectionBatchId) {
+        invalidCounter++;
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
       } else if (member.gradeSectionBatchId) {
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `valid` , isValid:true};

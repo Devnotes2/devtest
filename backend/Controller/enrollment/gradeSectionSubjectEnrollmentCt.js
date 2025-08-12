@@ -209,16 +209,19 @@ exports.validateGradeSectionSubjectEnrollment = async (req, res) => {
       let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) &&
         enrollmentDoc[arrayField].map(x => x.toString()).includes(member._id.toString());
       if (enrolled) {
+        invalidCounter++;
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
       }
       // Check if member is enrolled under any gradeSectionSubject
       if (Array.isArray(member.gradeSectionSubjectId)) {
         if (member.gradeSectionSubjectId.map(x => x.toString()).includes(gradeSectionSubjectId)) {
+          invalidCounter++;
           return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
         } else if (member.gradeSectionSubjectId.length > 0) {
           return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `valid` ,isValid:true};
         }
       } else if (member.gradeSectionSubjectId && member.gradeSectionSubjectId.toString() === gradeSectionSubjectId) {
+        invalidCounter++;
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
       } else if (member.gradeSectionSubjectId) {
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `valid`,isValid:true };

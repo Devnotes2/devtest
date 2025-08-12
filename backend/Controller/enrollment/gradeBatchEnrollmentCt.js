@@ -35,16 +35,19 @@ exports.validateGradeBatchEnrollment = async (req, res) => {
       // Check if enrolled under current gradeBatch
       let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) && enrollmentDoc[arrayField].map(x => x.toString()).includes(member._id.toString());
       if (enrolled) {
+        invalidCounter++;
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
       }
       // Check if member is enrolled under any gradeBatch
       if (Array.isArray(member.gradeBatchId)) {
         if (member.gradeBatchId.map(x => x.toString()).includes(gradeBatchId)) {
+          invalidCounter++;
           return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
         } else if (member.gradeBatchId.length > 0) {
           return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `valid` , isValid:true};
         }
       } else if (member.gradeBatchId && member.gradeBatchId.toString() === gradeBatchId) {
+        invalidCounter++;
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled'  , isValid:false};
       } else if (member.gradeBatchId) {
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'valid'  , isValid:true};

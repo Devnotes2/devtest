@@ -119,16 +119,19 @@ exports.validateGradeEnrollment = async (req, res) => {
       let enrolled = enrollmentDoc && Array.isArray(enrollmentDoc[arrayField]) &&
         enrollmentDoc[arrayField].map(x => x.toString()).includes(member._id.toString());
       if (enrolled) {
+        invalidCounter++;
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
       }
       // Check if member is enrolled under any grade
       if (Array.isArray(member.gradeId)) {
         if (member.gradeId.map(x => x.toString()).includes(gradeId)) {
+          invalidCounter++;
           return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
         } else if (member.gradeId.length > 0) {
           return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `valid` ,isValid:true};
         }
       } else if (member.gradeId && member.gradeId.toString() === gradeId) {
+        invalidCounter++;
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: 'Already enrolled' ,isValid:false};
       } else if (member.gradeId) {
         return { _id: member._id, memberId: member.memberId, fullName: member.fullName, description: `valid` ,isValid:true};
