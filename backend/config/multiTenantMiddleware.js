@@ -1,5 +1,6 @@
 const { connectCollegeDB } = require('./db');
 const Tenant = require('../Model/authentication/tenantMd');
+const jwt = require('jsonwebtoken');
 
 // Simple in-memory cache for tenant data to reduce DB lookups.
 const tenantCache = new Map();
@@ -10,6 +11,7 @@ const multiTenantMiddleware = async (req, res, next) => {
   const host = req.get('host');
   const { instituteCode } = req.body || {};
   const isLoginRequest = req.path === '/authRt/login' || (req.originalUrl && req.originalUrl.includes('/authRt/login'));
+  
   try {
     let tenant;
     let cacheKey;
@@ -17,7 +19,6 @@ const multiTenantMiddleware = async (req, res, next) => {
     // For login requests, if an instituteCode is provided, use it to find the tenant.
     // This handles mobile-style logins.
     if (isLoginRequest && instituteCode) {
-
       cacheKey = `code:${instituteCode.toUpperCase()}`;
 
       if (tenantCache.has(cacheKey)) {
@@ -37,11 +38,33 @@ const multiTenantMiddleware = async (req, res, next) => {
       req.instituteCode = tenant.instituteCode; // Attach instituteCode to the request
 
     } else {
-      // --- Web/Subdomain-based Flow ---
-      const tenantIdentifier = host ? host.split('.')[0] : req.headers['x-college-name'];
+      // --- Check for JWT token first (for authenticated requests) ---
+      let tokenInstituteCode = null;
+      
+      // Try to get token from Authorization header or cookies
+      let token = null;
+      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        token = req.headers.authorization.substring(7);
+      } else if (req.cookies && req.cookies.authToken) {
+        token = req.cookies.authToken;
+      }
+      
+      // If we have a token, try to extract instituteCode from it
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          tokenInstituteCode = decoded.dbName;
+          console.log('Extracted instituteCode from token:', tokenInstituteCode);
+        } catch (jwtError) {
+          console.log('JWT verification failed, falling back to host-based logic');
+        }
+      }
+      
+      // --- Web/Subdomain-based Flow (fallback) ---
+      const tenantIdentifier = tokenInstituteCode || (host ? host.split('.')[0] : req.headers['x-college-name']);
 
       if (!tenantIdentifier) {
-        return res.status(400).send('Could not determine tenant. Missing host or x-college-name header.');
+        return res.status(400).send('Could not determine tenant. Missing host, x-college-name header, or valid JWT token.');
       }
 
       cacheKey = `db:${tenantIdentifier}`;
@@ -62,6 +85,7 @@ const multiTenantMiddleware = async (req, res, next) => {
       clusterURI = tenant.clusterURI;
       req.instituteCode = tenant.instituteCode; // Attach instituteCode to the request
     }
+    
     // Establish or reuse a connection to the college's specific database
     req.collegeDB = await connectCollegeDB(collegeName, clusterURI);
     next(); // Continue to the next middleware or route handler

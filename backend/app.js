@@ -20,7 +20,10 @@ const allowedOrigins = [
   'http://10.0.2.2:8081',   // Android emulator
   'http://127.0.0.1:19000', // iOS simulator
   'http://127.0.0.1:8081',  // iOS simulator
-  'http://192.168.1.7:8081'
+  'http://192.168.1.7:8081',
+  'exp://192.168.1.7:8081',
+  'http://192.168.1.3:8081',
+  'exp://192.168.1.3:8081'
 ];
 if (process.env.NODE_ENV === 'production') {
   // app.use(helmet()); // Security headers
@@ -52,6 +55,9 @@ app.use(cors({
 app.use(express.json());
 app.use(multiTenantMiddleware);
 app.use(cookieParser());
+
+// Serve static files from uploads folder (for existing profile pictures)
+
 app.use('/', route);
 const port = process.env.PORT || 8000;
 app.listen(port,'0.0.0.0', () => {
