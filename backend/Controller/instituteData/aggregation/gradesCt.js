@@ -30,8 +30,8 @@ exports.gradesInInstituteAg = async (req, res) => {
     const { ids, aggregate ,dropdown} = req.query;
     // Dropdown mode: return only _id and subject, with sorting and filtering
     if (dropdown === 'true') {
-      let findQuery = GradesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeDescription: 1 });
-      findQuery = findQuery.sort({gradeDescription:1});
+      let findQuery = GradesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeName: 1 });
+      findQuery = findQuery.sort({gradeName:1});
       const data = await findQuery;
       return res.status(200).json({ data });
     }
@@ -92,9 +92,10 @@ exports.gradesInInstituteAg = async (req, res) => {
         {
           $project: {
             gradeCode: 1,
-            gradeDescription: 1,
+            gradeName: 1,           // Changed from gradeDescription
+            description: 1,          // Added this field
             instituteName: '$instituteDetails.instituteName',
-            departmentName:'$departmentDetails.departmentName',
+            departmentName: '$departmentDetails.departmentName',
             instituteId: '$instituteDetails._id',
             gradeDuration: '$gradeDurationDetails.gradeDurationValue',
             isElective: '$isElectiveDetails.isElectiveValue'
@@ -156,9 +157,10 @@ exports.gradesInInstituteAg = async (req, res) => {
       {
         $project: {
           gradeCode: 1,
-          gradeDescription: 1,
+          gradeName: 1,           // Changed from gradeDescription
+          description: 1,          // Added this field
           instituteName: '$instituteDetails.instituteName',
-          departmentName:'$departmentDetails.departmentName',
+          departmentName: '$departmentDetails.departmentName',
           instituteId: '$instituteDetails._id',
           gradeDuration: '$gradeDurationDetails.gradeDurationValue',
           isElective: '$isElectiveDetails.isElectiveValue'
@@ -181,7 +183,8 @@ exports.createGradesInInstitute = async (req, res) => {
       instituteId,
       gradeCode,
       departmentId,
-      gradeDescription,
+      gradeName,        // Changed from gradeDescription
+      description,      // Added this field
       gradeDuration,
       isElective
     });
@@ -282,11 +285,11 @@ exports.deleteGradesInInstitute = async (req, res) => {
     // Fetch original Grade docs to get the value field (e.g., gradeCode or gradeDescription)
     const originalDocs = await Grade.find(
       { _id: { $in: ids.map(id => new ObjectId(id)) } },
-      { gradeCode: 1, gradeDescription: 1 }
+      { gradeCode: 1, gradeName: 1 }  // Changed from gradeDescription
     );
     const docMap = {};
     originalDocs.forEach(doc => {
-      docMap[doc._id.toString()] = doc.gradeDescription;
+      docMap[doc._id.toString()] = doc.gradeName;  // Changed from gradeDescription
     });
 
     // Partition IDs into zero and non-zero dependents
