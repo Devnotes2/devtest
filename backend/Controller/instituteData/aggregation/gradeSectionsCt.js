@@ -3,7 +3,7 @@ const { ObjectId } = mongoose.Types;
 const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradesectionsMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
 const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
-const createMemberDataModel = require('../../../Model/membersModule/memberDataMd');
+const { createMemberDataModel } = require('../../../Model/membersModule/memberDataMd');
 
 // --- Grade Section DEPENDENTS CONFIG ---
 const gradeSectionDependents = [

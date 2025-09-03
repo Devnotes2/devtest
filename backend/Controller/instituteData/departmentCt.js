@@ -9,7 +9,7 @@ const addPaginationAndSort = require('../../Utilities/paginationControllsUtils')
 const { instituteLookup } = require('../../Utilities/aggregations/instituteDataLookups');
 const createGradesInInstituteModel = require('../../Model/instituteData/aggregation/gradesMd');
 const createSubjectsInInstituteModel = require('../../Model/instituteData/aggregation/subjectsMd');
-const createMemberDataModel = require('../../Model/membersModule/memberDataMd');
+const { createMemberDataModel } = require('../../Model/membersModule/memberDataMd');
 
 // --- INSTITUTE DEPENDENTS CONFIG ---
 const departmentDependents = [

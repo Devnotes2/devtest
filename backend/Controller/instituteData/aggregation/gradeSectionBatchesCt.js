@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
-const createMemberDataModel = require('../../../Model/membersModule/memberDataMd');
+const { createMemberDataModel } = require('../../../Model/membersModule/memberDataMd');
 
 // --- Grade Section Batch DEPENDENTS CONFIG ---
 const gradeSectionBatchDependents = [

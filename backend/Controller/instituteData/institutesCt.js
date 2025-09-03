@@ -7,7 +7,7 @@ const createLocationTypesInInstituteModel = require('../../Model/instituteData/a
 const createGradeBatchesInInstituteModel = require('../../Model/instituteData/aggregation/gradeBatchesMd');
 const createGradeSectionsInInstituteModel = require('../../Model/instituteData/aggregation/gradesectionsMd');
 const createGradeSectionBatchesInInstituteModel = require('../../Model/instituteData/aggregation/gradeSectionBatchesMd');
-const createMemberDataModel = require('../../Model/membersModule/memberDataMd');
+const { createMemberDataModel } = require('../../Model/membersModule/memberDataMd');
 const { handleCRUD } = require('../../Utilities/crudUtils');
 
 
