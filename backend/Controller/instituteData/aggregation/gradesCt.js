@@ -75,19 +75,7 @@ exports.gradesInInstituteAg = async (req, res) => {
           }
         },
 { $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'generalData',
-            let: { electiveFlag: '$isElective' },
-            pipeline: [
-              { $match: { _id: 'booleanChoices' } },
-              { $unwind: '$data' },
-              { $match: { $expr: { $eq: ['$data._id', '$$electiveFlag'] } } },
-              { $project: { isElectiveValue: '$data.value' } }
-            ],
-            as: 'isElectiveDetails'
-          }
-        },
+
 { $unwind: { path: '$isElectiveDetails', preserveNullAndEmptyArrays: true } },
         {
           $project: {
@@ -98,7 +86,6 @@ exports.gradesInInstituteAg = async (req, res) => {
             departmentName: '$departmentDetails.departmentName',
             instituteId: '$instituteDetails._id',
             gradeDuration: '$gradeDurationDetails.gradeDurationValue',
-            isElective: '$isElectiveDetails.isElectiveValue'
           }
         },
         { $sort: sortObj }
@@ -141,20 +128,6 @@ exports.gradesInInstituteAg = async (req, res) => {
       },
 { $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
       {
-        $lookup: {
-          from: 'generalData',
-          let: { electiveFlag: '$isElective' },
-          pipeline: [
-            { $match: { _id: 'booleanChoices' } },
-            { $unwind: '$data' },
-            { $match: { $expr: { $eq: ['$data._id', '$$electiveFlag'] } } },
-            { $project: { isElectiveValue: '$data.value' } }
-          ],
-          as: 'isElectiveDetails'
-        }
-      },
-{ $unwind: { path: '$isElectiveDetails', preserveNullAndEmptyArrays: true } },
-      {
         $project: {
           gradeCode: 1,
           gradeName: 1,           // Changed from gradeDescription
@@ -163,7 +136,6 @@ exports.gradesInInstituteAg = async (req, res) => {
           departmentName: '$departmentDetails.departmentName',
           instituteId: '$instituteDetails._id',
           gradeDuration: '$gradeDurationDetails.gradeDurationValue',
-          isElective: '$isElectiveDetails.isElectiveValue'
         }
       },
       { $sort: sortObj }
@@ -185,8 +157,8 @@ exports.createGradesInInstitute = async (req, res) => {
       departmentId,
       gradeName,        // Changed from gradeDescription
       description,      // Added this field
-      gradeDuration,
-      isElective
+      gradeDuration
+      
     });
 
     res.status(200).json({

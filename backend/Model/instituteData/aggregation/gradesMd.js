@@ -12,22 +12,20 @@ const GradesSchema = new Schema({
   },
   gradeName: {
     type: String,  // Numeric code for the grade
-    required: true
+    required: true,
+    unique: true
   },
   gradeCode: {
     type: String,  // Numeric code for the grade
-    required: true
+    required: true,
+    unique: true
   },
   description: {
     type: String,  // Description of the grade
-    required: true
+    required: false
   },
   gradeDuration: {
     type: mongoose.Schema.Types.ObjectId,  // Duration of the grade (e.g., "1 year")
-    required: true
-  },
-  isElective: {
-    type: mongoose.Schema.Types.ObjectId,  // Whether the grade is elective or not
     required: true
   },
   archive: {

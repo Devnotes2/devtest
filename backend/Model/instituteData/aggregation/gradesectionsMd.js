@@ -6,13 +6,22 @@ const GradeSectionsSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
+  departmentId:{
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
+  },
   gradeId : {
     type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
-  section: {
+  sectionName: {
     type: String,  // Description of the grade
-    required: true
+    required: true,
+    unique: true
+  },
+  description: {
+    type: String,  // Description of the grade
+    required: false
   },
   archive: {
     type: Boolean,
