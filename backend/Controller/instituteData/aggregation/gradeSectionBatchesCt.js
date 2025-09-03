@@ -12,16 +12,18 @@ const gradeSectionBatchDependents = [
 
 exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  const { ids, aggregate, instituteId, gradeId, gradeSectionId ,dropdown} = req.query;
+  const { ids, aggregate, instituteId, gradeId, gradeSectionId ,dropdown, departmentId} = req.query;
 
   try {
     const matchConditions = {};
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
     if (gradeSectionId) matchConditions.gradeSectionId = new ObjectId(gradeSectionId);
+    // Add departmentId if needed
+    if (departmentId) matchConditions.departmentId = new ObjectId(departmentId);
     if (dropdown === 'true') {
-      let findQuery = GradeSectionBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeSectionBatch: 1 });
-      findQuery = findQuery.sort({gradeSectionBatch:1});
+      let findQuery = GradeSectionBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, sectionBatchName: 1 }); // Changed from gradeSectionBatch: 1
+      findQuery = findQuery.sort({sectionBatchName:1}); // Changed from gradeSectionBatch:1
       const data = await findQuery;
       return res.status(200).json({ data });
     }
@@ -64,14 +66,15 @@ if (ids && Array.isArray(ids)) {
     { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
     {
       $project: {
-        gradeSectionBatch: 1,
+        sectionBatchName: 1,
+        description: 1,
         instituteName: '$instituteDetails.instituteName',
         instituteId: '$instituteDetails._id',
+        departmentName: '$departmentDetails.departmentName',  // Added this field
         gradeCode: '$gradeDetails.gradeCode',
-        gradeDescription: '$gradeDetails.gradeDescription',
+        gradeName: '$gradeDetails.gradeName',
         gradeDuration: '$gradeDetails.gradeDuration',
-        isElective: '$gradeDetails.isElective',
-        section: '$gradeSectionDetails.section'
+        sectionName: '$gradeSectionDetails.sectionName'
       }
     }
   ]);
@@ -93,6 +96,15 @@ const allData = await GradeSectionBatchesInInstitute.aggregate([
   { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
   {
     $lookup: {
+      from: 'departmentdatas',
+      localField: 'departmentId',
+      foreignField: '_id',
+      as: 'departmentDetails'
+    }
+  },
+  { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
       from: 'grades',
       localField: 'gradeId',
       foreignField: '_id',
@@ -111,14 +123,15 @@ const allData = await GradeSectionBatchesInInstitute.aggregate([
   { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
   {
     $project: {
-      gradeSectionBatch: 1,
+      sectionBatchName: 1,
+      description: 1,
       instituteName: '$instituteDetails.instituteName',
       instituteId: '$instituteDetails._id',
+      departmentName: '$departmentDetails.departmentName',  // Added this field
       gradeCode: '$gradeDetails.gradeCode',
-      gradeDescription: '$gradeDetails.gradeDescription',
+      gradeName: '$gradeDetails.gradeName',
       gradeDuration: '$gradeDetails.gradeDuration',
-      isElective: '$gradeDetails.isElective',
-      section: '$gradeSectionDetails.section'
+      sectionName: '$gradeSectionDetails.sectionName'
     }
   }
 ]);
@@ -132,14 +145,16 @@ return res.status(200).json(allData);
 
 exports.createGradeSectionBatchesInInstitute = async (req, res) => {
   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  const { instituteId, gradeId, gradeSectionBatch, gradeSectionId } = req.body;
+  // Add departmentId and description, change gradeSectionBatch to sectionBatchName
+  const { instituteId, gradeId, departmentId, sectionBatchName, description } = req.body;
 
   try {
     const newGradeSection = await handleCRUD(GradeSectionBatchesInInstitute, 'create', {}, {
       instituteId,
-      gradeSectionBatch,
+      departmentId,        // Added this field
       gradeId,
-      gradeSectionId
+      sectionBatchName,    // Changed from gradeSectionBatch
+      description          // Added this field
     });
 
     res.status(200).json({
@@ -147,6 +162,22 @@ exports.createGradeSectionBatchesInInstitute = async (req, res) => {
       data: newGradeSection
     });
   } catch (error) {
+    // Handle unique constraint violations
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      
+      let fieldDisplayName = field === 'sectionBatchName' ? 'Section Batch Name' : 'Section Batch Code';
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists`,
+        field: field,
+        value: value,
+        suggestion: 'Please choose a different section batch name'
+      });
+    }
+    
     res.status(500).json({ error: 'Failed to add grade', details: error.message });
   }
 };
@@ -227,11 +258,11 @@ exports.deleteGradeSectionBatchesInInstitute = async (req, res) => {
     // Fetch original GradeSectionBatch docs to get the value field (e.g., gradeSectionBatch)
     const originalDocs = await GradeSectionBatchesInInstitute.find(
       { _id: { $in: ids.map(id => new ObjectId(id)) } },
-      { gradeSectionBatch: 1 }
+      { sectionBatchName: 1 }  // Changed from gradeSectionBatch: 1
     );
     const docMap = {};
     originalDocs.forEach(doc => {
-      docMap[doc._id.toString()] = doc.gradeSectionBatch;
+      docMap[doc._id.toString()] = doc.sectionBatchName;  // Changed from gradeSectionBatch
     });
 
     // Partition IDs into zero and non-zero dependents

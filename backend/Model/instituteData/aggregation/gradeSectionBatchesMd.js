@@ -6,17 +6,21 @@ const GradeSectionBatchesSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
+  departmentId:{
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
+  },
   gradeId : {
     type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
-  gradeSectionBatch: {
+  sectionBatchName: {
     type: String,  // Description of the grade
     required: true
   },
-  gradeSectionId :{
-    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
-    required: true,
+  description :{
+    type: String,  // Reference to the institute (ObjectId)
+    required: false,
   },
   archive: {
     type: Boolean,

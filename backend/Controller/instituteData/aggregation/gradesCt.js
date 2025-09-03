@@ -169,7 +169,8 @@ exports.createGradesInInstitute = async (req, res) => {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
-      
+      console.log("Error Key Pattern:", error.keyPattern);
+      console.log("Error Key Value:", error.keyValue);
       let fieldDisplayName = field === 'gradeName' ? 'Grade Name' : 'Grade Code';
       
       return res.status(400).json({
@@ -211,7 +212,8 @@ exports.updateGradesInInstitute = async (req, res) => {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
-      
+      console.log("Error Key Pattern:", error.keyPattern);
+      console.log("Error Key Value:", error.keyValue);
       let fieldDisplayName = field === 'gradeName' ? 'Grade Name' : 'Grade Code';
       
       return res.status(400).json({
