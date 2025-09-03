@@ -14,9 +14,14 @@ const GradeSectionBatchesSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
     required: true,
   },
+  sectionId :{
+    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    required: true,
+  },
   sectionBatchName: {
     type: String,  // Description of the grade
-    required: true
+    required: true,
+    unique: true
   },
   description :{
     type: String,  // Reference to the institute (ObjectId)

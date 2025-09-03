@@ -12,13 +12,13 @@ const gradeSectionBatchDependents = [
 
 exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  const { ids, aggregate, instituteId, gradeId, gradeSectionId ,dropdown, departmentId} = req.query;
+  const { ids, aggregate, instituteId, gradeId, sectionId ,dropdown, departmentId} = req.query;
 
   try {
     const matchConditions = {};
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
-    if (gradeSectionId) matchConditions.gradeSectionId = new ObjectId(gradeSectionId);
+    if (sectionId) matchConditions.sectionId = new ObjectId(sectionId);
     // Add departmentId if needed
     if (departmentId) matchConditions.departmentId = new ObjectId(departmentId);
     if (dropdown === 'true') {
@@ -58,7 +58,7 @@ if (ids && Array.isArray(ids)) {
     {
       $lookup: {
         from: 'gradesections',
-        localField: 'gradeSectionId',
+        localField: 'sectionId',
         foreignField: '_id',
         as: 'gradeSectionDetails'
       }
@@ -115,7 +115,7 @@ const allData = await GradeSectionBatchesInInstitute.aggregate([
   {
     $lookup: {
       from: 'gradesections',
-      localField: 'gradeSectionId',
+      localField: 'sectionId',
       foreignField: '_id',
       as: 'gradeSectionDetails'
     }
@@ -146,17 +146,18 @@ return res.status(200).json(allData);
 exports.createGradeSectionBatchesInInstitute = async (req, res) => {
   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
   // Add departmentId and description, change gradeSectionBatch to sectionBatchName
-  const { instituteId, gradeId, departmentId, sectionBatchName, description } = req.body;
-
+    const { instituteId, gradeId, departmentId, sectionBatchName, description, sectionId } = req.body;
+    console.log("Request Body:", req.body);
   try {
     const newGradeSection = await handleCRUD(GradeSectionBatchesInInstitute, 'create', {}, {
       instituteId,
       departmentId,        // Added this field
       gradeId,
+      sectionId,
       sectionBatchName,    // Changed from gradeSectionBatch
-      description          // Added this field
+      description,          // Added this field
     });
-
+    console.log("New Grade Section Batch:", newGradeSection);
     res.status(200).json({
       message: 'GradeSection added successfully!',
       data: newGradeSection
@@ -166,7 +167,8 @@ exports.createGradeSectionBatchesInInstitute = async (req, res) => {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
-      
+      console.log("Error Key Pattern:", error.keyPattern);
+      console.log("Error Key Value:", error.keyValue);
       let fieldDisplayName = field === 'sectionBatchName' ? 'Section Batch Name' : 'Section Batch Code';
       
       return res.status(400).json({
@@ -178,7 +180,7 @@ exports.createGradeSectionBatchesInInstitute = async (req, res) => {
       });
     }
     
-    res.status(500).json({ error: 'Failed to add grade', details: error.message });
+    res.status(500).json({ error: 'Failed to add grade section batch ', details: error.message });
   }
 };
 
