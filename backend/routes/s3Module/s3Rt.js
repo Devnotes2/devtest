@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const s3Ct = require('../../Controller/s3Module/s3Ct');
 const authMiddleware = require('../../Utilities/authUtils');
+const { connectCollegeDB } = require('../../config/db');
+const Tenant = require('../../Model/authentication/tenantMd');
 
 // Custom authentication middleware that supports both cookies and headers
-const flexibleAuthMiddleware = (req, res, next) => {
+const flexibleAuthMiddleware = async (req, res, next) => {
   try {
     let token = null;
     
@@ -28,6 +30,26 @@ const flexibleAuthMiddleware = (req, res, next) => {
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+    
+    // Connect to the college database using institute code from JWT
+    try {
+      const tenant = await Tenant.findOne({ instituteCode: decoded.instituteCode }).lean();
+      if (!tenant) {
+        return res.status(404).json({ 
+          error: 'Tenant not found',
+          message: `No configuration found for institute code '${decoded.instituteCode}'`
+        });
+      }
+      
+      req.collegeDB = await connectCollegeDB(tenant.dbName, tenant.clusterURI);
+      req.instituteCode = tenant.instituteCode;
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
+      return res.status(500).json({ 
+        error: 'Database connection failed',
+        message: 'Failed to connect to college database'
+      });
+    }
     
     // For mobile requests, always send a fresh token back
     if (req.headers.authorization) {

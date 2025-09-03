@@ -24,6 +24,10 @@ const tenantSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  s3StaticUrl: {
+    type: String,
+    trim: true,
+  },
 }, { collection: 'tenants', timestamps: true });
 
 module.exports = globalConnection.model('Tenant', tenantSchema);

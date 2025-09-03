@@ -1,12 +1,12 @@
-const express = require('express');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const cors = require('cors');
-const multiTenantMiddleware = require('./config/multiTenantMiddleware');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const compression = require('compression');
 require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const connectTenantDBMiddleware = require('./config/connectTenantDBMiddleware');
+const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const route = require('./routes/routes');
+const memberDataCt = require('./Controller/membersModule/memberDataCt');
+const authCt = require('./Controller/authentication/authCt');
 
 const app = express();
 const allowedOrigins = [
@@ -23,42 +23,38 @@ const allowedOrigins = [
   'http://192.168.1.7:8081',
   'exp://192.168.1.7:8081',
   'http://192.168.1.3:8081',
-  'exp://192.168.1.3:8081'
+  'exp://192.168.1.3:8081',
+  'exp+devtestmbl://expo-development-client/?url=http%3A%2F%2F192.168.1.7%3A8081'
 ];
 if (process.env.NODE_ENV === 'production') {
-  // app.use(helmet()); // Security headers
-  app.use(compression()); // Gzip compression
-  // app.use(morgan('combined')); // Less verbose logging
-} else {
-  // app.use(morgan('dev'));  // More verbose logging in development
+  app.use(compression());
 }
-// app.use(cors({
-//   // origin: function (origin, callback) {
-//   //   // Allow requests from allowedOrigins, undefined (mobile fetch), or React Native (no origin)
-//   //   if (!origin || allowedOrigins.includes(origin)) {
-//   //     callback(null, true);
-//   //   } else {
-//   //     callback(new Error('Not allowed by CORS'));
-//   //   }
-//   // },
-//   // credentials: true // Allow cookies to be sent with requests
-// }));
 
-// ...existing code...
 app.use(cors({
   origin: '*', // Allow all origins
-  credentials: true // Allow cookies to be sent with requests (optional, remove if not needed)
+  credentials: true
 }));
-// ...existing code...
 
-// app.use(myReqLogger);
 app.use(express.json());
-app.use(multiTenantMiddleware);
 app.use(cookieParser());
 
-// Serve static files from uploads folder (for existing profile pictures)
+// Public routes for authentication
+// These routes use middleware that connects to the tenant DB
+app.post('/auth/register', connectTenantDBMiddleware, memberDataCt.createMember);
+app.post('/auth/login', connectTenantDBMiddleware, authCt.login);
 
-app.use('/', route);
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Backend server is running' });
+});
+
+// S3 routes with JWT authentication
+app.use('/s3', require('./routes/s3Module/s3Rt'));
+
+// All other API routes
+app.use('/api', route);
+
+
 const port = process.env.PORT || 8000;
 app.listen(port,'0.0.0.0', () => {
   console.log(`App running on port ${port}...`);

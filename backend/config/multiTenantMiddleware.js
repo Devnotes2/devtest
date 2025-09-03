@@ -10,15 +10,17 @@ const multiTenantMiddleware = async (req, res, next) => {
   let clusterURI;
   const host = req.get('host');
   const { instituteCode } = req.body || {};
-  const isLoginRequest = req.path === '/authRt/login' || (req.originalUrl && req.originalUrl.includes('/authRt/login'));
   
+  // Define public routes that rely on instituteCode in the request body
+  const publicAuthPaths = ['/authRt/login', '/authRt/forgot-password', '/authRt/verify-otp', '/authRt/reset-password'];
+  const isPublicAuthRequest = publicAuthPaths.some(path => req.path.startsWith(path));
+  console.log(isPublicAuthRequest , instituteCode);
   try {
     let tenant;
     let cacheKey;
 
-    // For login requests, if an instituteCode is provided, use it to find the tenant.
-    // This handles mobile-style logins.
-    if (isLoginRequest && instituteCode) {
+    // For public auth requests (login, forgot password), use the instituteCode from the body.
+    if (isPublicAuthRequest && instituteCode) {
       cacheKey = `code:${instituteCode.toUpperCase()}`;
 
       if (tenantCache.has(cacheKey)) {

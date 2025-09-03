@@ -9,4 +9,7 @@ router.post('/member', upload, memberDataCt.createMember);  // Apply upload midd
 router.get('/member', memberDataCt.getMembersData);
 router.put('/member', memberDataCt.updateMember);
 router.delete('/member', memberDataCt.deleteMembers);
+
+
+
 module.exports = router;

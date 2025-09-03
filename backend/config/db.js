@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
+const { MembersDataSchema } = require('../Model/membersModule/memberDataMd'); // Import MembersDataSchema
 
 // --- Global Database Connection (for tenant management) ---
 
@@ -51,6 +52,9 @@ const connectCollegeDB = async (dbName, clusterURI) => {
 
     console.log(`Attempting to connect to ${dbName} database...`);
     const connection = await mongoose.createConnection(dbURI).asPromise();
+
+    // Register MembersDataSchema on this specific connection
+    connection.model('MembersData', MembersDataSchema);
 
     // Check if the database has any collections. This is a good health check.
     const collections = await connection.db.listCollections().toArray();

@@ -1,10 +1,11 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const createMemberDataModel = require('../../Model/membersModule/memberDataMd');
+const { createMembersDataModel } = require('../../Model/membersModule/memberDataMd');
+const Tenant = require('../../Model/authentication/tenantMd'); // Import Tenant model
 
 exports.login = async (req, res) => {
   const { identifier, password } = req.body;
-  const MemberData = createMemberDataModel(req.collegeDB);
+  const MemberData = createMembersDataModel(req.collegeDB);
   console.log(identifier, password)
   if (!identifier || !password) {
     return res.status(400).json({ message: 'Identifier and password are required.' });
@@ -48,6 +49,13 @@ exports.login = async (req, res) => {
     // Prepare user data for the response, excluding sensitive fields like passwords.
     const { password: userPassword, parentOrGuardianPassword, ...userForResponse } = user;
     userForResponse.instituteCode=req.instituteCode; 
+
+    // Fetch s3StaticUrl from Tenant model
+    const tenant = await Tenant.findOne({ instituteCode: req.instituteCode }).lean();
+    if (tenant && tenant.s3StaticUrl) {
+      userForResponse.s3StaticUrl = tenant.s3StaticUrl;
+    }
+
     res.status(200).json({ message: 'Login successful', token, user: userForResponse });
   } catch (error) {
     console.error('Login error:', error);

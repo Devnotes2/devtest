@@ -1,17 +1,6 @@
 const express = require('express');
-const authMiddleware = require('../Utilities/authUtils');
 
 const router = express.Router();
-
-// ============================================================================
-// AUTHENTICATION & TENANT MANAGEMENT
-// ============================================================================
-
-// User authentication (login, logout, etc.)
-router.use('/authRt', require('./authentication/authRt'));
-
-// Tenant/Institute mapping and configuration
-router.use('/tenantRt', require('./authentication/tenantRt'));
 
 // ============================================================================
 // CORE DATA MANAGEMENT
@@ -97,7 +86,12 @@ router.use('/memberEnrollmentRt/gradeSectionBatchSubjectEnrollment', require('./
 // UTILITY SERVICES
 // ============================================================================
 
+router.use('/auth', require('./authentication/authRt'));
+
+
 // S3 file upload/download services
 router.use('/s3', require('./s3Module/s3Rt'));
+
+
 
 module.exports = router;

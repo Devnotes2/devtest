@@ -1,7 +1,6 @@
-// membersDataCt.js (Controller for handling member data)
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const createMembersDataModel = require('../../Model/membersModule/memberDataMd');
+const {createMembersDataModel} = require('../../Model/membersModule/memberDataMd');
 const { handleCRUD } = require('../../Utilities/crudUtils');
 const buildGenericAggregation = require('../../Utilities/genericAggregatorUtils');
 const addPaginationAndSort = require('../../Utilities/paginationControllsUtils');
@@ -13,10 +12,9 @@ const { gradeBatchesLookup } = require('../../Utilities/aggregations/gradesBatch
 const { gradeSectionLookup } = require('../../Utilities/aggregations/gradesSectionLookups');
 const { gradeSectionBatchesLookup } = require('../../Utilities/aggregations/gradesSectionBatchesLookups');
 const { buildMatchConditions, buildSortObject, validateUniqueField, buildValueBasedMatchStage } = require('../../Utilities/filterSortUtils');
+const { getPublicS3Url } = require('../../Utilities/s3Utils');
 
-
-
-exports.getMembersData = async (req, res) => {
+const getMembersData = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
   const { ids, aggregate, page, limit, validate, memberId, dropdown } = req.query;
   try {
@@ -69,7 +67,7 @@ exports.getMembersData = async (req, res) => {
         return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
       // Aggregate branch with IDs (default)
-      let lookups = [
+      let pipeline = buildGenericAggregation({ filters: { _id: { $in: objectIds }, ...matchConditions }, lookups: [
         ...instituteLookup(),
         ...generalDataLookup('bloodGroup', 'bloodGroup', 'bloodGroupDetails', 'bloodGroupValue'),
         ...generalDataLookup('gender', 'gender', 'genderDetails', 'genderValue'),
@@ -79,8 +77,7 @@ exports.getMembersData = async (req, res) => {
         ...gradeBatchesLookup(),
         ...gradeSectionLookup(),
         ...gradeSectionBatchesLookup(),
-      ];
-      let pipeline = buildGenericAggregation({ filters: { _id: { $in: objectIds }, ...matchConditions }, lookups });
+      ] });
       // DRY: Use helper for value-based filter
       const valueMatch = buildValueBasedMatchStage(valueBasedField, joinedFieldMap);
       if (valueMatch) pipeline.push(valueMatch);
@@ -127,7 +124,14 @@ exports.getMembersData = async (req, res) => {
       filteredDocs = filteredDocsArr[0]?.count || 0;
       addPaginationAndSort(pipeline, { page: pageNum, limit: limitNum, sort: {} });
       const data = await MembersData.aggregate(pipeline);
-      return res.status(200).json({ count: data.length, filteredDocs, totalDocs, data });
+      
+      // Transform image keys to public S3 URLs
+      const transformedData = data.map(member => ({
+        ...member,
+        image: member.image ? getPublicS3Url(process.env.AWS_S3_BUCKET, member.image, process.env.AWS_REGION) : member.image,
+      }));
+
+      return res.status(200).json({ count: transformedData.length, filteredDocs, totalDocs, data: transformedData });
     }
     // Aggregate branch (no IDs)
     if (aggregate !== 'false') {
@@ -189,7 +193,14 @@ exports.getMembersData = async (req, res) => {
       filteredDocs = filteredDocsArr[0]?.count || 0;
       addPaginationAndSort(pipeline, { page: pageNum, limit: limitNum, sort: {} });
       const data = await MembersData.aggregate(pipeline);
-      return res.status(200).json({ count: data.length, filteredDocs, totalDocs, data });
+      
+      // Transform image keys to public S3 URLs
+      const transformedData = data.map(member => ({
+        ...member,
+        image: member.image ? getPublicS3Url(process.env.AWS_S3_BUCKET, member.image, process.env.AWS_REGION) : member.image,
+      }));
+
+      return res.status(200).json({ count: transformedData.length, filteredDocs, totalDocs, data: transformedData });
     }
 
     // Non-aggregate fetch (simple find)
@@ -198,17 +209,26 @@ exports.getMembersData = async (req, res) => {
     query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
     const members = await query;
     filteredDocs = await MembersData.countDocuments(matchConditions);
-    return res.status(200).json({ count: members.length, filteredDocs, totalDocs, data: members });
+    
+    // Transform image keys to public S3 URLs
+    const transformedMembers = members.map(member => ({
+      ...member.toObject(), // Convert Mongoose document to plain object
+      image: member.image ? getPublicS3Url(process.env.AWS_S3_BUCKET, member.image, process.env.AWS_REGION) : member.image,
+    }));
+
+    return res.status(200).json({ count: transformedMembers.length, filteredDocs, totalDocs, data: transformedMembers });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-exports.createMember = async (req, res) => {
+const createMember = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
+  const { email, password, instituteCode, ...restOfBody } = req.body;
+
   try {
-    // Build fullName from firstName, middleName, lastName
-    const { firstName, middleName, lastName, ...rest } = req.body;
+    // Save the user data to MongoDB
+    const { firstName, middleName, lastName } = restOfBody;
     let fullName = firstName;
     if (middleName && middleName.trim()) {
       fullName += ' ' + middleName.trim();
@@ -216,25 +236,37 @@ exports.createMember = async (req, res) => {
     if (lastName && lastName.trim()) {
       fullName += ' ' + lastName.trim();
     }
-    const memberData = { firstName, middleName, lastName, fullName, ...rest };
+
+    const memberData = {
+      email: email,
+      firstName,
+      middleName,
+      lastName,
+      fullName,
+      ...restOfBody
+    };
+
     const newMember = await handleCRUD(MembersData, 'create', {}, memberData);
-    res.status(200).json({
-      message: 'Member created successfully!',
+
+    res.status(201).json({
+      message: 'Member created successfully in MongoDB!',
       data: newMember
     });
+
   } catch (error) {
+    console.error('Failed to create member:', error);
     res.status(500).json({ error: 'Failed to create member', details: error.message });
   }
 };
 
-exports.updateMember = async (req, res) => {
+const updateMember = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
   const { _id, updatedData } = req.body;
   try {
     const result = await handleCRUD(MembersData, 'update', { _id }, { $set: updatedData });
     if (result.modifiedCount > 0) {
       res.status(200).json({ message: 'Member updated successfully' });
-    } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
+    } else if (result.matchedCount > 0 && result.modifiedCoun === 0) {
       res.status(200).json({ message: 'No updates were made' });
     } else {
       res.status(404).json({ message: 'No matching member found or values are unchanged' });
@@ -244,7 +276,7 @@ exports.updateMember = async (req, res) => {
   }
 };
 
-exports.deleteMembers = async (req, res) => {
+const deleteMembers = async (req, res) => {
   const MembersData = createMembersDataModel(req.collegeDB);
   const { ids } = req.body;
   try {
@@ -258,3 +290,12 @@ exports.deleteMembers = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete members', details: error.message });
   }
 };
+
+
+
+module.exports = {
+    getMembersData,
+    createMember,
+    updateMember,
+    deleteMembers
+}
