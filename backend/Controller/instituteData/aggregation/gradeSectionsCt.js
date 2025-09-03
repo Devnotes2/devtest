@@ -14,21 +14,20 @@ const gradeSectionDependents = [
 
 exports.gradeSectionsInInstituteAg = async (req, res) => {
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
-  const { ids, instituteId, gradeId, section, aggregate ,dropdown} = req.query;
+  const { ids, instituteId, gradeId, sectionName, aggregate ,dropdown} = req.query;
 
   try {
     const matchConditions = {};
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
-    if (section) matchConditions.section = String(section);
+    if (sectionName) matchConditions.sectionName = String(sectionName);
     if (dropdown === 'true') {
-      let findQuery = GradeSectionsInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, section: 1 });
-      findQuery = findQuery.sort({section:1});
+      let findQuery = GradeSectionsInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, sectionName: 1 });
+      findQuery = findQuery.sort({sectionName:1});
       const data = await findQuery;
       return res.status(200).json({ data });
     }
     const query = { ...matchConditions };
-    console.log('');
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
       query._id = { $in: objectIds };
@@ -59,14 +58,25 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
         },
         { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
         {
+  $lookup: {
+    from: 'departmentdatas',
+    localField: 'departmentId',
+    foreignField: '_id',
+    as: 'departmentDetails'
+  }
+},
+{ $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+        {
           $project: {
-            section: 1,
+            sectionName: 1,        // Changed from section: 1
+            description: 1,         // Added this field
             instituteName: '$instituteDetails.instituteName',
             instituteId: '$instituteDetails._id',
             gradeCode: '$gradeDetails.gradeCode',
-            gradeDescription: '$gradeDetails.gradeDescription',
+            gradeName: '$gradeDetails.gradeName',        // Changed from gradeDescription
             gradeDuration: '$gradeDetails.gradeDuration',
-            isElective: '$gradeDetails.isElective'
+            departmentName: '$departmentDetails.departmentName'
+            // Removed isElective since it's not in the grades model
           }
         }
       ]);
@@ -96,14 +106,25 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
       },
       { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
       {
+        $lookup: {
+          from: 'departmentdatas',
+          localField: 'departmentId',
+          foreignField: '_id',
+          as: 'departmentDetails'
+        }
+      },
+      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+      {
         $project: {
-          section: 1,
+          sectionName: 1,        // Changed from section: 1
+          description: 1,         // Added this field
           instituteName: '$instituteDetails.instituteName',
           instituteId: '$instituteDetails._id',
           gradeCode: '$gradeDetails.gradeCode',
-          gradeDescription: '$gradeDetails.gradeDescription',
+          gradeName: '$gradeDetails.gradeName',        // Changed from gradeDescription
           gradeDuration: '$gradeDetails.gradeDuration',
-          isElective: '$gradeDetails.isElective'
+          departmentName: '$departmentDetails.departmentName'
+          // Removed isElective since it's not in the grades model
         }
       }
     ]);
@@ -117,13 +138,15 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
 
 exports.createGradeSectionsInInstitute = async (req, res) => {
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
-  const { instituteId, gradeId, section } = req.body;
+  const { instituteId, gradeId, departmentId, sectionName, description } = req.body;
 
   try {
     const newSection = await handleCRUD(GradeSectionsInInstitute, 'create', {}, {
       instituteId,
       gradeId,
-      section
+      departmentId,
+      sectionName,
+      description
     });
 
     res.status(200).json({
@@ -131,11 +154,25 @@ exports.createGradeSectionsInInstitute = async (req, res) => {
       data: newSection
     });
   } catch (error) {
+    // Handle unique constraint violations
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      
+      let fieldDisplayName = field === 'sectionName' ? 'Section Name' : 'Section Code';
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists`,
+        field: field,
+        value: value,
+        suggestion: 'Please choose a different section name'
+      });
+    }
+    
     res.status(500).json({ error: 'Failed to add grade section', details: error.message });
   }
 };
-
-
 
 exports.updateGradeSectionsInInstitute = async (req, res) => {
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
@@ -152,6 +189,22 @@ exports.updateGradeSectionsInInstitute = async (req, res) => {
       res.status(404).json({ message: 'No matching grade section found or values are unchanged' });
     }
   } catch (error) {
+    // Handle unique constraint violations
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      
+      let fieldDisplayName = field === 'sectionName' ? 'Section Name' : 'Section Code';
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists`,
+        field: field,
+        value: value,
+        suggestion: 'Please choose a different section name'
+      });
+    }
+    
     res.status(500).json({ error: 'Failed to update grade section', details: error.message });
   }
 };
@@ -215,11 +268,11 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
     // Fetch original GradeSection docs to get the value field (e.g., section)
     const originalDocs = await GradeSectionsInInstitute.find(
       { _id: { $in: ids.map(id => new ObjectId(id)) } },
-      { section: 1 }
+      { sectionName: 1 }
     );
     const docMap = {};
     originalDocs.forEach(doc => {
-      docMap[doc._id.toString()] = doc.section;
+      docMap[doc._id.toString()] = doc.sectionName ;
     });
 
     // Partition IDs into zero and non-zero dependents
@@ -236,7 +289,7 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
     if (!deleteDependents && !transferTo) {
       const dependencies = nonZeroDepIds.map(id => ({
         _id: id,
-        value: docMap[id] || null,
+        value: docMap[id] ,
         dependsOn: depCounts[id]
       }));
       return res.status(201).json({ message: 'Dependency summary', deleted: zeroDepIds, dependencies: dependencies });

@@ -148,17 +148,16 @@ exports.gradesInInstituteAg = async (req, res) => {
 
 exports.createGradesInInstitute = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { instituteId, gradeCode,departmentId, gradeDescription, gradeDuration, isElective,department } = req.body;
+  const { instituteId, gradeCode, departmentId, gradeName, description, gradeDuration } = req.body;
 
   try {
     const newGrade = await handleCRUD(GradesInInstitute, 'create', {}, {
       instituteId,
       gradeCode,
       departmentId,
-      gradeName,        // Changed from gradeDescription
-      description,      // Added this field
+      gradeName,
+      description,
       gradeDuration
-      
     });
 
     res.status(200).json({
@@ -166,21 +165,37 @@ exports.createGradesInInstitute = async (req, res) => {
       data: newGrade
     });
   } catch (error) {
+    // Handle unique constraint violations
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      
+      let fieldDisplayName = field === 'gradeName' ? 'Grade Name' : 'Grade Code';
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists`,
+        field: field,
+        value: value,
+        suggestion: field === 'gradeName' 
+          ? 'Please choose a different grade name' 
+          : 'Please choose a different grade code'
+      });
+    }
+    
     res.status(500).json({ error: 'Failed to add grade', details: error.message });
   }
 };
-
-
 
 exports.updateGradesInInstitute = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
   const { _id, updatedData } = req.body;
 
   try {
-    console.log("Update Request Body:", req.body); // Log the request body
+    console.log("Update Request Body:", req.body);
     const result = await handleCRUD(GradesInInstitute, 'update', { _id }, { $set: updatedData });
 
-    console.log("Update Result:", result); // Log the result of the update operation
+    console.log("Update Result:", result);
 
     if (result.modifiedCount > 0) {
       res.status(200).json({ message: 'Grade updated successfully' });
@@ -190,10 +205,31 @@ exports.updateGradesInInstitute = async (req, res) => {
       res.status(404).json({ message: 'No matching grade found or values are unchanged' });
     }
   } catch (error) {
-    console.error("Update Error:", error); // Log the error
+    console.error("Update Error:", error);
+    
+    // Handle unique constraint violations
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      
+      let fieldDisplayName = field === 'gradeName' ? 'Grade Name' : 'Grade Code';
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists`,
+        field: field,
+        value: value,
+        suggestion: field === 'gradeName' 
+          ? 'Please choose a different grade name' 
+          : 'Please choose a different grade code'
+      });
+    }
+    
     res.status(500).json({ error: 'Failed to update grade', details: error.message });
   }
 };
+
+
 
 
 // exports.deleteGradesInInstitute = async (req, res) => {

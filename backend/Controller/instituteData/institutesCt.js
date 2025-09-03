@@ -60,87 +60,64 @@ exports.getInstitutes = async (req, res) => {
 
 // Add a new institute
 exports.insertInstitute = async (req, res) => {
-  const Institute = createInstitutesModel(req.collegeDB);
-  const { newInst } = req.body;
-
-  if (!newInst || typeof newInst !== 'object' || !newInst.instituteName) {
-    return res.status(400).json({ message: 'Invalid institute data: instituteName is required.' });
-  }
-
+  const InstitutesData = createInstitutesDataModel(req.collegeDB);
   try {
-    // Generate instituteCode
-    const { instituteName } = newInst;
-    const words = instituteName.trim().split(/\s+/).filter(Boolean);
-
-    if (words.length === 0) {
-      return res.status(400).json({ message: 'Invalid institute name.' });
-    }
-
-    let baseCode = (
-      words.length > 1
-        ? (words[0][0] || '') + (words[1][0] || '')
-        : (words[0] || '').slice(0, 2)
-    ).toUpperCase();
-
-    if (baseCode.length < 2) {
-      baseCode = (baseCode + 'XX').slice(0, 2);
-    }
-
-    let counter = 1;
-    let instituteCode;
-    let isUnique = false;
-
-    while (!isUnique) {
-      const numberPart = String(counter).padStart(3, '0');
-      instituteCode = `${baseCode}${numberPart}`;
-
-      // The request mentioned checking 'authmembr', but that collection is for user authentication
-      // and does not contain institute codes. The logical place to ensure an institute code is unique
-      // is within the collection of institutes for the current tenant.
-      const existingInTenant = await Institute.findOne({ instituteCode });
-
-      if (!existingInTenant) {
-        isUnique = true;
-      } else {
-        counter++;
-      }
-    }
-
-    const instituteToCreate = {
-      ...newInst,
-      instituteCode,
-    };
-
-    const newDoc = await handleCRUD(Institute, 'create', {}, instituteToCreate);
-    res.status(200).json({ message: 'Institute added successfully', newDoc });
+    const newInstitute = await handleCRUD(InstitutesData, 'create', {}, req.body);
+    res.status(200).json({
+      message: 'Institute created successfully!',
+      data: newInstitute
+    });
   } catch (error) {
-    console.error('Error creating institute:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    // Handle unique constraint violations
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      
+      let fieldDisplayName = field === 'instituteName' ? 'Institute Name' : 'Institute Code';
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists`,
+        field: field,
+        value: value,
+        suggestion: 'Please choose a different institute name or code'
+      });
+    }
+    
+    res.status(500).json({ error: 'Failed to create Institute', details: error.message });
   }
 };
 
-// Update an institute
 exports.updateInstitute = async (req, res) => {
-  const Institute = createInstitutesModel(req.collegeDB);
-  const { instituteID, updatedData } = req.body;
-
-  if (!instituteID || !updatedData || typeof updatedData !== 'object') {
-    return res.status(400).json({ message: 'Invalid institute ID or update data' });
-  }
-
+  const InstitutesData = createInstitutesDataModel(req.collegeDB);
+  const { _id, updatedData } = req.body;
   try {
-    const result = await handleCRUD(Institute, 'update', { _id: new ObjectId(instituteID) }, { $set: updatedData });
-
+    const result = await handleCRUD(InstitutesData, 'update', { _id }, { $set: updatedData });
     if (result.modifiedCount > 0) {
       res.status(200).json({ message: 'Institute updated successfully' });
     } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
       res.status(200).json({ message: 'No updates were made' });
     } else {
-      res.status(404).json({ message: 'Institute not found' });
+      res.status(404).json({ message: 'No matching institute found or values are unchanged' });
     }
   } catch (error) {
-    console.error('Error updating institute:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    // Handle unique constraint violations
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      
+      let fieldDisplayName = field === 'instituteName' ? 'Institute Name' : 'Institute Code';
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists`,
+        field: field,
+        value: value,
+        suggestion: 'Please choose a different institute name or code'
+      });
+    }
+    
+    res.status(500).json({ error: 'Failed to update institute', details: error.message });
   }
 };
 
