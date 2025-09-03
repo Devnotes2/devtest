@@ -52,7 +52,7 @@ app.get('/health', (req, res) => {
 app.use('/s3', require('./routes/s3Module/s3Rt'));
 
 // All other API routes
-app.use('/api', route);
+app.use('/', route);
 
 
 const port = process.env.PORT || 8000;

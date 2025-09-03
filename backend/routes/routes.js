@@ -1,4 +1,5 @@
 const express = require('express');
+const multiTenantMiddleware = require('../config/multiTenantMiddleware');
 
 const router = express.Router();
 
@@ -7,80 +8,54 @@ const router = express.Router();
 // ============================================================================
 
 // General metadata (blood groups, genders, member types, etc.)
-router.use('/generalDataRt', require('./generalData/generalDataRt'));
+router.use('/generalDataRt', multiTenantMiddleware, require('./generalData/generalDataRt'));
 
 // Aside/sidebar data
-router.use('/asideDataRt', require('./asideData/asideDataRt'));
+router.use('/asideDataRt', multiTenantMiddleware, require('./asideData/asideDataRt'));
 
 // ============================================================================
 // INSTITUTE DATA MANAGEMENT
 // ============================================================================
 
 // Institute basic information
-router.use('/instituteDataRt', require('./instituteData/institutesRt'));
+router.use('/instituteDataRt', multiTenantMiddleware, require('./instituteData/institutesRt'));
 
 // Academic year management
-router.use('/instituteDataRt', require('./instituteData/academicYearRt'));
+router.use('/instituteDataRt', multiTenantMiddleware, require('./instituteData/academicYearRt'));
 
 // Department management
-router.use('/instituteDataRt', require('./instituteData/departmentRt'));
+router.use('/instituteDataRt', multiTenantMiddleware, require('./instituteData/departmentRt'));
 
 // ============================================================================
 // INSTITUTE AGGREGATION & RELATIONSHIPS
 // ============================================================================
 
 // Location types within institute
-router.use('/instituteAggreRt', require('./instituteData/aggregation/locationTypesInInstituteRt'));
+router.use('/instituteAggreRt', multiTenantMiddleware, require('./instituteData/aggregation/locationTypesInInstituteRt'));
 
 // Grade management
-router.use('/instituteAggreRt', require('./instituteData/aggregation/gradesRt'));
+router.use('/instituteAggreRt', multiTenantMiddleware, require('./instituteData/aggregation/gradesRt'));
 
 // Grade sections
-router.use('/instituteAggreRt', require('./instituteData/aggregation/gradeSectionsRt'));
+router.use('/instituteAggreRt', multiTenantMiddleware, require('./instituteData/aggregation/gradeSectionsRt'));
 
 // Grade batches
-router.use('/instituteAggreRt', require('./instituteData/aggregation/gradeBatchesRt'));
+router.use('/instituteAggreRt', multiTenantMiddleware, require('./instituteData/aggregation/gradeBatchesRt'));
 
 // Grade section batches
-router.use('/instituteAggreRt', require('./instituteData/aggregation/gradeSectionBatchesRt'));
+router.use('/instituteAggreRt', multiTenantMiddleware, require('./instituteData/aggregation/gradeSectionBatchesRt'));
 
 // Subject management
-router.use('/instituteAggreRt', require('./instituteData/aggregation/subjectsRt'));
+router.use('/instituteAggreRt', multiTenantMiddleware, require('./instituteData/aggregation/subjectsRt'));
 
 // ============================================================================
 // MEMBER MANAGEMENT
 // ============================================================================
 
 // Member data (CRUD operations)
-router.use('/membersDataRt', require('./membersModule/memberDataRt'));
+router.use('/membersDataRt', multiTenantMiddleware, require('./membersModule/memberDataRt'));
 
 // ============================================================================
-// ENROLLMENT MANAGEMENT
-// ============================================================================
-
-// Grade enrollment
-router.use('/memberEnrollmentRt/gradeEnrollment', require('./enrollment/gradeEnrollmentRt'));
-
-// Grade section enrollment
-router.use('/memberEnrollmentRt/gradeSectionEnrollment', require('./enrollment/gradeSectionEnrollmentRt'));
-
-// Grade batch enrollment
-router.use('/memberEnrollmentRt/gradeBatchEnrollment', require('./enrollment/gradeBatchEnrollmentRt'));
-
-// Grade section batch enrollment
-router.use('/memberEnrollmentRt/gradeSectionBatchEnrollment', require('./enrollment/gradeSectionBatchEnrollmentRt'));
-
-// Grade subject enrollment
-router.use('/memberEnrollmentRt/gradeSubjectEnrollment', require('./enrollment/gradeSubjectEnrollmentRt'));
-
-// Grade section subject enrollment
-router.use('/memberEnrollmentRt/gradeSectionSubjectEnrollment', require('./enrollment/gradeSectionSubjectEnrollmentRt'));
-
-// Grade batch subject enrollment
-router.use('/memberEnrollmentRt/gradeBatchSubjectEnrollment', require('./enrollment/gradeBatchSubjectEnrollmentRt'));
-
-// Grade section batch subject enrollment
-router.use('/memberEnrollmentRt/gradeSectionBatchSubjectEnrollment', require('./enrollment/gradeSectionBatchSubjectEnrollmentRt'));
 
 // ============================================================================
 // UTILITY SERVICES
@@ -88,10 +63,9 @@ router.use('/memberEnrollmentRt/gradeSectionBatchSubjectEnrollment', require('./
 
 router.use('/auth', require('./authentication/authRt'));
 
-
 // S3 file upload/download services
 router.use('/s3', require('./s3Module/s3Rt'));
 
-
+// ============================================================================
 
 module.exports = router;
