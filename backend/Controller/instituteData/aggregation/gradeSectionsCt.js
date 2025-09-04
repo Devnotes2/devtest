@@ -14,27 +14,48 @@ const gradeSectionDependents = [
 
 exports.gradeSectionsInInstituteAg = async (req, res) => {
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
-  const { ids, instituteId, gradeId, sectionName, aggregate ,dropdown} = req.query;
+  const { ids, instituteId, gradeId, sectionName, aggregate, dropdown, page, limit } = req.query;
 
   try {
+    // Add pagination parameters
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+
     const matchConditions = {};
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
     if (sectionName) matchConditions.sectionName = String(sectionName);
+    
     if (dropdown === 'true') {
       let findQuery = GradeSectionsInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, sectionName: 1 });
       findQuery = findQuery.sort({sectionName:1});
       const data = await findQuery;
       return res.status(200).json({ data });
     }
+    
     const query = { ...matchConditions };
+    
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
       query._id = { $in: objectIds };
+      
       if (aggregate === 'false') {
         console.log('without aggre');
-        const matchingData = await handleCRUD(GradeSectionsInInstitute, 'find', query);
-        return res.status(200).json(matchingData);
+        // Add pagination to simple find
+        let findQuery = GradeSectionsInInstitute.find(query);
+        findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
+        const matchingData = await findQuery;
+        
+        // Count total matching documents
+        const totalDocs = await GradeSectionsInInstitute.countDocuments(query);
+        
+        return res.status(200).json({ 
+          count: matchingData.length, 
+          totalDocs, 
+          page: pageNum, 
+          limit: limitNum, 
+          data: matchingData 
+        });
       }
 
       const aggregatedData = await GradeSectionsInInstitute.aggregate([
@@ -58,31 +79,45 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
         },
         { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
         {
-  $lookup: {
-    from: 'departmentdatas',
-    localField: 'departmentId',
-    foreignField: '_id',
-    as: 'departmentDetails'
-  }
-},
-{ $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+          $lookup: {
+            from: 'departmentdatas',
+            localField: 'departmentId',
+            foreignField: '_id',
+            as: 'departmentDetails'
+          }
+        },
+        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
         {
           $project: {
-            sectionName: 1,        // Changed from section: 1
-            description: 1,         // Added this field
+            sectionName: 1,
+            description: 1,
             instituteName: '$instituteDetails.instituteName',
             instituteId: '$instituteDetails._id',
             gradeCode: '$gradeDetails.gradeCode',
-            gradeName: '$gradeDetails.gradeName',        // Changed from gradeDescription
+            gradeName: '$gradeDetails.gradeName',
             gradeDuration: '$gradeDetails.gradeDuration',
             departmentName: '$departmentDetails.departmentName'
-            // Removed isElective since it's not in the grades model
           }
-        }
+        },
+        // Add pagination to aggregation
+        { $skip: (pageNum - 1) * limitNum },
+        { $limit: limitNum }
       ]);
 
-      return res.status(200).json(aggregatedData);
+      // Count total matching documents for pagination info
+      const totalDocs = await GradeSectionsInInstitute.countDocuments(query);
+      
+      return res.status(200).json({ 
+        count: aggregatedData.length, 
+        totalDocs, 
+        page: pageNum, 
+        limit: limitNum, 
+        data: aggregatedData 
+      });
     }
+
+    // Get total count for pagination
+    const totalDocs = await GradeSectionsInInstitute.countDocuments(query);
 
     // Aggregate all data without ID filtering
     const allData = await GradeSectionsInInstitute.aggregate([
@@ -116,20 +151,28 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
       {
         $project: {
-          sectionName: 1,        // Changed from section: 1
-          description: 1,         // Added this field
+          sectionName: 1,
+          description: 1,
           instituteName: '$instituteDetails.instituteName',
           instituteId: '$instituteDetails._id',
           gradeCode: '$gradeDetails.gradeCode',
-          gradeName: '$gradeDetails.gradeName',        // Changed from gradeDescription
+          gradeName: '$gradeDetails.gradeName',
           gradeDuration: '$gradeDetails.gradeDuration',
           departmentName: '$departmentDetails.departmentName'
-          // Removed isElective since it's not in the grades model
         }
-      }
+      },
+      // Add pagination to main aggregation
+      { $skip: (pageNum - 1) * limitNum },
+      { $limit: limitNum }
     ]);
 
-    return res.status(200).json(allData);
+    return res.status(200).json({ 
+      count: allData.length, 
+      totalDocs, 
+      page: pageNum, 
+      limit: limitNum, 
+      data: allData 
+    });
   } catch (error) {
     console.error('Error in gradeSectionsInInstituteAg:', error.message);
     res.status(500).json({ message: 'Server error', error: error.message });

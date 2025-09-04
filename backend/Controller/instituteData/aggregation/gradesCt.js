@@ -27,7 +27,12 @@ exports.gradesInInstituteAg = async (req, res) => {
     const matchConditions = buildMatchConditions(req.query);
     // Use utility for sorting
     const sortObj = buildSortObject(req.query);
-    const { ids, aggregate ,dropdown} = req.query;
+    const { ids, aggregate, dropdown, page, limit } = req.query;
+    
+    // Add pagination parameters
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    
     // Dropdown mode: return only _id and subject, with sorting and filtering
     if (dropdown === 'true') {
       let findQuery = GradesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeName: 1 });
@@ -35,32 +40,49 @@ exports.gradesInInstituteAg = async (req, res) => {
       const data = await findQuery;
       return res.status(200).json({ data });
     }
+    
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
       const matchingData = await handleCRUD(GradesInInstitute, 'find', { _id: { $in: objectIds }, ...matchConditions });
       if (aggregate === 'false') {
-        return res.status(200).json(matchingData);
+        // Add pagination to simple find
+        let query = GradesInInstitute.find({ _id: { $in: objectIds }, ...matchConditions });
+        if (sortObj) query = query.sort(sortObj);
+        query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
+        const paginatedData = await query;
+        
+        // Count total matching documents
+        const totalDocs = await GradesInInstitute.countDocuments({ _id: { $in: objectIds }, ...matchConditions });
+        
+        return res.status(200).json({ 
+          count: paginatedData.length, 
+          totalDocs, 
+          page: pageNum, 
+          limit: limitNum, 
+          data: paginatedData 
+        });
       }
+      
       const aggregatedData = await GradesInInstitute.aggregate([
         { $match: { _id: { $in: objectIds }, ...matchConditions } },
         {
           $lookup: {
-            from: 'instituteData', // Reference the new structure
+            from: 'instituteData',
             localField: 'instituteId',
             foreignField: '_id',
             as: 'instituteDetails'
           }
         },
-{ $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-                {
+        { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
+        {
           $lookup: {
-            from: 'departmentdatas', // Reference the new structure
+            from: 'departmentdatas',
             localField: 'departmentId',
             foreignField: '_id',
             as: 'departmentDetails'
           }
         },
-{ $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
         {
           $lookup: {
             from: 'generalData',
@@ -74,45 +96,59 @@ exports.gradesInInstituteAg = async (req, res) => {
             as: 'gradeDurationDetails'
           }
         },
-{ $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
-
-{ $unwind: { path: '$isElectiveDetails', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
         {
           $project: {
             gradeCode: 1,
-            gradeName: 1,           // Changed from gradeDescription
-            description: 1,          // Added this field
+            gradeName: 1,
+            description: 1,
             instituteName: '$instituteDetails.instituteName',
             departmentName: '$departmentDetails.departmentName',
             instituteId: '$instituteDetails._id',
             gradeDuration: '$gradeDurationDetails.gradeDurationValue',
           }
         },
-        { $sort: sortObj }
+        { $sort: sortObj },
+        // Add pagination to aggregation
+        { $skip: (pageNum - 1) * limitNum },
+        { $limit: limitNum }
       ]);
-      return res.status(200).json(aggregatedData);
+      
+      // Count total matching documents for pagination info
+      const totalDocs = await GradesInInstitute.countDocuments({ _id: { $in: objectIds }, ...matchConditions });
+      
+      return res.status(200).json({ 
+        count: aggregatedData.length, 
+        totalDocs, 
+        page: pageNum, 
+        limit: limitNum, 
+        data: aggregatedData 
+      });
     }
 
+    // Get total count for pagination
+    const totalDocs = await GradesInInstitute.countDocuments(matchConditions);
+    
     const allData = await GradesInInstitute.aggregate([
       { $match: { ...matchConditions } },
       {
         $lookup: {
-          from: 'instituteData', // Reference the new structure
+          from: 'instituteData',
           localField: 'instituteId',
           foreignField: '_id',
           as: 'instituteDetails'
         }
       },
-{ $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
       {
-          $lookup: {
-            from: 'departmentdatas', // Reference the new structure
-            localField: 'departmentId',
-            foreignField: '_id',
-            as: 'departmentDetails'
-          }
-        },
-{ $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+        $lookup: {
+          from: 'departmentdatas',
+          localField: 'departmentId',
+          foreignField: '_id',
+          as: 'departmentDetails'
+        }
+      },
+      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'generalData',
@@ -126,21 +162,31 @@ exports.gradesInInstituteAg = async (req, res) => {
           as: 'gradeDurationDetails'
         }
       },
-{ $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           gradeCode: 1,
-          gradeName: 1,           // Changed from gradeDescription
-          description: 1,          // Added this field
+          gradeName: 1,
+          description: 1,
           instituteName: '$instituteDetails.instituteName',
           departmentName: '$departmentDetails.departmentName',
           instituteId: '$instituteDetails._id',
           gradeDuration: '$gradeDurationDetails.gradeDurationValue',
         }
       },
-      { $sort: sortObj }
+      { $sort: sortObj },
+      // Add pagination to main aggregation
+      { $skip: (pageNum - 1) * limitNum },
+      { $limit: limitNum }
     ]);
-    return res.status(200).json(allData);
+    
+    return res.status(200).json({ 
+      count: allData.length, 
+      totalDocs, 
+      page: pageNum, 
+      limit: limitNum, 
+      data: allData 
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

@@ -12,37 +12,51 @@ const gradeBatchDependents = [
 
 exports.gradeBatchesInInstituteAg = async (req, res) => {
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
-  const { ids, aggregate, instituteId, gradeId, batch ,dropdown} = req.query;
+  const { ids, aggregate, instituteId, gradeId, dropdown, departmentId, page, limit } = req.query;
 
   try {
+    // Add pagination parameters
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+
     const matchConditions = {};
     if (instituteId) matchConditions.instituteId = new ObjectId(instituteId);
     if (gradeId) matchConditions.gradeId = new ObjectId(gradeId);
-    if (batch) matchConditions.batch = batch;
-    console.log('Match conditions:', ids);
+    if (departmentId) matchConditions.departmentId = new ObjectId(departmentId);
     
-        // Dropdown mode: return only _id and subject, with sorting and filtering
     if (dropdown === 'true') {
-      let findQuery = GradeBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, batch: 1 });
-      findQuery = findQuery.sort({batch:1});
+      let findQuery = GradeBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeBatch: 1 });
+      findQuery = findQuery.sort({gradeBatch:1});
       const data = await findQuery;
       return res.status(200).json({ data });
     }
-    // If specific IDs are requested
+    
+    const query = { ...matchConditions };
+    
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
-      const matchingData = await handleCRUD(
-        GradeBatchesInInstitute,
-        'find',
-        { _id: { $in: objectIds }, ...matchConditions }
-      );
-
+      query._id = { $in: objectIds };
+      
       if (aggregate === 'false') {
-        return res.status(200).json(matchingData);
+        // Add pagination to simple find
+        let findQuery = GradeBatchesInInstitute.find(query);
+        findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
+        const matchingData = await findQuery;
+        
+        // Count total matching documents
+        const totalDocs = await GradeBatchesInInstitute.countDocuments(query);
+        
+        return res.status(200).json({ 
+          count: matchingData.length, 
+          totalDocs, 
+          page: pageNum, 
+          limit: limitNum, 
+          data: matchingData 
+        });
       }
-      console.log('Matching data:', matchingData);
+
       const aggregatedData = await GradeBatchesInInstitute.aggregate([
-        { $match: { _id: { $in: objectIds }, ...matchConditions } },
+        { $match: query },
         {
           $lookup: {
             from: 'instituteData',
@@ -51,7 +65,7 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
             as: 'instituteDetails'
           }
         },
-        { $unwind: '$instituteDetails' },
+        { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
         {
           $lookup: {
             from: 'grades',
@@ -62,24 +76,49 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
         },
         { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
         {
+          $lookup: {
+            from: 'departmentdatas',
+            localField: 'departmentId',
+            foreignField: '_id',
+            as: 'departmentDetails'
+          }
+        },
+        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+        {
           $project: {
-            batch: 1,
+            gradeBatch: 1,
+            description: 1,
             instituteName: '$instituteDetails.instituteName',
             instituteId: '$instituteDetails._id',
             gradeCode: '$gradeDetails.gradeCode',
-            gradeDescription: '$gradeDetails.gradeDescription',
+            gradeName: '$gradeDetails.gradeName',
             gradeDuration: '$gradeDetails.gradeDuration',
-            isElective: '$gradeDetails.isElective'
+            departmentName: '$departmentDetails.departmentName'
           }
-        }
+        },
+        // Add pagination to aggregation
+        { $skip: (pageNum - 1) * limitNum },
+        { $limit: limitNum }
       ]);
 
-      return res.status(200).json(aggregatedData);
+      // Count total matching documents for pagination info
+      const totalDocs = await GradeBatchesInInstitute.countDocuments(query);
+      
+      return res.status(200).json({ 
+        count: aggregatedData.length, 
+        totalDocs, 
+        page: pageNum, 
+        limit: limitNum, 
+        data: aggregatedData 
+      });
     }
 
-    // If no specific IDs, fetch all data
+    // Get total count for pagination
+    const totalDocs = await GradeBatchesInInstitute.countDocuments(query);
+
+    // Aggregate all data without ID filtering
     const allData = await GradeBatchesInInstitute.aggregate([
-      { $match: { ...matchConditions } },
+      { $match: query },
       {
         $lookup: {
           from: 'instituteData',
@@ -88,7 +127,7 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
           as: 'instituteDetails'
         }
       },
-      { $unwind: '$instituteDetails' },
+      { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'grades',
@@ -99,19 +138,39 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
       },
       { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
       {
+        $lookup: {
+          from: 'departmentdatas',
+          localField: 'departmentId',
+          foreignField: '_id',
+          as: 'departmentDetails'
+        }
+      },
+      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+      {
         $project: {
-          batch: 1,
+          gradeBatch: 1,
+          description: 1,
           instituteName: '$instituteDetails.instituteName',
           instituteId: '$instituteDetails._id',
           gradeCode: '$gradeDetails.gradeCode',
-          gradeDescription: '$gradeDetails.gradeDescription',
+          gradeName: '$gradeDetails.gradeName',
           gradeDuration: '$gradeDetails.gradeDuration',
-          isElective: '$gradeDetails.isElective'
+          departmentName: '$departmentDetails.departmentName'
         }
-      }
+      },
+      // Add pagination to main aggregation
+      { $skip: (pageNum - 1) * limitNum },
+      { $limit: limitNum }
     ]);
 
-    return res.status(200).json(allData);
+    return res.status(200).json({ 
+      count: allData.length, 
+      totalDocs, 
+      page: pageNum, 
+      limit: limitNum, 
+      data: allData 
+    });
+
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
