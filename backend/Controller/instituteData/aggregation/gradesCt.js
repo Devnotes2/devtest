@@ -78,14 +78,20 @@ exports.gradesInInstituteAg = async (req, res) => {
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
         {
           $project: {
+            // Only use fields that exist in the model
+            _id: 1,
+            instituteId: 1,
+            departmentId: 1,
             gradeName: 1,
             gradeCode: 1,
             description: 1,
             gradeDuration: 1,
+            archive: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            // Add lookup data with clear naming
             instituteName: '$instituteDetails.instituteName',
-            instituteId: '$instituteDetails._id',
-            departmentName: '$departmentDetails.departmentName',
-            departmentId: '$departmentDetails._id'
+            departmentName: '$departmentDetails.departmentName'
           }
         },
         // Add pagination to aggregation
@@ -147,14 +153,20 @@ exports.gradesInInstituteAg = async (req, res) => {
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
       {
         $project: {
+          // Only use fields that exist in the model
+          _id: 1,
+          instituteId: 1,
+          departmentId: 1,
           gradeName: 1,
           gradeCode: 1,
           description: 1,
           gradeDuration: 1,
+          archive: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          // Add lookup data with clear naming
           instituteName: '$instituteDetails.instituteName',
-          instituteId: '$instituteDetails._id',
-          departmentName: '$departmentDetails.departmentName',
-          departmentId: '$departmentDetails._id'
+          departmentName: '$departmentDetails.departmentName'
         }
       },
       // Add pagination to main aggregation

@@ -138,13 +138,17 @@ exports.getDepartment = async (req, res) => {
       pipeline.push({ $sort: sortObj });
       pipeline.push({
         $project: {
-          department: '$departmentName',
-          description: 1,
+          // Only use fields that exist in the model
+          _id: 1,
           instituteId: 1,
-          departmentCode:1,
+          departmentName: 1,
+          departmentCode: 1,
+          description: 1,
+          archive: 1,
           createdAt: 1,
           updatedAt: 1,
-          institute:'$instituteDetails.instituteName'
+          // Add lookup data with clear naming
+          instituteName: '$instituteDetails.instituteName'
         }
       });
       // Count after all matches
@@ -166,13 +170,17 @@ exports.getDepartment = async (req, res) => {
       pipeline.push({ $sort: sortObj });
       pipeline.push({
         $project: {
-          department: '$departmentName',
-          description: 1,
+          // Only use fields that exist in the model
+          _id: 1,
           instituteId: 1,
-          departmentCode:1,
+          departmentName: 1,
+          departmentCode: 1,
+          description: 1,
+          archive: 1,
           createdAt: 1,
           updatedAt: 1,
-          institute:'$instituteDetails.instituteName'
+          // Add lookup data with clear naming
+          instituteName: '$instituteDetails.instituteName'
         }
       });
       // Count after all matches

@@ -87,16 +87,22 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
         {
           $project: {
+            // Only use fields that exist in the model
+            _id: 1,
+            instituteId: 1,
+            departmentId: 1,
+            gradeId: 1,
+            sectionId: 1,
             sectionBatchName: 1,
             description: 1,
+            archive: 1,
+            // Add lookup data with clear naming
             instituteName: '$instituteDetails.instituteName',
-            instituteId: '$instituteDetails._id',
             gradeCode: '$gradeDetails.gradeCode',
             gradeName: '$gradeDetails.gradeName',
             gradeDuration: '$gradeDetails.gradeDuration',
             sectionName: '$gradeSectionDetails.sectionName',
-            departmentName: '$departmentDetails.departmentName',
-            departmentId: '$departmentDetails._id'
+            departmentName: '$departmentDetails.departmentName'
           }
         },
         // Add pagination to aggregation
@@ -194,16 +200,22 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
       {
         $project: {
+          // Only use fields that exist in the model
+          _id: 1,
+          instituteId: 1,
+          departmentId: 1,
+          gradeId: 1,
+          sectionId: 1,
           sectionBatchName: 1,
           description: 1,
+          archive: 1,
+          // Add lookup data with clear naming
           instituteName: '$instituteDetails.instituteName',
-          instituteId: '$instituteDetails._id',
           gradeCode: '$gradeDetails.gradeCode',
           gradeName: '$gradeDetails.gradeName',
           gradeDuration: '$gradeDetails.gradeDuration',
           sectionName: '$gradeSectionDetails.sectionName',
-          departmentName: '$departmentDetails.departmentName',
-          departmentId: '$departmentDetails._id'
+          departmentName: '$departmentDetails.departmentName'
         }
       },
       // Add pagination to main aggregation
