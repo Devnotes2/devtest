@@ -232,3 +232,4 @@ When developers visit `http://localhost:8000/docs` and look at the Department AP
 5. **They'll get proper error messages** when things go wrong
 
 **Your Department API documentation is now production-ready and developer-friendly! 🚀**
+
