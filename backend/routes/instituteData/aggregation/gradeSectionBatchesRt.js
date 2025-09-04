@@ -10,82 +10,41 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *     GradeSectionBatch:
  *       type: object
  *       required:
- *         - name
- *         - code
+ *         - sectionBatchName
  *         - instituteId
+ *         - departmentId
  *         - gradeId
- *         - gradeSectionId
- *         - gradeBatchId
+ *         - sectionId
  *       properties:
- *         name:
+ *         sectionBatchName:
  *           type: string
  *           description: Grade section batch name (e.g., Section A 2023-24, Section B 2024-25)
  *           example: "Section A 2023-24"
- *         code:
- *           type: string
- *           description: Unique grade section batch code
- *           example: "G10A-2023"
  *         instituteId:
  *           type: string
  *           description: Associated institute ID
  *           example: "507f1f77bcf86cd799439011"
+ *         departmentId:
+ *           type: string
+ *           description: Associated department ID
+ *           example: "507f1f77bcf86cd799439012"
  *         gradeId:
  *           type: string
  *           description: Associated grade ID
- *           example: "507f1f77bcf86cd799439012"
- *         gradeSectionId:
+ *           example: "507f1f77bcf86cd799439013"
+ *         sectionId:
  *           type: string
  *           description: Associated grade section ID
- *           example: "507f1f77bcf86cd799439013"
- *         gradeBatchId:
- *           type: string
- *           description: Associated grade batch ID
  *           example: "507f1f77bcf86cd799439014"
  *         description:
  *           type: string
  *           description: Grade section batch description
  *           example: "Grade 10 Section A Batch for Academic Year 2023-24"
- *         startDate:
- *           type: string
- *           format: date
- *           description: Batch start date
- *           example: "2023-06-01"
- *         endDate:
- *           type: string
- *           format: date
- *           description: Batch end date
- *           example: "2024-05-31"
- *         maxStudents:
- *           type: integer
- *           description: Maximum number of students allowed
- *           example: 35
- *         currentStudents:
- *           type: integer
- *           description: Current number of enrolled students
- *           example: 28
- *         classTeacher:
- *           type: string
- *           description: Class teacher ID
- *           example: "507f1f77bcf86cd799439015"
- *         roomNumber:
- *           type: string
- *           description: Classroom number
- *           example: "101"
- *         shift:
- *           type: string
- *           enum: [morning, afternoon, evening]
- *           description: Class shift timing
- *           example: "morning"
- *         status:
- *           type: string
- *           enum: [active, inactive, completed, suspended]
- *           default: active
- *           description: Grade section batch status
- *           example: "active"
- *         order:
- *           type: integer
- *           description: Display order for sorting
- *           example: 1
+ *         archive:
+ *           type: boolean
+ *           default: false
+ *           description: Archive status
+ *           example: false
  *     
  *     GradeSectionBatchResponse:
  *       type: object

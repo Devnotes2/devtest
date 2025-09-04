@@ -10,61 +10,67 @@ const institutesCt = require('../../Controller/instituteData/institutesCt');
  *     Institute:
  *       type: object
  *       required:
- *         - name
- *         - code
- *         - instituteType
+ *         - instituteName
+ *         - instituteCode
+ *         - address
+ *         - city
+ *         - district
+ *         - state
+ *         - country
+ *         - pinCode
+ *         - contactNo1
+ *         - emailId
  *       properties:
- *         name:
+ *         instituteName:
  *           type: string
  *           description: Institute name
  *           example: "ABC International School"
- *         code:
+ *         instituteCode:
  *           type: string
  *           description: Unique institute code
  *           example: "ABC001"
- *         instituteType:
- *           type: string
- *           enum: [school, college, university, training_center]
- *           description: Type of institute
- *           example: "school"
  *         address:
  *           type: string
  *           description: Institute address
- *           example: "123 Education Street, City, State 12345"
- *         phone:
+ *           example: "123 Education Street"
+ *         city:
  *           type: string
- *           description: Institute phone number
- *           example: "+1-555-123-4567"
- *         email:
+ *           description: City name
+ *           example: "Mumbai"
+ *         district:
+ *           type: string
+ *           description: District name
+ *           example: "Mumbai"
+ *         state:
+ *           type: string
+ *           description: State name
+ *           example: "Maharashtra"
+ *         country:
+ *           type: string
+ *           description: Country name
+ *           example: "India"
+ *         pinCode:
+ *           type: number
+ *           description: PIN code
+ *           example: 400001
+ *         contactNo1:
+ *           type: string
+ *           description: Primary contact number
+ *           example: "+91-9876543210"
+ *         contactNo2:
+ *           type: string
+ *           description: Secondary contact number
+ *           example: "+91-9876543211"
+ *         emailId:
  *           type: string
  *           format: email
  *           description: Institute email
  *           example: "info@abcschool.edu"
- *         website:
- *           type: string
- *           format: uri
- *           description: Institute website URL
- *           example: "https://www.abcschool.edu"
- *         principal:
- *           type: string
- *           description: Principal/Head of institute
- *           example: "Dr. Jane Smith"
- *         establishedYear:
- *           type: integer
- *           minimum: 1900
- *           maximum: 2030
- *           description: Year institute was established
- *           example: 1995
- *         status:
- *           type: string
- *           enum: [active, inactive, suspended]
- *           default: active
- *           description: Institute status
- *           example: "active"
- *         description:
- *           type: string
- *           description: Institute description
- *           example: "A leading educational institution focused on excellence"
+ *         archive:
+ *           type: boolean
+ *           default: false
+ *           description: Archive status
+ *           example: false
  *     
  *     InstituteResponse:
  *       type: object
@@ -325,16 +331,17 @@ router.get('/institutes/:id?', institutesCt.getInstitutes);
  *           schema:
  *             $ref: '#/components/schemas/Institute'
  *           example:
- *             name: "ABC International School"
- *             code: "ABC001"
- *             instituteType: "school"
- *             address: "123 Education Street, City, State 12345"
- *             phone: "+1-555-123-4567"
- *             email: "info@abcschool.edu"
- *             website: "https://www.abcschool.edu"
- *             principal: "Dr. Jane Smith"
- *             establishedYear: 1995
- *             status: "active"
+ *             instituteName: "ABC International School"
+ *             instituteCode: "ABC001"
+ *             address: "123 Education Street"
+ *             city: "Mumbai"
+ *             district: "Mumbai"
+ *             state: "Maharashtra"
+ *             country: "India"
+ *             pinCode: 400001
+ *             contactNo1: "+91-9876543210"
+ *             contactNo2: "+91-9876543211"
+ *             emailId: "info@abcschool.edu"
  *             description: "A leading educational institution focused on excellence"
  *     responses:
  *       201:
@@ -347,10 +354,16 @@ router.get('/institutes/:id?', institutesCt.getInstitutes);
  *               message: "Institute created successfully"
  *               data:
  *                 institute:
- *                   name: "ABC International School"
- *                   code: "ABC001"
- *                   instituteType: "school"
- *                   status: "active"
+ *                   instituteName: "ABC International School"
+ *                   instituteCode: "ABC001"
+ *                   address: "123 Education Street"
+ *                   city: "Mumbai"
+ *                   state: "Maharashtra"
+ *                   country: "India"
+ *                   pinCode: 400001
+ *                   contactNo1: "+91-9876543210"
+ *                   emailId: "info@abcschool.edu"
+ *                   archive: false
  *                 id: "507f1f77bcf86cd799439011"
  *       400:
  *         description: Bad request - validation error

@@ -10,16 +10,17 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *     Grade:
  *       type: object
  *       required:
- *         - name
- *         - code
+ *         - gradeName
+ *         - gradeCode
  *         - instituteId
- *         - academicYearId
+ *         - departmentId
+ *         - gradeDuration
  *       properties:
- *         name:
+ *         gradeName:
  *           type: string
  *           description: Grade name (e.g., Grade 1, Grade 2, Class 10)
  *           example: "Grade 10"
- *         code:
+ *         gradeCode:
  *           type: string
  *           description: Unique grade code
  *           example: "G10"
@@ -27,37 +28,23 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *           type: string
  *           description: Associated institute ID
  *           example: "507f1f77bcf86cd799439011"
- *         academicYearId:
+ *         departmentId:
  *           type: string
- *           description: Associated academic year ID
+ *           description: Associated department ID
  *           example: "507f1f77bcf86cd799439012"
  *         description:
  *           type: string
  *           description: Grade description
  *           example: "Tenth grade - Senior Secondary"
- *         level:
+ *         gradeDuration:
  *           type: string
- *           enum: [primary, middle, secondary, senior_secondary]
- *           description: Educational level
- *           example: "senior_secondary"
- *         ageGroup:
- *           type: string
- *           description: Typical age group for this grade
- *           example: "15-16 years"
- *         maxStudents:
- *           type: integer
- *           description: Maximum number of students allowed
- *           example: 40
- *         status:
- *           type: string
- *           enum: [active, inactive, suspended]
- *           default: active
- *           description: Grade status
- *           example: "active"
- *         order:
- *           type: integer
- *           description: Display order for sorting
- *           example: 10
+ *           description: Grade duration ID
+ *           example: "507f1f77bcf86cd799439013"
+ *         archive:
+ *           type: boolean
+ *           default: false
+ *           description: Archive status
+ *           example: false
  *     
  *     GradeResponse:
  *       type: object
@@ -241,12 +228,12 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *               message: "Grades retrieved successfully"
  *               data:
  *                 - id: "507f1f77bcf86cd799439011"
- *                   name: "Grade 10"
- *                   code: "G10"
+ *                   gradeName: "Grade 10"
+ *                   gradeCode: "G10"
  *                   instituteId: "507f1f77bcf86cd799439012"
- *                   academicYearId: "507f1f77bcf86cd799439013"
- *                   level: "senior_secondary"
- *                   status: "active"
+ *                   departmentId: "507f1f77bcf86cd799439013"
+ *                   gradeDuration: "507f1f77bcf86cd799439014"
+ *                   archive: false
  *               pagination:
  *                 currentPage: 1
  *                 totalPages: 2
@@ -292,15 +279,12 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *           schema:
  *             $ref: '#/components/schemas/Grade'
  *           example:
- *             name: "Grade 10"
- *             code: "G10"
+ *             gradeName: "Grade 10"
+ *             gradeCode: "G10"
  *             instituteId: "507f1f77bcf86cd799439011"
- *             academicYearId: "507f1f77bcf86cd799439012"
+ *             departmentId: "507f1f77bcf86cd799439012"
  *             description: "Tenth grade - Senior Secondary"
- *             level: "senior_secondary"
- *             ageGroup: "15-16 years"
- *             maxStudents: 40
- *             status: "active"
+ *             gradeDuration: "507f1f77bcf86cd799439013"
  *             order: 10
  *     responses:
  *       201:

@@ -10,58 +10,36 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *     GradeSection:
  *       type: object
  *       required:
- *         - name
- *         - code
+ *         - sectionName
  *         - instituteId
+ *         - departmentId
  *         - gradeId
  *       properties:
- *         name:
+ *         sectionName:
  *           type: string
  *           description: Grade section name (e.g., Section A, Section B)
  *           example: "Section A"
- *         code:
- *           type: string
- *           description: Unique grade section code
- *           example: "G10A"
  *         instituteId:
  *           type: string
  *           description: Associated institute ID
  *           example: "507f1f77bcf86cd799439011"
+ *         departmentId:
+ *           type: string
+ *           description: Associated department ID
+ *           example: "507f1f77bcf86cd799439012"
  *         gradeId:
  *           type: string
  *           description: Associated grade ID
- *           example: "507f1f77bcf86cd799439012"
+ *           example: "507f1f77bcf86cd799439013"
  *         description:
  *           type: string
  *           description: Grade section description
  *           example: "Grade 10 Section A - Morning Shift"
- *         shift:
- *           type: string
- *           enum: [morning, afternoon, evening]
- *           description: Class shift timing
- *           example: "morning"
- *         maxStudents:
- *           type: integer
- *           description: Maximum number of students allowed
- *           example: 35
- *         classTeacher:
- *           type: string
- *           description: Class teacher ID
- *           example: "507f1f77bcf86cd799439013"
- *         roomNumber:
- *           type: string
- *           description: Classroom number
- *           example: "101"
- *         status:
- *           type: string
- *           enum: [active, inactive, suspended]
- *           default: active
- *           description: Grade section status
- *           example: "active"
- *         order:
- *           type: integer
- *           description: Display order for sorting
- *           example: 1
+ *         archive:
+ *           type: boolean
+ *           default: false
+ *           description: Archive status
+ *           example: false
  *     
  *     GradeSectionResponse:
  *       type: object
@@ -253,13 +231,11 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *               message: "Grade sections retrieved successfully"
  *               data:
  *                 - id: "507f1f77bcf86cd799439011"
- *                   name: "Section A"
- *                   code: "G10A"
+ *                   sectionName: "Section A"
  *                   instituteId: "507f1f77bcf86cd799439012"
- *                   gradeId: "507f1f77bcf86cd799439013"
- *                   shift: "morning"
- *                   maxStudents: 35
- *                   status: "active"
+ *                   departmentId: "507f1f77bcf86cd799439013"
+ *                   gradeId: "507f1f77bcf86cd799439014"
+ *                   archive: false
  *               pagination:
  *                 currentPage: 1
  *                 totalPages: 2
@@ -305,17 +281,11 @@ router.get('/gradeSectionsInInstitute',gradeSectionsCt.gradeSectionsInInstituteA
  *           schema:
  *             $ref: '#/components/schemas/GradeSection'
  *           example:
- *             name: "Section A"
- *             code: "G10A"
+ *             sectionName: "Section A"
  *             instituteId: "507f1f77bcf86cd799439011"
- *             gradeId: "507f1f77bcf86cd799439012"
+ *             departmentId: "507f1f77bcf86cd799439012"
+ *             gradeId: "507f1f77bcf86cd799439013"
  *             description: "Grade 10 Section A - Morning Shift"
- *             shift: "morning"
- *             maxStudents: 35
- *             classTeacher: "507f1f77bcf86cd799439013"
- *             roomNumber: "101"
- *             status: "active"
- *             order: 1
  *     responses:
  *       201:
  *         description: Grade section created successfully

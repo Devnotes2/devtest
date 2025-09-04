@@ -10,64 +10,36 @@ const gradeBatchesCt = require('../../../Controller/instituteData/aggregation/gr
  *     GradeBatch:
  *       type: object
  *       required:
- *         - name
- *         - code
+ *         - batch
  *         - instituteId
+ *         - departmentId
  *         - gradeId
- *         - academicYearId
  *       properties:
- *         name:
+ *         batch:
  *           type: string
  *           description: Grade batch name (e.g., 2023-24, 2024-25)
  *           example: "2023-24"
- *         code:
- *           type: string
- *           description: Unique grade batch code
- *           example: "G10-2023"
  *         instituteId:
  *           type: string
  *           description: Associated institute ID
  *           example: "507f1f77bcf86cd799439011"
+ *         departmentId:
+ *           type: string
+ *           description: Associated department ID
+ *           example: "507f1f77bcf86cd799439012"
  *         gradeId:
  *           type: string
  *           description: Associated grade ID
- *           example: "507f1f77bcf86cd799439012"
- *         academicYearId:
- *           type: string
- *           description: Associated academic year ID
  *           example: "507f1f77bcf86cd799439013"
  *         description:
  *           type: string
  *           description: Grade batch description
  *           example: "Grade 10 Batch for Academic Year 2023-24"
- *         startDate:
- *           type: string
- *           format: date
- *           description: Batch start date
- *           example: "2023-06-01"
- *         endDate:
- *           type: string
- *           format: date
- *           description: Batch end date
- *           example: "2024-05-31"
- *         maxStudents:
- *           type: integer
- *           description: Maximum number of students allowed
- *           example: 120
- *         currentStudents:
- *           type: integer
- *           description: Current number of enrolled students
- *           example: 95
- *         status:
- *           type: string
- *           enum: [active, inactive, completed, suspended]
- *           default: active
- *           description: Grade batch status
- *           example: "active"
- *         order:
- *           type: integer
- *           description: Display order for sorting
- *           example: 1
+ *         archive:
+ *           type: boolean
+ *           default: false
+ *           description: Archive status
+ *           example: false
  *     
  *     GradeBatchResponse:
  *       type: object
@@ -256,14 +228,11 @@ const gradeBatchesCt = require('../../../Controller/instituteData/aggregation/gr
  *               message: "Grade batches retrieved successfully"
  *               data:
  *                 - id: "507f1f77bcf86cd799439011"
- *                   name: "2023-24"
- *                   code: "G10-2023"
+ *                   batch: "2023-24"
  *                   instituteId: "507f1f77bcf86cd799439012"
- *                   gradeId: "507f1f77bcf86cd799439013"
- *                   academicYearId: "507f1f77bcf86cd799439014"
- *                   status: "active"
- *                   maxStudents: 120
- *                   currentStudents: 95
+ *                   departmentId: "507f1f77bcf86cd799439013"
+ *                   gradeId: "507f1f77bcf86cd799439014"
+ *                   archive: false
  *               pagination:
  *                 currentPage: 1
  *                 totalPages: 2
@@ -308,17 +277,11 @@ router.get('/gradeBatchesInInstitute',gradeBatchesCt.gradeBatchesInInstituteAg);
  *           schema:
  *             $ref: '#/components/schemas/GradeBatch'
  *           example:
- *             name: "2023-24"
- *             code: "G10-2023"
+ *             batch: "2023-24"
  *             instituteId: "507f1f77bcf86cd799439011"
- *             gradeId: "507f1f77bcf86cd799439012"
- *             academicYearId: "507f1f77bcf86cd799439013"
+ *             departmentId: "507f1f77bcf86cd799439012"
+ *             gradeId: "507f1f77bcf86cd799439013"
  *             description: "Grade 10 Batch for Academic Year 2023-24"
- *             startDate: "2023-06-01"
- *             endDate: "2024-05-31"
- *             maxStudents: 120
- *             status: "active"
- *             order: 1
  *     responses:
  *       201:
  *         description: Grade batch created successfully

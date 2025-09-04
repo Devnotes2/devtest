@@ -10,100 +10,29 @@ const locationTypesInInstituteCt = require('../../../Controller/instituteData/ag
  *     LocationTypeInInstitute:
  *       type: object
  *       required:
- *         - name
- *         - code
  *         - instituteId
- *         - locationTypeId
+ *         - locationTypes
  *       properties:
- *         name:
- *           type: string
- *           description: Location type name within institute (e.g., Main Campus, Branch Office, Training Center)
- *           example: "Main Campus"
- *         code:
- *           type: string
- *           description: Unique location type code within institute
- *           example: "MC-001"
  *         instituteId:
  *           type: string
  *           description: Associated institute ID
  *           example: "507f1f77bcf86cd799439011"
- *         locationTypeId:
+ *         locationTypes:
  *           type: string
- *           description: Associated location type ID from master data
+ *           description: Associated location type ID
  *           example: "507f1f77bcf86cd799439012"
- *         description:
- *           type: string
- *           description: Location type description
- *           example: "Primary campus location with all facilities"
- *         address:
- *           type: string
- *           description: Physical address of the location
- *           example: "123 Main Street, City, State 12345"
- *         city:
- *           type: string
- *           description: City name
- *           example: "New York"
- *         state:
- *           type: string
- *           description: State or province name
- *           example: "NY"
- *         country:
- *           type: string
- *           description: Country name
- *           example: "USA"
- *         postalCode:
- *           type: string
- *           description: Postal/ZIP code
- *           example: "12345"
- *         phone:
- *           type: string
- *           description: Contact phone number
- *           example: "+1-555-123-4567"
- *         email:
- *           type: string
- *           format: email
- *           description: Contact email address
- *           example: "maincampus@institute.edu"
- *         website:
- *           type: string
- *           format: uri
- *           description: Website URL
- *           example: "https://maincampus.institute.edu"
- *         coordinates:
- *           type: object
- *           properties:
- *             latitude:
- *               type: number
- *               description: Latitude coordinate
- *               example: 40.7128
- *             longitude:
- *               type: number
- *               description: Longitude coordinate
- *               example: -74.0060
  *         capacity:
- *           type: integer
+ *           type: number
  *           description: Maximum capacity of the location
  *           example: 1000
- *         currentOccupancy:
- *           type: integer
- *           description: Current number of people at location
- *           example: 750
- *         facilities:
- *           type: array
- *           items:
- *             type: string
- *           description: Available facilities at this location
- *           example: ["Library", "Computer Lab", "Auditorium", "Sports Complex"]
- *         status:
+ *         description:
  *           type: string
- *           enum: [active, inactive, under_construction, closed]
- *           default: active
- *           description: Location status
- *           example: "active"
- *         order:
- *           type: integer
- *           description: Display order for sorting
- *           example: 1
+ *           description: Location description
+ *           example: "Main campus building with all facilities"
+ *         location:
+ *           type: string
+ *           description: Physical location/address
+ *           example: "123 Main Street, Mumbai, Maharashtra"
  *     
  *     LocationTypeInInstituteResponse:
  *       type: object

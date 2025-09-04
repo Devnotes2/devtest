@@ -10,59 +10,47 @@ const subjectsCt = require('../../../Controller/instituteData/aggregation/subjec
  *     Subject:
  *       type: object
  *       required:
- *         - name
- *         - code
+ *         - subject
+ *         - subjectCode
  *         - instituteId
+ *         - departmentId
  *         - gradeId
+ *         - subjectTypeId
+ *         - learningTypeId
+ *         - description
  *       properties:
- *         name:
+ *         subject:
  *           type: string
  *           description: Subject name (e.g., Mathematics, English, Science)
  *           example: "Mathematics"
- *         code:
+ *         subjectCode:
  *           type: string
  *           description: Unique subject code
- *           example: "MATH"
+ *           example: "MATH101"
  *         instituteId:
  *           type: string
  *           description: Associated institute ID
  *           example: "507f1f77bcf86cd799439011"
+ *         departmentId:
+ *           type: string
+ *           description: Associated department ID
+ *           example: "507f1f77bcf86cd799439012"
  *         gradeId:
  *           type: string
  *           description: Associated grade ID
- *           example: "507f1f77bcf86cd799439012"
+ *           example: "507f1f77bcf86cd799439013"
+ *         subjectTypeId:
+ *           type: string
+ *           description: Subject type ID
+ *           example: "507f1f77bcf86cd799439014"
+ *         learningTypeId:
+ *           type: string
+ *           description: Learning type ID
+ *           example: "507f1f77bcf86cd799439015"
  *         description:
  *           type: string
  *           description: Subject description
  *           example: "Advanced Mathematics including Algebra and Calculus"
- *         credits:
- *           type: number
- *           description: Subject credits/weightage
- *           example: 4
- *         category:
- *           type: string
- *           enum: [core, elective, optional, practical]
- *           description: Subject category
- *           example: "core"
- *         difficulty:
- *           type: string
- *           enum: [beginner, intermediate, advanced, expert]
- *           description: Subject difficulty level
- *           example: "intermediate"
- *         maxStudents:
- *           type: integer
- *           description: Maximum number of students allowed
- *           example: 30
- *         status:
- *           type: string
- *           enum: [active, inactive, suspended]
- *           default: active
- *           description: Subject status
- *           example: "active"
- *         order:
- *           type: integer
- *           description: Display order for sorting
- *           example: 1
  *     
  *     SubjectResponse:
  *       type: object
@@ -308,17 +296,14 @@ router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
  *           schema:
  *             $ref: '#/components/schemas/Subject'
  *           example:
- *             name: "Mathematics"
- *             code: "MATH"
+ *             subject: "Mathematics"
+ *             subjectCode: "MATH101"
  *             instituteId: "507f1f77bcf86cd799439011"
- *             gradeId: "507f1f77bcf86cd799439012"
+ *             departmentId: "507f1f77bcf86cd799439012"
+ *             gradeId: "507f1f77bcf86cd799439013"
+ *             subjectTypeId: "507f1f77bcf86cd799439014"
+ *             learningTypeId: "507f1f77bcf86cd799439015"
  *             description: "Advanced Mathematics including Algebra and Calculus"
- *             credits: 4
- *             category: "core"
- *             difficulty: "intermediate"
- *             maxStudents: 30
- *             status: "active"
- *             order: 1
  *     responses:
  *       201:
  *         description: Subject created successfully

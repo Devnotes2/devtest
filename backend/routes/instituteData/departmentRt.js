@@ -10,18 +10,18 @@ const departmentCt = require('../../Controller/instituteData/departmentCt');
  *     Department:
  *       type: object
  *       required:
- *         - name
- *         - code
+ *         - departmentName
+ *         - departmentCode
  *         - instituteId
  *       properties:
- *         name:
+ *         departmentName:
  *           type: string
  *           description: Department name
  *           example: "Computer Science"
- *         code:
+ *         departmentCode:
  *           type: string
  *           description: Unique department code
- *           example: "CS"
+ *           example: "CS001"
  *         instituteId:
  *           type: string
  *           description: Associated institute ID
@@ -30,30 +30,11 @@ const departmentCt = require('../../Controller/instituteData/departmentCt');
  *           type: string
  *           description: Department description
  *           example: "Computer Science and Engineering Department"
- *         headOfDepartment:
- *           type: string
- *           description: Head of department ID
- *           example: "507f1f77bcf86cd799439012"
- *         contactEmail:
- *           type: string
- *           format: email
- *           description: Department contact email
- *           example: "cs@institute.edu"
- *         contactPhone:
- *           type: string
- *           description: Department contact phone
- *           example: "+1-555-123-4567"
- *         status:
- *           type: string
- *           enum: [active, inactive, suspended]
- *           default: active
- *           description: Department status
- *           example: "active"
- *         establishedDate:
- *           type: string
- *           format: date
- *           description: When department was established
- *           example: "2020-01-01"
+ *         archive:
+ *           type: boolean
+ *           default: false
+ *           description: Archive status
+ *           example: false
  *     
  *     DepartmentResponse:
  *       type: object
@@ -103,33 +84,18 @@ const departmentCt = require('../../Controller/instituteData/departmentCt');
  *           type: string
  *           required: true
  *           description: Department ID to update
- *         name:
+ *         departmentName:
  *           type: string
  *           description: Updated department name
- *         code:
+ *         departmentCode:
  *           type: string
  *           description: Updated department code
  *         description:
  *           type: string
  *           description: Updated description
- *         headOfDepartment:
- *           type: string
- *           description: Updated head of department ID
- *         contactEmail:
- *           type: string
- *           format: email
- *           description: Updated contact email
- *         contactPhone:
- *           type: string
- *           description: Updated contact phone
- *         status:
- *           type: string
- *           enum: [active, inactive, suspended]
- *           description: Updated status
- *         establishedDate:
- *           type: string
- *           format: date
- *           description: Updated established date
+ *         archive:
+ *           type: boolean
+ *           description: Updated archive status
  *     
  *     DepartmentDeleteRequest:
  *       type: object
@@ -232,10 +198,10 @@ const departmentCt = require('../../Controller/instituteData/departmentCt');
  *               message: "Departments retrieved successfully"
  *               data:
  *                 - id: "507f1f77bcf86cd799439011"
- *                   name: "Computer Science"
- *                   code: "CS"
+ *                   departmentName: "Computer Science"
+ *                   departmentCode: "CS001"
  *                   instituteId: "507f1f77bcf86cd799439012"
- *                   status: "active"
+ *                   archive: false
  *               pagination:
  *                 currentPage: 1
  *                 totalPages: 3
@@ -280,15 +246,10 @@ router.get('/department', departmentCt.getDepartment);
  *           schema:
  *             $ref: '#/components/schemas/Department'
  *           example:
- *             name: "Computer Science"
- *             code: "CS"
+ *             departmentName: "Computer Science"
+ *             departmentCode: "CS001"
  *             instituteId: "507f1f77bcf86cd799439011"
  *             description: "Computer Science and Engineering Department"
- *             headOfDepartment: "507f1f77bcf86cd799439012"
- *             contactEmail: "cs@institute.edu"
- *             contactPhone: "+1-555-123-4567"
- *             status: "active"
- *             establishedDate: "2020-01-01"
  *     responses:
  *       201:
  *         description: Department created successfully
