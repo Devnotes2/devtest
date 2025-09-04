@@ -9,14 +9,19 @@ const addPaginationAndSort = require('../../Utilities/paginationControllsUtils')
 const { instituteLookup } = require('../../Utilities/aggregations/instituteDataLookups');
 const createGradesInInstituteModel = require('../../Model/instituteData/aggregation/gradesMd');
 const createSubjectsInInstituteModel = require('../../Model/instituteData/aggregation/subjectsMd');
+const createGradeBatchesInInstituteModel = require('../../Model/instituteData/aggregation/gradeBatchesMd');
+const createGradeSectionsInInstituteModel = require('../../Model/instituteData/aggregation/gradesectionsMd');
+const createGradeSectionBatchesInInstituteModel = require('../../Model/instituteData/aggregation/gradeSectionBatchesMd');
 const { createMembersDataModel } = require('../../Model/membersModule/memberDataMd');
 
-// --- INSTITUTE DEPENDENTS CONFIG ---
+// --- DEPARTMENT DEPENDENTS CONFIG ---
 const departmentDependents = [
   { model: 'Grades', field: 'departmentId', name: 'grades' },
   { model: 'Subjects', field: 'departmentId', name: 'subjects' },
-  { model: 'MembersData', field: 'departmentId', name: 'MembersData' },
-  // Add more as needed
+  { model: 'GradeBatches', field: 'departmentId', name: 'gradeBatches' },
+  { model: 'GradeSections', field: 'departmentId', name: 'gradeSections' },
+  { model: 'GradeSectionBatches', field: 'departmentId', name: 'gradeSectionBatches' },
+  { model: 'MembersData', field: 'department', name: 'membersData' }
 ];
 
 exports.createDepartment = async (req, res) => {
@@ -242,11 +247,14 @@ exports.getDepartment = async (req, res) => {
 //   }
 // };
 
-// Delete institute(s) with dependency options
+// Delete department(s) with dependency options
 exports.deleteDepartment = async (req, res) => {
   // Register all dependent models for the current connection
   createGradesInInstituteModel(req.collegeDB);
   createSubjectsInInstituteModel(req.collegeDB);
+  createGradeBatchesInInstituteModel(req.collegeDB);
+  createGradeSectionsInInstituteModel(req.collegeDB);
+  createGradeSectionBatchesInInstituteModel(req.collegeDB);
   createMembersDataModel(req.collegeDB);
 
   const Department = createDepartmentDataModel(req.collegeDB);

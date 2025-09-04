@@ -23,7 +23,7 @@ const options = {
         description: "Development server"
       },
       {
-        url: "https://api.example.com",
+        url: "http://localhost:8000",
         description: "Production server"
       }
     ],
