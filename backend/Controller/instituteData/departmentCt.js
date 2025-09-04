@@ -21,14 +21,46 @@ const departmentDependents = [
 
 exports.createDepartment = async (req, res) => {
   const DepartmentData = createDepartmentDataModel(req.collegeDB);
+  const { instituteId, departmentName, departmentCode, description } = req.body;
+
   try {
-    const newDepartment = await handleCRUD(DepartmentData, 'create', {}, req.body);
+    const newDepartment = await handleCRUD(DepartmentData, 'create', {}, {
+      instituteId,
+      departmentName,
+      departmentCode,
+      description
+    });
+
     res.status(200).json({
-      message: 'Department created successfully!',
+      message: 'Department added successfully!',
       data: newDepartment
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create Department', details: error.message });
+    // Handle compound unique constraint violations
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      let fieldDisplayName = '';
+      let suggestion = '';
+      
+      if (field === 'departmentName') {
+        fieldDisplayName = 'Department Name';
+        suggestion = 'Department name must be unique within this institute';
+      } else if (field === 'departmentCode') {
+        fieldDisplayName = 'Department Code';
+        suggestion = 'Department code must be unique within this institute';
+      }
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists in this institute`,
+        field: field,
+        value: value,
+        suggestion: suggestion
+      });
+    }
+    
+    res.status(500).json({ error: 'Failed to add department', details: error.message });
   }
 };
 

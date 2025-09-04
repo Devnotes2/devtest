@@ -25,8 +25,9 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
     if (departmentId) matchConditions.departmentId = new ObjectId(departmentId);
     
     if (dropdown === 'true') {
-      let findQuery = GradeBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeBatch: 1 });
-      findQuery = findQuery.sort({gradeBatch:1});
+      // Fix: Change gradeBatch to batch to match model
+      let findQuery = GradeBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, batch: 1 });
+      findQuery = findQuery.sort({batch:1});
       const data = await findQuery;
       return res.status(200).json({ data });
     }
@@ -77,14 +78,15 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
         {
           $project: {
-            gradeBatch: 1,
+            batch: 1,  // Changed from gradeBatch to batch
             description: 1,
             instituteName: '$instituteDetails.instituteName',
             instituteId: '$instituteDetails._id',
             gradeCode: '$gradeDetails.gradeCode',
             gradeName: '$gradeDetails.gradeName',
             gradeDuration: '$gradeDetails.gradeDuration',
-            departmentName: '$departmentDetails.departmentName'
+            departmentName: '$departmentDetails.departmentName',
+            departmentId: '$departmentDetails._id'
           }
         },
         // Add pagination to aggregation
@@ -164,14 +166,15 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
       {
         $project: {
-          gradeBatch: 1,
+          batch: 1,  // Changed from gradeBatch to batch
           description: 1,
           instituteName: '$instituteDetails.instituteName',
           instituteId: '$instituteDetails._id',
           gradeCode: '$gradeDetails.gradeCode',
           gradeName: '$gradeDetails.gradeName',
           gradeDuration: '$gradeDetails.gradeDuration',
-          departmentName: '$departmentDetails.departmentName'
+          departmentName: '$departmentDetails.departmentName',
+          departmentId: '$departmentDetails._id'
         }
       },
       // Add pagination to main aggregation
@@ -222,20 +225,36 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
 
 exports.createGradeBatchesInInstitute = async (req, res) => {
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
-  const { instituteId, gradeId, batch } = req.body;
+  const { instituteId, gradeId, departmentId, batch, description } = req.body;
 
   try {
-    const newGradeSection = await handleCRUD(GradeBatchesInInstitute, 'create', {}, {
+    const newGradeBatch = await handleCRUD(GradeBatchesInInstitute, 'create', {}, {
       instituteId,
       gradeId,
-      batch
+      departmentId,
+      batch,
+      description
     });
 
     res.status(200).json({
       message: 'GradeBatch added successfully!',
-      data: newGradeSection
+      data: newGradeBatch
     });
   } catch (error) {
+    // Handle compound unique constraint violations
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `Batch name '${value}' already exists in this grade within the institute`,
+        field: field,
+        value: value,
+        suggestion: 'Batch names must be unique per grade within an institute'
+      });
+    }
+    
     res.status(500).json({ error: 'Failed to add gradeBatch', details: error.message });
   }
 };

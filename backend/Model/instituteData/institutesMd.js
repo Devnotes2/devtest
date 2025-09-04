@@ -1,13 +1,22 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-// Define the schema for the instituteData collection
 const instituteSchema = new Schema({
-  instituteName: { type: String, required: true ,unique: true},
-  instituteCode: { type: String, required: true ,unique: true},
+  instituteName: { 
+    type: String, 
+    required: true,
+    // Keep unique: true for institute names globally
+    unique: true
+  },
+  instituteCode: { 
+    type: String, 
+    required: true,
+    // Keep unique: true for institute codes globally
+    unique: true
+  },
   address: { type: String, required: true },
   city: { type: String, required: true },
-  district: { type: String,required:true },
+  district: { type: String, required: true },
   state: { type: String, required: true },
   country: { type: String, required: true },
   pinCode: { type: Number, required: true },
@@ -17,10 +26,9 @@ const instituteSchema = new Schema({
   archive: {
     type: Boolean,
     default: false
-    }
-}, { collection: 'instituteData', timestamps: true }); // Specify the collection name
+  }
+}, { collection: 'instituteData', timestamps: true });
 
-// Create the model
 const createInstitutesModel = (connection) => {
   return connection.model('instituteData', instituteSchema);
 };

@@ -3,37 +3,40 @@ const { Schema } = mongoose;
 
 const GradeSectionsSchema = new Schema({
   instituteId: {
-    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
   departmentId:{
-    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
   gradeId : {
-    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
   sectionName: {
-    type: String,  // Description of the grade
+    type: String,
     required: true,
-    unique: true
+    // Remove unique: true - will be compound unique
   },
   description: {
-    type: String,  // Description of the grade
+    type: String,
     required: false
   },
   archive: {
     type: Boolean,
     default: false
-    }
-});  // Optionally, you can use timestamps to track creation and update times
+  }
+});
 
-
+// Compound unique: section name unique per grade within institute
+GradeSectionsSchema.index(
+  { instituteId: 1, gradeId: 1, sectionName: 1 }, 
+  { unique: true, name: 'unique_section_per_grade' }
+);
 
 const createGradeSectionsInInstituteModel = (connection) => {
   return connection.model('GradeSections', GradeSectionsSchema);
 };
-
 
 module.exports = createGradeSectionsInInstituteModel;

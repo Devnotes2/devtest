@@ -3,24 +3,37 @@ const { Schema } = mongoose;
 
 const GradeBatchesSchema = new Schema({
   instituteId: {
-    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  },
+  departmentId:{
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
   gradeId : {
-    type: mongoose.Schema.Types.ObjectId,  // Reference to the institute (ObjectId)
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
   batch: {
-    type: String,  // Description of the grade
-    required: true
+    type: String,
+    required: true,
+    // Remove unique: true - will be compound unique
+  },
+  description: {
+    type: String,
+    required: false
   },
   archive: {
     type: Boolean,
     default: false
   }
-});  // Optionally, you can use timestamps to track creation and update times
+});
 
-
+// Compound unique: batch name unique per grade within institute
+GradeBatchesSchema.index(
+  { instituteId: 1, gradeId: 1, batch: 1 }, 
+  { unique: true, name: 'unique_batch_per_grade' }
+);
 
 const createGradeBatchesInInstituteModel = (connection) => {
   return connection.model('GradeBatches', GradeBatchesSchema);

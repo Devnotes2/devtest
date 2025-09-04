@@ -25,46 +25,39 @@ exports.gradesInInstituteAg = async (req, res) => {
   try {
     // Use utility for filtering
     const matchConditions = buildMatchConditions(req.query);
-    // Use utility for sorting
-    const sortObj = buildSortObject(req.query);
-    const { ids, aggregate, dropdown, page, limit } = req.query;
+    let valueBasedField = matchConditions.__valueBasedField;
+    delete matchConditions.__valueBasedField;
     
-    // Add pagination parameters
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 10;
+    // Add pagination parameters - exactly match department pattern
+    const pageNum = parseInt(req.query.page) || 1;
+    const limitNum = parseInt(req.query.limit) || 10;
+
+    const { ids, aggregate, dropdown } = req.query;
     
-    // Dropdown mode: return only _id and subject, with sorting and filtering
     if (dropdown === 'true') {
-      let findQuery = GradesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeName: 1 });
+      let findQuery = GradesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeName: 1, gradeCode: 1 });
       findQuery = findQuery.sort({gradeName:1});
       const data = await findQuery;
       return res.status(200).json({ data });
     }
     
+    const query = { ...matchConditions };
+    
     if (ids && Array.isArray(ids)) {
       const objectIds = ids.map(id => new ObjectId(id));
-      const matchingData = await handleCRUD(GradesInInstitute, 'find', { _id: { $in: objectIds }, ...matchConditions });
-      if (aggregate === 'false') {
-        // Add pagination to simple find
-        let query = GradesInInstitute.find({ _id: { $in: objectIds }, ...matchConditions });
-        if (sortObj) query = query.sort(sortObj);
-        query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
-        const paginatedData = await query;
-        
-        // Count total matching documents
-        const totalDocs = await GradesInInstitute.countDocuments({ _id: { $in: objectIds }, ...matchConditions });
-        
-        return res.status(200).json({ 
-          count: paginatedData.length, 
-          totalDocs, 
-          page: pageNum, 
-          limit: limitNum, 
-          data: paginatedData 
-        });
-      }
+      query._id = { $in: objectIds };
       
+      if (aggregate === 'false') {
+        // Add pagination to simple find - exactly match department pattern
+        let findQuery = GradesInInstitute.find(query);
+        findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
+        const matchingData = await findQuery;
+        const filteredDocs = await GradesInInstitute.countDocuments(query);
+        return res.status(200).json({ count: matchingData.length, filteredDocs, data: matchingData });
+      }
+
       const aggregatedData = await GradesInInstitute.aggregate([
-        { $match: { _id: { $in: objectIds }, ...matchConditions } },
+        { $match: query },
         {
           $lookup: {
             from: 'instituteData',
@@ -84,53 +77,56 @@ exports.gradesInInstituteAg = async (req, res) => {
         },
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
         {
-          $lookup: {
-            from: 'generalData',
-            let: { gradeDurationId: '$gradeDuration' },
-            pipeline: [
-              { $match: { _id: 'gradeDuration' } },
-              { $unwind: '$data' },
-              { $match: { $expr: { $eq: ['$data._id', '$$gradeDurationId'] } } },
-              { $project: { gradeDurationValue: '$data.value' } }
-            ],
-            as: 'gradeDurationDetails'
-          }
-        },
-        { $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
-        {
           $project: {
-            gradeCode: 1,
             gradeName: 1,
+            gradeCode: 1,
             description: 1,
+            gradeDuration: 1,
             instituteName: '$instituteDetails.instituteName',
-            departmentName: '$departmentDetails.departmentName',
             instituteId: '$instituteDetails._id',
-            gradeDuration: '$gradeDurationDetails.gradeDurationValue',
+            departmentName: '$departmentDetails.departmentName',
+            departmentId: '$departmentDetails._id'
           }
         },
-        { $sort: sortObj },
         // Add pagination to aggregation
         { $skip: (pageNum - 1) * limitNum },
         { $limit: limitNum }
       ]);
+
+      // Count after all matches - exactly match department pattern
+      const countPipeline = [
+        { $match: query },
+        {
+          $lookup: {
+            from: 'instituteData',
+            localField: 'instituteId',
+            foreignField: '_id',
+            as: 'instituteDetails'
+          }
+        },
+        { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: 'departmentdatas',
+            localField: 'departmentId',
+            foreignField: '_id',
+            as: 'departmentDetails'
+          }
+        },
+        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
+      ];
+      const filteredDocsArr = await GradesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
+      const filteredDocs = filteredDocsArr[0]?.count || 0;
       
-      // Count total matching documents for pagination info
-      const totalDocs = await GradesInInstitute.countDocuments({ _id: { $in: objectIds }, ...matchConditions });
-      
-      return res.status(200).json({ 
-        count: aggregatedData.length, 
-        totalDocs, 
-        page: pageNum, 
-        limit: limitNum, 
-        data: aggregatedData 
-      });
+      return res.status(200).json({ count: aggregatedData.length, filteredDocs, data: aggregatedData });
     }
 
     // Get total count for pagination
-    const totalDocs = await GradesInInstitute.countDocuments(matchConditions);
-    
+    const totalDocs = await GradesInInstitute.countDocuments(query);
+
+    // Aggregate all data without ID filtering
     const allData = await GradesInInstitute.aggregate([
-      { $match: { ...matchConditions } },
+      { $match: query },
       {
         $lookup: {
           from: 'instituteData',
@@ -150,43 +146,49 @@ exports.gradesInInstituteAg = async (req, res) => {
       },
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
       {
-        $lookup: {
-          from: 'generalData',
-          let: { gradeDurationId: '$gradeDuration' },
-          pipeline: [
-            { $match: { _id: 'gradeDuration' } },
-            { $unwind: '$data' },
-            { $match: { $expr: { $eq: ['$data._id', '$$gradeDurationId'] } } },
-            { $project: { gradeDurationValue: '$data.value' } }
-          ],
-          as: 'gradeDurationDetails'
-        }
-      },
-      { $unwind: { path: '$gradeDurationDetails', preserveNullAndEmptyArrays: true } },
-      {
         $project: {
-          gradeCode: 1,
           gradeName: 1,
+          gradeCode: 1,
           description: 1,
+          gradeDuration: 1,
           instituteName: '$instituteDetails.instituteName',
-          departmentName: '$departmentDetails.departmentName',
           instituteId: '$instituteDetails._id',
-          gradeDuration: '$gradeDurationDetails.gradeDurationValue',
+          departmentName: '$departmentDetails.departmentName',
+          departmentId: '$departmentDetails._id'
         }
       },
-      { $sort: sortObj },
       // Add pagination to main aggregation
       { $skip: (pageNum - 1) * limitNum },
       { $limit: limitNum }
     ]);
-    
-    return res.status(200).json({ 
-      count: allData.length, 
-      totalDocs, 
-      page: pageNum, 
-      limit: limitNum, 
-      data: allData 
-    });
+
+    // Count after all matches - exactly match department pattern
+    const countPipeline = [
+      { $match: query },
+      {
+        $lookup: {
+          from: 'instituteData',
+          localField: 'instituteId',
+          foreignField: '_id',
+          as: 'instituteDetails'
+        }
+      },
+      { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'departmentdatas',
+          localField: 'departmentId',
+          foreignField: '_id',
+          as: 'departmentDetails'
+        }
+      },
+      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
+    ];
+    const filteredDocsArr = await GradesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
+    const filteredDocs = filteredDocsArr[0]?.count || 0;
+
+    return res.status(200).json({ count: allData.length, filteredDocs, totalDocs, data: allData });
+
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -211,22 +213,27 @@ exports.createGradesInInstitute = async (req, res) => {
       data: newGrade
     });
   } catch (error) {
-    // Handle unique constraint violations
+    // Handle compound unique constraint violations
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
-      console.log("Error Key Pattern:", error.keyPattern);
-      console.log("Error Key Value:", error.keyValue);
-      let fieldDisplayName = field === 'gradeName' ? 'Grade Name' : 'Grade Code';
+      let fieldDisplayName = '';
+      let suggestion = '';
+      
+      if (field === 'gradeName') {
+        fieldDisplayName = 'Grade Name';
+        suggestion = 'Grade name must be unique within this institute';
+      } else if (field === 'gradeCode') {
+        fieldDisplayName = 'Grade Code';
+        suggestion = 'Grade code must be unique within this institute';
+      }
       
       return res.status(400).json({
         error: 'Duplicate value',
-        details: `${fieldDisplayName} '${value}' already exists`,
+        details: `${fieldDisplayName} '${value}' already exists in this institute`,
         field: field,
         value: value,
-        suggestion: field === 'gradeName' 
-          ? 'Please choose a different grade name' 
-          : 'Please choose a different grade code'
+        suggestion: suggestion
       });
     }
     

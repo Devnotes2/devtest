@@ -39,7 +39,6 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
       query._id = { $in: objectIds };
       
       if (aggregate === 'false') {
-        console.log('without aggre');
         // Add pagination to simple find - exactly match department pattern
         let findQuery = GradeSectionBatchesInInstitute.find(query);
         findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
@@ -95,7 +94,9 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
             gradeCode: '$gradeDetails.gradeCode',
             gradeName: '$gradeDetails.gradeName',
             gradeDuration: '$gradeDetails.gradeDuration',
-            sectionName: '$gradeSectionDetails.sectionName'
+            sectionName: '$gradeSectionDetails.sectionName',
+            departmentName: '$departmentDetails.departmentName',
+            departmentId: '$departmentDetails._id'
           }
         },
         // Add pagination to aggregation
@@ -200,7 +201,9 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
           gradeCode: '$gradeDetails.gradeCode',
           gradeName: '$gradeDetails.gradeName',
           gradeDuration: '$gradeDetails.gradeDuration',
-          sectionName: '$gradeSectionDetails.sectionName'
+          sectionName: '$gradeSectionDetails.sectionName',
+          departmentName: '$departmentDetails.departmentName',
+          departmentId: '$departmentDetails._id'
         }
       },
       // Add pagination to main aggregation
@@ -260,42 +263,38 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
 
 exports.createGradeSectionBatchesInInstitute = async (req, res) => {
   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  // Add departmentId and description, change gradeSectionBatch to sectionBatchName
-    const { instituteId, gradeId, departmentId, sectionBatchName, description, sectionId } = req.body;
-    console.log("Request Body:", req.body);
+  const { instituteId, gradeId, departmentId, sectionBatchName, description, sectionId } = req.body;
+
   try {
     const newGradeSection = await handleCRUD(GradeSectionBatchesInInstitute, 'create', {}, {
       instituteId,
-      departmentId,        // Added this field
+      departmentId,
       gradeId,
       sectionId,
-      sectionBatchName,    // Changed from gradeSectionBatch
-      description,          // Added this field
+      sectionBatchName,
+      description,
     });
-    console.log("New Grade Section Batch:", newGradeSection);
+
     res.status(200).json({
       message: 'GradeSection added successfully!',
       data: newGradeSection
     });
   } catch (error) {
-    // Handle unique constraint violations
+    // Handle compound unique constraint violations
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
-      console.log("Error Key Pattern:", error.keyPattern);
-      console.log("Error Key Value:", error.keyValue);
-      let fieldDisplayName = field === 'sectionBatchName' ? 'Section Batch Name' : 'Section Batch Code';
       
       return res.status(400).json({
         error: 'Duplicate value',
-        details: `${fieldDisplayName} '${value}' already exists`,
+        details: `Section batch name '${value}' already exists in this section within the institute`,
         field: field,
         value: value,
-        suggestion: 'Please choose a different section batch name'
+        suggestion: 'Section batch names must be unique per section within an institute'
       });
     }
     
-    res.status(500).json({ error: 'Failed to add grade section batch ', details: error.message });
+    res.status(500).json({ error: 'Failed to add grade section batch', details: error.message });
   }
 };
 
