@@ -9,7 +9,7 @@ const addPaginationAndSort = require('../../Utilities/paginationControllsUtils')
 const { instituteLookup } = require('../../Utilities/aggregations/instituteDataLookups');
 const createGradesInInstituteModel = require('../../Model/instituteData/aggregation/gradesMd');
 const createSubjectsInInstituteModel = require('../../Model/instituteData/aggregation/subjectsMd');
-const { createMemberDataModel } = require('../../Model/membersModule/memberDataMd');
+const { createMembersDataModel } = require('../../Model/membersModule/memberDataMd');
 
 // --- INSTITUTE DEPENDENTS CONFIG ---
 const departmentDependents = [
@@ -247,7 +247,7 @@ exports.deleteDepartment = async (req, res) => {
   // Register all dependent models for the current connection
   createGradesInInstituteModel(req.collegeDB);
   createSubjectsInInstituteModel(req.collegeDB);
-  createMemberDataModel(req.collegeDB);
+  createMembersDataModel(req.collegeDB);
 
   const Department = createDepartmentDataModel(req.collegeDB);
   const { ids, deleteDependents, transferTo, archive } = req.body;

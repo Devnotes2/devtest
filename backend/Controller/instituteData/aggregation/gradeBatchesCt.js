@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createGradeBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeBatchesMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
-const { createMemberDataModel } = require('../../../Model/membersModule/memberDataMd');
+const { createMembersDataModel } = require('../../../Model/membersModule/memberDataMd');
 
 // --- Grade DEPENDENTS CONFIG ---
 const gradeBatchDependents = [
@@ -322,7 +322,7 @@ exports.updateGradeBatchesInInstitute = async (req, res) => {
 // Delete Grade Batch(s) with dependency options
 exports.deleteGradeBatchesInInstitute = async (req, res) => {
   // Register all dependent models for the current connection
-  createMemberDataModel(req.collegeDB);
+  createMembersDataModel(req.collegeDB);
 
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
   const { ids, deleteDependents, transferTo, archive } = req.body;

@@ -3,7 +3,7 @@ const { ObjectId } = mongoose.Types;
 const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradesectionsMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
 const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
-const { createMemberDataModel } = require('../../../Model/membersModule/memberDataMd');
+const { createMembersDataModel } = require('../../../Model/membersModule/memberDataMd');
 
 // --- Grade Section DEPENDENTS CONFIG ---
 const gradeSectionDependents = [
@@ -339,7 +339,7 @@ exports.updateGradeSectionsInInstitute = async (req, res) => {
 exports.deleteGradeSectionsInInstitute = async (req, res) => {
   // Register all dependent models for the current connection
   createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  createMemberDataModel(req.collegeDB);
+  createMembersDataModel(req.collegeDB);
 
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
   const { ids, deleteDependents, transferTo, archive } = req.body;

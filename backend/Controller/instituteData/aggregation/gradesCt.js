@@ -7,7 +7,7 @@ const createSubjectsInInstituteModel = require('../../../Model/instituteData/agg
 const createGradeBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeBatchesMd');
 const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradesectionsMd');
 const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
-const { createMemberDataModel } = require('../../../Model/membersModule/memberDataMd');
+const { createMembersDataModel } = require('../../../Model/membersModule/memberDataMd');
 
 // --- Grade DEPENDENTS CONFIG ---
 const gradesDependents = [
@@ -345,7 +345,7 @@ exports.deleteGradesInInstitute = async (req, res) => {
   createGradeBatchesInInstituteModel(req.collegeDB);
   createGradeSectionsInInstituteModel(req.collegeDB);
   createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  createMemberDataModel(req.collegeDB);
+  createMembersDataModel(req.collegeDB);
 
   const Grade = createGradesInInstituteModel(req.collegeDB);
   const { ids, deleteDependents, transferTo, archive } = req.body;

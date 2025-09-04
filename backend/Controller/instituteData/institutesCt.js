@@ -7,7 +7,7 @@ const createLocationTypesInInstituteModel = require('../../Model/instituteData/a
 const createGradeBatchesInInstituteModel = require('../../Model/instituteData/aggregation/gradeBatchesMd');
 const createGradeSectionsInInstituteModel = require('../../Model/instituteData/aggregation/gradesectionsMd');
 const createGradeSectionBatchesInInstituteModel = require('../../Model/instituteData/aggregation/gradeSectionBatchesMd');
-const { createMemberDataModel } = require('../../Model/membersModule/memberDataMd');
+const { createMembersDataModel } = require('../../Model/membersModule/memberDataMd');
 const { handleCRUD } = require('../../Utilities/crudUtils');
 
 
@@ -131,7 +131,7 @@ exports.deleteInstitutes = async (req, res) => {
   createGradeBatchesInInstituteModel(req.collegeDB);
   createGradeSectionsInInstituteModel(req.collegeDB);
   createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  createMemberDataModel(req.collegeDB);
+  createMembersDataModel(req.collegeDB);
 
   const Institute = createInstitutesModel(req.collegeDB);
   const { ids, deleteDependents, transferTo, archive } = req.body;
