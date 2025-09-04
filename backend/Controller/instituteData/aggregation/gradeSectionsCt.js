@@ -17,7 +17,7 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
   const { ids, instituteId, gradeId, sectionName, aggregate, dropdown, page, limit } = req.query;
 
   try {
-    // Add pagination parameters
+    // Add pagination parameters - exactly match department pattern
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;
 
@@ -41,21 +41,12 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
       
       if (aggregate === 'false') {
         console.log('without aggre');
-        // Add pagination to simple find
+        // Add pagination to simple find - exactly match department pattern
         let findQuery = GradeSectionsInInstitute.find(query);
         findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
         const matchingData = await findQuery;
-        
-        // Count total matching documents
-        const totalDocs = await GradeSectionsInInstitute.countDocuments(query);
-        
-        return res.status(200).json({ 
-          count: matchingData.length, 
-          totalDocs, 
-          page: pageNum, 
-          limit: limitNum, 
-          data: matchingData 
-        });
+        const filteredDocs = await GradeSectionsInInstitute.countDocuments(query);
+        return res.status(200).json({ count: matchingData.length, filteredDocs, data: matchingData });
       }
 
       const aggregatedData = await GradeSectionsInInstitute.aggregate([
@@ -104,16 +95,41 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
         { $limit: limitNum }
       ]);
 
-      // Count total matching documents for pagination info
-      const totalDocs = await GradeSectionsInInstitute.countDocuments(query);
+      // Count after all matches - exactly match department pattern
+      const countPipeline = [
+        { $match: query },
+        {
+          $lookup: {
+            from: 'instituteData',
+            localField: 'instituteId',
+            foreignField: '_id',
+            as: 'instituteDetails'
+          }
+        },
+        { $unwind: '$instituteDetails' },
+        {
+          $lookup: {
+            from: 'grades',
+            localField: 'gradeId',
+            foreignField: '_id',
+            as: 'gradeDetails'
+          }
+        },
+        { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: 'departmentdatas',
+            localField: 'departmentId',
+            foreignField: '_id',
+            as: 'departmentDetails'
+          }
+        },
+        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
+      ];
+      const filteredDocsArr = await GradeSectionsInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
+      const filteredDocs = filteredDocsArr[0]?.count || 0;
       
-      return res.status(200).json({ 
-        count: aggregatedData.length, 
-        totalDocs, 
-        page: pageNum, 
-        limit: limitNum, 
-        data: aggregatedData 
-      });
+      return res.status(200).json({ count: aggregatedData.length, filteredDocs, data: aggregatedData });
     }
 
     // Get total count for pagination
@@ -166,13 +182,41 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
       { $limit: limitNum }
     ]);
 
-    return res.status(200).json({ 
-      count: allData.length, 
-      totalDocs, 
-      page: pageNum, 
-      limit: limitNum, 
-      data: allData 
-    });
+    // Count after all matches - exactly match department pattern
+    const countPipeline = [
+      { $match: query },
+      {
+        $lookup: {
+          from: 'instituteData',
+          localField: 'instituteId',
+          foreignField: '_id',
+          as: 'instituteDetails'
+        }
+      },
+      { $unwind: '$instituteDetails' },
+      {
+        $lookup: {
+          from: 'grades',
+          localField: 'gradeId',
+          foreignField: '_id',
+          as: 'gradeDetails'
+        }
+      },
+      { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'departmentdatas',
+          localField: 'departmentId',
+          foreignField: '_id',
+          as: 'departmentDetails'
+        }
+      },
+      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
+    ];
+    const filteredDocsArr = await GradeSectionsInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
+    const filteredDocs = filteredDocsArr[0]?.count || 0;
+
+    return res.status(200).json({ count: allData.length, filteredDocs, totalDocs, data: allData });
   } catch (error) {
     console.error('Error in gradeSectionsInInstituteAg:', error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
