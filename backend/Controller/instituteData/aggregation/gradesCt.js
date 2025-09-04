@@ -273,7 +273,28 @@ exports.updateGradesInInstitute = async (req, res) => {
   } catch (error) {
     console.error("Update Error:", error);
     
-    // Handle unique constraint violations
+    // Handle custom validation errors from schema middleware
+    if (error.code === 'DUPLICATE_GRADE_NAME') {
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `Grade name '${updatedData.gradeName}' already exists in this institute`,
+        field: 'gradeName',
+        value: updatedData.gradeName,
+        suggestion: 'Grade names must be unique within each institute'
+      });
+    }
+    
+    if (error.code === 'DUPLICATE_GRADE_CODE') {
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `Grade code '${updatedData.gradeCode}' already exists in this institute`,
+        field: 'gradeCode',
+        value: updatedData.gradeCode,
+        suggestion: 'Grade codes must be unique within each institute'
+      });
+    }
+    
+    // Handle unique constraint violations (fallback)
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];

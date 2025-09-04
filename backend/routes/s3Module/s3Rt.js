@@ -5,6 +5,106 @@ const authMiddleware = require('../../Utilities/authUtils');
 const { connectCollegeDB } = require('../../config/db');
 const Tenant = require('../../Model/authentication/tenantMd');
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     PresignRequest:
+ *       type: object
+ *       required:
+ *         - fileName
+ *         - mimeType
+ *         - purpose
+ *       properties:
+ *         fileName:
+ *           type: string
+ *           description: Name of the file to upload
+ *           example: "profile_image.jpg"
+ *         mimeType:
+ *           type: string
+ *           description: MIME type of the file
+ *           example: "image/jpeg"
+ *         purpose:
+ *           type: string
+ *           enum: [profile, document, assignment, syllabus, other]
+ *           description: Purpose of the file upload
+ *           example: "profile"
+ *         folder:
+ *           type: string
+ *           description: Optional folder path in S3
+ *           example: "users/profiles"
+ *     
+ *     PresignResponse:
+ *       type: object
+ *       properties:
+ *         url:
+ *           type: string
+ *           format: uri
+ *           description: Presigned URL for file upload
+ *           example: "https://s3.amazonaws.com/bucket/folder/file.jpg?AWSAccessKeyId=..."
+ *         key:
+ *           type: string
+ *           description: S3 object key
+ *           example: "users/profiles/profile_image.jpg"
+ *         message:
+ *           type: string
+ *           description: Success message
+ *           example: "success"
+ *         expiresIn:
+ *           type: integer
+ *           description: URL expiration time in seconds
+ *           example: 3600
+ *     
+ *     FileUploadInfo:
+ *       type: object
+ *       properties:
+ *         fileName:
+ *           type: string
+ *           description: Original file name
+ *         fileSize:
+ *           type: number
+ *           description: File size in bytes
+ *         mimeType:
+ *           type: string
+ *           description: File MIME type
+ *         purpose:
+ *           type: string
+ *           description: Upload purpose
+ *         folder:
+ *           type: string
+ *           description: S3 folder path
+ *     
+ *     SuccessResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           description: Success message
+ *         data:
+ *           type: object
+ *           description: Response data
+ *     
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *           description: Error type
+ *         message:
+ *           type: string
+ *           description: Error message
+ *         status:
+ *           type: string
+ *           description: Error status
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: File Upload
+ *   description: S3 file upload and management endpoints
+ */
+
 // Custom authentication middleware that supports both cookies and headers
 const flexibleAuthMiddleware = async (req, res, next) => {
   try {
@@ -84,6 +184,102 @@ const flexibleAuthMiddleware = async (req, res, next) => {
 
 // Apply authentication to all S3 routes
 router.use(flexibleAuthMiddleware);
+
+/**
+ * @swagger
+ * /s3/presign:
+ *   post:
+ *     summary: Generate presigned URL for file upload
+ *     tags: [File Upload]
+ *     description: Generate a presigned S3 URL for secure file uploads. Supports both web (cookies) and mobile (Bearer token) authentication.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PresignRequest'
+ *           example:
+ *             fileName: "profile_image.jpg"
+ *             mimeType: "image/jpeg"
+ *             purpose: "profile"
+ *             folder: "users/profiles"
+ *     responses:
+ *       200:
+ *         description: Presigned URL generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PresignResponse'
+ *             example:
+ *               url: "https://s3.amazonaws.com/bucket/users/profiles/profile_image.jpg?AWSAccessKeyId=..."
+ *               key: "users/profiles/profile_image.jpg"
+ *               message: "success"
+ *               expiresIn: 3600
+ *         headers:
+ *           X-Auth-Token:
+ *             description: New authentication token for mobile requests
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Bad request - validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Validation Error"
+ *               message: "fileName, mimeType, and purpose are required"
+ *       401:
+ *         description: Unauthorized - authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               noToken:
+ *                 summary: No token provided
+ *                 value:
+ *                   error: "Access denied. No token provided."
+ *                   message: "Please provide authentication token in cookies or Authorization header"
+ *               expiredToken:
+ *                 summary: Token expired
+ *                 value:
+ *                   error: "Access denied. Token has expired."
+ *                   message: "Please login again"
+ *               invalidToken:
+ *                 summary: Invalid token
+ *                 value:
+ *                   error: "Invalid token."
+ *                   message: "Authentication failed"
+ *       404:
+ *         description: Tenant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               error: "Tenant not found"
+ *               message: "No configuration found for institute code 'ABC001'"
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             examples:
+ *               databaseError:
+ *                 summary: Database connection failed
+ *                 value:
+ *                   error: "Database connection failed"
+ *                   message: "Failed to connect to college database"
+ *               generalError:
+ *                 summary: General server error
+ *                 value:
+ *                   error: "Internal Server Error"
+ *                   message: "Something went wrong on the server"
+ */
 
 /**
  * POST /s3/presign

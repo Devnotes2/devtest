@@ -288,11 +288,22 @@ exports.createGradeSectionBatchesInInstitute = async (req, res) => {
     });
 
     res.status(200).json({
-      message: 'GradeSection added successfully!',
+      message: 'Grade Section Batch added successfully!',
       data: newGradeSection
     });
   } catch (error) {
-    // Handle compound unique constraint violations
+    // Handle custom validation errors from schema middleware
+    if (error.code === 'DUPLICATE_SECTION_BATCH_NAME') {
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `Section batch name '${sectionBatchName}' already exists in this section within the institute`,
+        field: 'sectionBatchName',
+        value: sectionBatchName,
+        suggestion: 'Section batch names must be unique per section within each institute'
+      });
+    }
+    
+    // Handle MongoDB duplicate key errors (fallback)
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
@@ -319,13 +330,24 @@ exports.updateGradeSectionBatchesInInstitute = async (req, res) => {
     const result = await handleCRUD(GradeSectionBatchesInInstitute, 'update', { _id }, { $set: updatedData });
 
     if (result.modifiedCount > 0) {
-      res.status(200).json({ message: 'GradeSection updated successfully' });
+      res.status(200).json({ message: 'Grade Section Batch updated successfully' });
     } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
       res.status(200).json({ message: 'No updates were made' });
     } else {
       res.status(404).json({ message: 'No matching gradeSection found or values are unchanged' });
     }
   } catch (error) {
+    // Handle custom validation errors from schema middleware
+    if (error.code === 'DUPLICATE_SECTION_BATCH_NAME') {
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `Section batch name '${updatedData.sectionBatchName}' already exists in this section within the institute`,
+        field: 'sectionBatchName',
+        value: updatedData.sectionBatchName,
+        suggestion: 'Section batch names must be unique per section within each institute'
+      });
+    }
+    
     res.status(500).json({ error: 'Failed to update gradeSection', details: error.message });
   }
 };

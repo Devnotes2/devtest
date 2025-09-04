@@ -60,7 +60,7 @@ exports.getInstitutes = async (req, res) => {
 
 // Add a new institute
 exports.insertInstitute = async (req, res) => {
-  const InstitutesData = createInstitutesDataModel(req.collegeDB);
+  const InstitutesData = createInstitutesModel(req.collegeDB);
   try {
     const newInstitute = await handleCRUD(InstitutesData, 'create', {}, req.body);
     res.status(200).json({
@@ -89,7 +89,7 @@ exports.insertInstitute = async (req, res) => {
 };
 
 exports.updateInstitute = async (req, res) => {
-  const InstitutesData = createInstitutesDataModel(req.collegeDB);
+  const InstitutesData = createInstitutesModel(req.collegeDB);
   const { _id, updatedData } = req.body;
   try {
     const result = await handleCRUD(InstitutesData, 'update', { _id }, { $set: updatedData });

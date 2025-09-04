@@ -285,7 +285,18 @@ exports.updateGradeSectionsInInstitute = async (req, res) => {
       res.status(404).json({ message: 'No matching grade section found or values are unchanged' });
     }
   } catch (error) {
-    // Handle unique constraint violations
+    // Handle custom validation errors from schema middleware
+    if (error.code === 'DUPLICATE_SECTION_NAME') {
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `Section name '${updatedData.sectionName}' already exists in this grade within the institute`,
+        field: 'sectionName',
+        value: updatedData.sectionName,
+        suggestion: 'Section names must be unique per grade within each institute'
+      });
+    }
+    
+    // Handle unique constraint violations (fallback)
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];

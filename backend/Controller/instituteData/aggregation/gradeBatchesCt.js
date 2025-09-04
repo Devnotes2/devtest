@@ -279,14 +279,25 @@ exports.updateGradeBatchesInInstitute = async (req, res) => {
     const result = await handleCRUD(GradeBatchesInInstitute, 'update', { _id }, { $set: updatedData });
 
     if (result.modifiedCount > 0) {
-      res.status(200).json({ message: 'GradeSection updated successfully' });
+      res.status(200).json({ message: 'GradeBatch updated successfully' });
     } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
       res.status(200).json({ message: 'No updates were made' });
     } else {
       res.status(404).json({ message: 'No matching grade found or values are unchanged' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update grade', details: error.message });
+    // Handle custom validation errors from schema middleware
+    if (error.code === 'DUPLICATE_BATCH_NAME') {
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `Batch name '${updatedData.batch}' already exists in this grade within the institute`,
+        field: 'batch',
+        value: updatedData.batch,
+        suggestion: 'Batch names must be unique per grade within each institute'
+      });
+    }
+    
+    res.status(500).json({ error: 'Failed to update gradeBatch', details: error.message });
   }
 };
 

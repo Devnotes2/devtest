@@ -8,21 +8,25 @@ const route = require('./routes/routes');
 const memberDataCt = require('./Controller/membersModule/memberDataCt');
 const authCt = require('./Controller/authentication/authCt');
 
+// 🆕 ADD THIS LINE - Swagger documentation setup
+const swaggerSetup = require('./api-docs/swagger');
+
 const app = express();
 const allowedOrigins = [
   'http://svb.local:8000',
+  'http://localhost:8000',
   'https://devtest-7wh6.onrender.com',
   'https://devtest2.onrender.com',
   'http://yet-another-frontend.local',
   'http://localhost:19000', // React Native Expo
   'http://localhost:8081',  // React Native Metro
-  'http://10.0.2.2:19000',  // Android emulator
-  'http://10.0.2.2:8081',   // Android emulator
-  'http://127.0.0.1:19000', // iOS simulator
-  'http://127.0.0.1:8081',  // iOS simulator
-  'http://192.168.1.7:8081',
+  '10.0.2.2:19000',  // Android emulator
+  '10.0.2.2:8081',   // Android emulator
+  '127.0.0.1:19000', // iOS simulator
+  '127.0.0.1:8081',  // iOS simulator
+  '192.168.1.7:8081',
   'exp://192.168.1.7:8081',
-  'http://192.168.1.3:8081',
+  '192.168.1.3:8081',
   'exp://192.168.1.3:8081',
   'exp+devtestmbl://expo-development-client/?url=http%3A%2F%2F192.168.1.7%3A8081'
 ];
@@ -54,8 +58,11 @@ app.use('/s3', require('./routes/s3Module/s3Rt'));
 // All other API routes
 app.use('/', route);
 
+// 🆕 ADD THIS LINE - Setup Swagger documentation
+swaggerSetup(app);
 
 const port = process.env.PORT || 8000;
 app.listen(port,'0.0.0.0', () => {
   console.log(`App running on port ${port}...`);
+  console.log(`📚 Swagger documentation available at: http://localhost:${port}/docs`);
 });

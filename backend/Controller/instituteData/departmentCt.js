@@ -78,6 +78,27 @@ exports.updateDepartment = async (req, res) => {
       res.status(404).json({ message: 'No matching department found or values are unchanged' });
     }
   } catch (error) {
+    // Handle custom validation errors from schema middleware
+    if (error.code === 'DUPLICATE_DEPARTMENT_NAME') {
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `Department name '${updatedData.departmentName}' already exists in this institute`,
+        field: 'departmentName',
+        value: updatedData.departmentName,
+        suggestion: 'Department names must be unique within each institute'
+      });
+    }
+    
+    if (error.code === 'DUPLICATE_DEPARTMENT_CODE') {
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `Department code '${updatedData.departmentCode}' already exists in this institute`,
+        field: 'departmentCode',
+        value: updatedData.departmentCode,
+        suggestion: 'Department codes must be unique within each institute'
+      });
+    }
+    
     res.status(500).json({ error: 'Failed to update department', details: error.message });
   }
 };
