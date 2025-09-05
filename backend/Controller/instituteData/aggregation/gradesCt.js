@@ -81,7 +81,7 @@ exports.gradesInInstituteAg = async (req, res) => {
           }
         },
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
-        ...generalDataLookup('gradeDuration', 'gradeDuration', 'gradeDurationDetails', 'gradeDurationValue'),
+        ...generalDataLookup('gradeDuration', 'gradeDurationId', 'gradeDurationDetails', 'gradeDurationValue'),
         {
           $project: {
             // Only use fields that exist in the model
@@ -91,7 +91,7 @@ exports.gradesInInstituteAg = async (req, res) => {
             gradeName: 1,
             gradeCode: 1,
             description: 1,
-            gradeDuration: 1,
+            gradeDurationId: 1,
             archive: 1,
             createdAt: 1,
             updatedAt: 1,
@@ -127,7 +127,7 @@ exports.gradesInInstituteAg = async (req, res) => {
           }
         },
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
-        ...generalDataLookup('gradeDuration', 'gradeDuration', 'gradeDurationDetails', 'gradeDurationValue')
+        ...generalDataLookup('gradeDuration', 'gradeDurationId', 'gradeDurationDetails', 'gradeDurationValue')
       ];
       const filteredDocsArr = await GradesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
       filteredDocs = filteredDocsArr[0]?.count || 0;
@@ -156,7 +156,7 @@ exports.gradesInInstituteAg = async (req, res) => {
         }
       },
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
-      ...generalDataLookup('gradeDuration', 'gradeDuration', 'gradeDurationDetails', 'gradeDurationValue'),
+      ...generalDataLookup('gradeDuration', 'gradeDurationId', 'gradeDurationDetails', 'gradeDurationValue'),
       {
         $project: {
           // Only use fields that exist in the model
@@ -166,7 +166,7 @@ exports.gradesInInstituteAg = async (req, res) => {
           gradeName: 1,
           gradeCode: 1,
           description: 1,
-          gradeDuration: 1,
+          gradeDurationId: 1,
           archive: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -202,7 +202,7 @@ exports.gradesInInstituteAg = async (req, res) => {
         }
       },
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
-      ...generalDataLookup('gradeDuration', 'gradeDuration', 'gradeDurationDetails', 'gradeDurationValue')
+      ...generalDataLookup('gradeDuration', 'gradeDurationId', 'gradeDurationDetails', 'gradeDurationValue')
     ];
     const filteredDocsArr = await GradesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
     filteredDocs = filteredDocsArr[0]?.count || 0;
@@ -216,7 +216,7 @@ exports.gradesInInstituteAg = async (req, res) => {
 
 exports.createGradesInInstitute = async (req, res) => {
   const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { instituteId, gradeCode, departmentId, gradeName, description, gradeDuration } = req.body;
+  const { instituteId, gradeCode, departmentId, gradeName, description, gradeDurationId } = req.body;
 
   try {
     const newGrade = await handleCRUD(GradesInInstitute, 'create', {}, {
@@ -225,7 +225,7 @@ exports.createGradesInInstitute = async (req, res) => {
       departmentId,
       gradeName,
       description,
-      gradeDuration
+      gradeDurationId
     });
 
     res.status(200).json({

@@ -14,7 +14,7 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *         - gradeCode
  *         - instituteId
  *         - departmentId
- *         - gradeDuration
+ *         - gradeDurationId
  *       properties:
  *         _id:
  *           type: string
@@ -40,7 +40,7 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *           type: string
  *           description: Grade description
  *           example: "Tenth grade - Senior Secondary"
- *         gradeDuration:
+ *         gradeDurationId:
  *           type: string
  *           description: Grade duration ID
  *           example: "507f1f77bcf86cd799439013"
@@ -71,6 +71,10 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *               type: string
  *               description: Department name from lookup
  *               example: "Science Department"
+ *             gradeDurationValue:
+ *               type: string
+ *               description: Grade duration value from lookup
+ *               example: "1 Year"
  *     
  *     GradeDropdown:
  *       type: object
@@ -95,7 +99,7 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *         - gradeCode
  *         - instituteId
  *         - departmentId
- *         - gradeDuration
+ *         - gradeDurationId
  *       properties:
  *         gradeName:
  *           type: string
@@ -117,7 +121,7 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *           type: string
  *           description: Grade description
  *           example: "Tenth grade - Senior Secondary"
- *         gradeDuration:
+ *         gradeDurationId:
  *           type: string
  *           description: Grade duration ID
  *           example: "507f1f77bcf86cd799439013"
@@ -147,7 +151,7 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *               type: string
  *               description: Updated description
  *               example: "Updated tenth grade description"
- *             gradeDuration:
+ *             gradeDurationId:
  *               type: string
  *               description: Updated grade duration ID
  *               example: "507f1f77bcf86cd799439014"
@@ -411,7 +415,7 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *         description: Filter by department ID
  *         example: "507f1f77bcf86cd799439012"
  *       - in: query
- *         name: gradeDuration
+ *         name: gradeDurationId
  *         schema:
  *           type: string
  *         description: Filter by grade duration ID
@@ -505,12 +509,13 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *                       instituteId: "507f1f77bcf86cd799439012"
  *                       departmentId: "507f1f77bcf86cd799439013"
  *                       description: "Tenth grade - Senior Secondary"
- *                       gradeDuration: "507f1f77bcf86cd799439014"
+ *                       gradeDurationId: "507f1f77bcf86cd799439014"
  *                       archive: false
  *                       createdAt: "2024-01-15T10:30:00.000Z"
  *                       updatedAt: "2024-01-15T10:30:00.000Z"
  *                       instituteName: "ABC School"
  *                       departmentName: "Science Department"
+ *                       gradeDurationValue: "1 Year"
  *               dropdown_list:
  *                 summary: Dropdown grade list
  *                 value:
@@ -534,12 +539,13 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *                       instituteId: "507f1f77bcf86cd799439012"
  *                       departmentId: "507f1f77bcf86cd799439013"
  *                       description: "Tenth grade - Senior Secondary"
- *                       gradeDuration: "507f1f77bcf86cd799439014"
+ *                       gradeDurationId: "507f1f77bcf86cd799439014"
  *                       archive: false
  *                       createdAt: "2024-01-15T10:30:00.000Z"
  *                       updatedAt: "2024-01-15T10:30:00.000Z"
  *                       instituteName: "ABC School"
  *                       departmentName: "Science Department"
+ *                       gradeDurationValue: "1 Year"
  *       400:
  *         description: Bad request - validation error
  *         content:
@@ -592,7 +598,7 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *       - `gradeCode` must be unique within the institute
  *       - All required fields must be provided
  *       - `instituteId` and `departmentId` must be valid ObjectIds
- *       - `gradeDuration` must be a valid ObjectId
+ *       - `gradeDurationId` must be a valid ObjectId
  *       
  *       **Unique Constraints:**
  *       - Grade names are unique per institute (case-sensitive)
@@ -615,7 +621,7 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *                 instituteId: "507f1f77bcf86cd799439011"
  *                 departmentId: "507f1f77bcf86cd799439012"
  *                 description: "Tenth grade - Senior Secondary"
- *                 gradeDuration: "507f1f77bcf86cd799439013"
+ *                 gradeDurationId: "507f1f77bcf86cd799439013"
  *             minimal_grade:
  *               summary: Minimal required fields
  *               value:
@@ -623,7 +629,7 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *                 gradeCode: "G1"
  *                 instituteId: "507f1f77bcf86cd799439011"
  *                 departmentId: "507f1f77bcf86cd799439012"
- *                 gradeDuration: "507f1f77bcf86cd799439013"
+ *                 gradeDurationId: "507f1f77bcf86cd799439013"
  *             detailed_grade:
  *               summary: Grade with detailed description
  *               value:
@@ -632,7 +638,7 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *                 instituteId: "507f1f77bcf86cd799439011"
  *                 departmentId: "507f1f77bcf86cd799439012"
  *                 description: "Advanced Placement Grade 12 - College level preparation with rigorous curriculum"
- *                 gradeDuration: "507f1f77bcf86cd799439013"
+ *                 gradeDurationId: "507f1f77bcf86cd799439013"
  *     responses:
  *       200:
  *         description: Grade created successfully
@@ -652,10 +658,11 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *                     instituteId: "507f1f77bcf86cd799439012"
  *                     departmentId: "507f1f77bcf86cd799439013"
  *                     description: "Tenth grade - Senior Secondary"
- *                     gradeDuration: "507f1f77bcf86cd799439014"
+ *                     gradeDurationId: "507f1f77bcf86cd799439014"
  *                     archive: false
  *                     createdAt: "2024-01-15T10:30:00.000Z"
  *                     updatedAt: "2024-01-15T10:30:00.000Z"
+ *                     gradeDurationValue: "1 Year"
  *       400:
  *         description: Bad request - validation error or duplicate value
  *         content:
@@ -786,13 +793,13 @@ router.post('/gradesInInstitute',gradesCt.createGradesInInstitute);
  *                   gradeName: "Grade 10 Advanced"
  *                   gradeCode: "G10A"
  *                   description: "Advanced Grade 10 with enhanced curriculum"
- *                   gradeDuration: "507f1f77bcf86cd799439014"
+ *                   gradeDurationId: "507f1f77bcf86cd799439014"
  *             update_duration:
  *               summary: Update grade duration
  *               value:
  *                 _id: "507f1f77bcf86cd799439011"
  *                 updatedData:
- *                   gradeDuration: "507f1f77bcf86cd799439014"
+ *                   gradeDurationId: "507f1f77bcf86cd799439014"
  *     responses:
  *       200:
  *         description: Grade updated successfully or no changes made

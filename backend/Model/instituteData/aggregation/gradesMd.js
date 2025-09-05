@@ -27,7 +27,7 @@ const GradesSchema = new Schema({
     required: false,
     trim: true
   },
-  gradeDuration: {
+  gradeDurationId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true
   },
