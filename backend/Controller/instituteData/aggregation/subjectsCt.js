@@ -3,6 +3,16 @@ const { ObjectId } = require('mongoose').Types;
 const createSubjectsInInstituteModel = require('../../../Model/instituteData/aggregation/subjectsMd.js');
 const { handleCRUD } = require('../../../Utilities/crudUtils.js');
 const { buildMatchConditions, buildSortObject } = require('../../../Utilities/filterSortUtils');
+const { createMembersDataModel } = require('../../../Model/membersModule/memberDataMd');
+
+// --- Subject DEPENDENTS CONFIG ---
+const subjectDependents = [
+  { model: 'MembersData', field: 'gradeSubjectId', name: 'MembersData' },
+  { model: 'MembersData', field: 'gradeBatchSubjectId', name: 'MembersData' },
+  { model: 'MembersData', field: 'gradeSectionSubjectId', name: 'MembersData' },
+  { model: 'MembersData', field: 'gradeSectionBatchSubjectId', name: 'MembersData' }
+  // Add more as needed
+];
 
 exports.subjectsInInstituteAg = async (req, res) => {
   const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
@@ -254,18 +264,102 @@ exports.updateSubjectsInInstitute = async (req, res) => {
   }
 };
 
-// Delete Subjects (DELETE)
+// Delete Subject(s) with dependency options
 exports.deleteSubjectsInInstitute = async (req, res) => {
+  // Register all dependent models for the current connection
+  createMembersDataModel(req.collegeDB);
+
   const SubjectsInInstitute = createSubjectsInInstituteModel(req.collegeDB);
-  const { ids } = req.body;
+  const { ids, deleteDependents, transferTo, archive } = req.body;
+
+  if (!ids || !Array.isArray(ids)) {
+    return res.status(400).json({ message: 'Subject ID(s) required' });
+  }
+  // Only one of archive or transferTo can be requested at a time
+  if (archive !== undefined && transferTo) {
+    return res.status(400).json({ message: 'Only one of archive or transfer can be requested at a time.' });
+  }
+  // Archive must be a boolean if present
+  if (archive !== undefined && typeof archive !== 'boolean') {
+    return res.status(400).json({ message: 'The archive parameter must be a boolean (true or false).' });
+  }
+
+  // Import generic cascade utils
+  const { countDependents, deleteWithDependents, transferDependents, archiveParents } = require('../../../Utilities/dependencyCascadeUtils');
+
   try {
-    const result = await SubjectsInInstitute.deleteMany({ _id: { $in: ids.map(id => id) } });
+    // Archive/unarchive logic
+    if (archive !== undefined) {
+      const archiveResult = await archiveParents(req.collegeDB, ids, 'Subjects', Boolean(archive));
+      // Check if any documents were actually updated
+      if (!archiveResult || !archiveResult.archivedCount) {
+        return res.status(404).json({ message: 'No matching Subject found to archive/unarchive' });
+      }
+      return res.status(200).json({ message: `Subject(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });
+    }
+
+    // 1. Count dependents for each Subject
+    const depCounts = await countDependents(req.collegeDB, ids, subjectDependents);
+    // Fetch original Subject docs to get the value field (e.g., subject)
+    const originalDocs = await SubjectsInInstitute.find(
+      { _id: { $in: ids.map(id => new ObjectId(id)) } },
+      { subject: 1 }
+    );
+    const docMap = {};
+    originalDocs.forEach(doc => {
+      docMap[doc._id.toString()] = doc.subject;
+    });
+
+    // Partition IDs into zero and non-zero dependents
+    const zeroDepIds = Object.keys(depCounts).filter(id => Object.values(depCounts[id]).every(count => count === 0));
+    const nonZeroDepIds = Object.keys(depCounts).filter(id => !zeroDepIds.includes(id));
+    let deletedCount = 0;
+    if (zeroDepIds.length > 0) {
+      const result = await handleCRUD(SubjectsInInstitute, 'delete', { _id: { $in: zeroDepIds.map(id => new ObjectId(id)) } });
+      deletedCount = result.deletedCount || 0;
+    }
+    if (nonZeroDepIds.length === 0) {
+      return res.status(200).json({ message: 'Subject(s) deleted successfully', deleted: zeroDepIds, dependencies: [] });
+    }
+    if (!deleteDependents && !transferTo) {
+      const dependencies = nonZeroDepIds.map(id => ({
+        _id: id,
+        value: docMap[id] || null,
+        dependsOn: depCounts[id]
+      }));
+      return res.status(201).json({ message: 'Dependency summary', deleted: zeroDepIds, dependencies: dependencies });
+    }
+    if (deleteDependents && transferTo) {
+      return res.status(400).json({ message: 'Either transfer or delete dependencies'});
+    }
+    // 2. Transfer dependents if requested
+    if (transferTo) {
+      if (ids.length !== 1) {
+        return res.status(400).json({ message: 'Please select one Subject to transfer dependents from.' });
+      }
+      const transferRes = await transferDependents(req.collegeDB, ids[0], transferTo, subjectDependents);
+      // After transfer, delete the original Subject(s)
+      const result = await handleCRUD(SubjectsInInstitute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
+      return res.status(200).json({ message: 'Dependents transferred and Subject(s) deleted', transfer: transferRes, deletedCount: result.deletedCount });
+    }
+    // 3. Delete dependents and Subject(s) in a transaction
+    if (deleteDependents) {
+      const results = [];
+      for (const id of ids) {
+        const delRes = await deleteWithDependents(req.collegeDB, id, subjectDependents, 'Subjects');
+        results.push({ subjectId: id, ...delRes });
+      }
+      return res.status(200).json({ message: 'Deleted with dependents', results });
+    }
+    // Default: just delete the Subject(s) if no dependents
+    const result = await handleCRUD(SubjectsInInstitute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
     if (result.deletedCount > 0) {
-      res.status(200).json({ message: 'Subjects deleted successfully' });
+      res.status(200).json({ message: 'Subject(s) deleted successfully', deletedCount: result.deletedCount });
     } else {
-      res.status(404).json({ message: 'No matching subjects found' });
+      res.status(404).json({ message: 'No matching Subject found for deletion' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete subjects', details: error.message });
+    console.error('Error deleting Subject:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

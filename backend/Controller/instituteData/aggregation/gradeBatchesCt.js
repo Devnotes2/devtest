@@ -4,7 +4,7 @@ const createGradeBatchesInInstituteModel = require('../../../Model/instituteData
 const { handleCRUD } = require('../../../Utilities/crudUtils');
 const { createMembersDataModel } = require('../../../Model/membersModule/memberDataMd');
 
-// --- Grade DEPENDENTS CONFIG ---
+// --- Grade Batch DEPENDENTS CONFIG ---
 const gradeBatchDependents = [
   { model: 'MembersData', field: 'gradeBatchId', name: 'MembersData' },
   // Add more as needed

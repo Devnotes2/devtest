@@ -18,9 +18,9 @@ const instituteDependents = [
   { model: 'Subjects', field: 'instituteId', name: 'subjects' },
   { model: 'LocationTypesInInstitute', field: 'instituteId', name: 'LocationTypesInInstitute' },
   { model: 'MembersData', field: 'instituteId', name: 'MembersData' },
-  { model: 'GradeBatches', field: 'instituteId', name: 'gradebatches' },
-  { model: 'GradeSections', field: 'instituteId', name: 'gradesections' },
-  { model: 'GradeSectionBatches', field: 'instituteId', name: 'gradesectionbatches' }
+  { model: 'GradeBatches', field: 'instituteId', name: 'gradeBatches' },
+  { model: 'GradeSections', field: 'instituteId', name: 'gradeSections' },
+  { model: 'GradeSectionBatches', field: 'instituteId', name: 'gradeSectionBatches' }
   // Add more as needed
 ];
 

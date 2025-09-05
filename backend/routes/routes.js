@@ -48,6 +48,9 @@ router.use('/instituteAggreRt', multiTenantMiddleware, require('./instituteData/
 // Subject management
 router.use('/instituteAggreRt', multiTenantMiddleware, require('./instituteData/aggregation/subjectsRt'));
 
+// Enrollment management
+router.use('/enrollmentsRt', multiTenantMiddleware, require('./enrollments/enrollmentsRt'));
+
 // ============================================================================
 // MEMBER MANAGEMENT
 // ============================================================================

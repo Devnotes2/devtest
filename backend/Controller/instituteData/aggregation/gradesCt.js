@@ -13,9 +13,9 @@ const { createMembersDataModel } = require('../../../Model/membersModule/memberD
 const gradesDependents = [
   { model: 'Subjects', field: 'gradeId', name: 'subjects' },
   { model: 'MembersData', field: 'gradeId', name: 'MembersData' },
-  { model: 'GradeBatches', field: 'gradeId', name: 'gradebatches' },
-  { model: 'GradeSections', field: 'gradeId', name: 'gradesections' },
-  { model: 'GradeSectionBatches', field: 'gradeId', name: 'gradesectionbatches' }
+  { model: 'GradeBatches', field: 'gradeId', name: 'gradeBatches' },
+  { model: 'GradeSections', field: 'gradeId', name: 'gradeSections' },
+  { model: 'GradeSectionBatches', field: 'gradeId', name: 'gradeSectionBatches' }
   // Add more as needed
 ];
 
