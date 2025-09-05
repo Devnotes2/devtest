@@ -35,7 +35,7 @@ exports.getInstitutes = async (req, res) => {
       let findQuery = Institute.find(filter, { _id: 1, instituteName: 1 });
       findQuery = findQuery.sort({ instituteName: 1 });
       const data = await findQuery;
-      return res.status(200).json({ data });
+      return res.status(200).json( data );
     }
   const { id } = req.params;
   

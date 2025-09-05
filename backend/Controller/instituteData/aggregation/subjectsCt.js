@@ -29,7 +29,7 @@ exports.subjectsInInstituteAg = async (req, res) => {
       let findQuery = SubjectsInInstitute.find(matchConditions, { _id: 1, subject: 1 });
       findQuery = findQuery.sort({ subject: 1 });
       const data = await findQuery;
-      return res.status(200).json({ data });
+      return res.status(200).json( data );
     }
 
     // Helper: get ids as array

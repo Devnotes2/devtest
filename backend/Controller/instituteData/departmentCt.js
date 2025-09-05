@@ -126,7 +126,7 @@ exports.getDepartment = async (req, res) => {
       let findQuery = DepartmentData.find({...matchConditions, archive: { $ne: true } }, { _id: 1, departmentName: 1 });
       findQuery = findQuery.sort({ departmentName: 1 });
       const data = await findQuery;
-      return res.status(200).json({ data });
+      return res.status(200).json( data );
     }
     // Validation: Check if departmentName already exists
     if (validate === 'true' && departmentName) {

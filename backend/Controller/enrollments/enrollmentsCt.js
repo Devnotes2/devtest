@@ -47,7 +47,7 @@ exports.getEnrollments = async (req, res) => {
       });
       findQuery = findQuery.sort({ enrollmentDate: -1 });
       const data = await findQuery;
-      return res.status(200).json({ data });
+      return res.status(200).json( data );
     }
 
     // Helper for joined field mapping

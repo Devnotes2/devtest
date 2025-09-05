@@ -39,7 +39,7 @@ exports.gradesInInstituteAg = async (req, res) => {
       let findQuery = GradesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeName: 1, gradeCode: 1 });
       findQuery = findQuery.sort({gradeName:1});
       const data = await findQuery;
-      return res.status(200).json({ data });
+      return res.status(200).json( data );
     }
     
     // Total docs in the collection

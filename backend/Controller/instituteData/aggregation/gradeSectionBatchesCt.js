@@ -29,7 +29,7 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
       let findQuery = GradeSectionBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, sectionBatchName: 1 });
       findQuery = findQuery.sort({sectionBatchName:1});
       const data = await findQuery;
-      return res.status(200).json({ data });
+      return res.status(200).json( data );
     }
     
     // Total docs in the collection
