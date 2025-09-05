@@ -8,6 +8,7 @@ const createGradeBatchesInInstituteModel = require('../../../Model/instituteData
 const createGradeSectionsInInstituteModel = require('../../../Model/instituteData/aggregation/gradesectionsMd');
 const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
 const { createMembersDataModel } = require('../../../Model/membersModule/memberDataMd');
+const { generalDataLookup } = require('../../../Utilities/aggregations/generalDataLookups');
 
 // --- Grade DEPENDENTS CONFIG ---
 const gradesDependents = [
@@ -41,6 +42,10 @@ exports.gradesInInstituteAg = async (req, res) => {
       return res.status(200).json({ data });
     }
     
+    // Total docs in the collection
+    const totalDocs = await GradesInInstitute.countDocuments();
+    let filteredDocs;
+    
     const query = { ...matchConditions };
     
     if (ids && Array.isArray(ids)) {
@@ -52,8 +57,8 @@ exports.gradesInInstituteAg = async (req, res) => {
         let findQuery = GradesInInstitute.find(query);
         findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
         const matchingData = await findQuery;
-        const filteredDocs = await GradesInInstitute.countDocuments(query);
-        return res.status(200).json({ count: matchingData.length, filteredDocs, data: matchingData });
+        filteredDocs = await GradesInInstitute.countDocuments(query);
+        return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
 
       const aggregatedData = await GradesInInstitute.aggregate([
@@ -76,6 +81,7 @@ exports.gradesInInstituteAg = async (req, res) => {
           }
         },
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+        ...generalDataLookup('gradeDuration', 'gradeDuration', 'gradeDurationDetails', 'gradeDurationValue'),
         {
           $project: {
             // Only use fields that exist in the model
@@ -91,7 +97,8 @@ exports.gradesInInstituteAg = async (req, res) => {
             updatedAt: 1,
             // Add lookup data with clear naming
             instituteName: '$instituteDetails.instituteName',
-            departmentName: '$departmentDetails.departmentName'
+            departmentName: '$departmentDetails.departmentName',
+            gradeDurationValue: '$gradeDurationDetails.gradeDurationValue'
           }
         },
         // Add pagination to aggregation
@@ -119,16 +126,14 @@ exports.gradesInInstituteAg = async (req, res) => {
             as: 'departmentDetails'
           }
         },
-        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
+        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+        ...generalDataLookup('gradeDuration', 'gradeDuration', 'gradeDurationDetails', 'gradeDurationValue')
       ];
       const filteredDocsArr = await GradesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-      const filteredDocs = filteredDocsArr[0]?.count || 0;
+      filteredDocs = filteredDocsArr[0]?.count || 0;
       
-      return res.status(200).json({ count: aggregatedData.length, filteredDocs, data: aggregatedData });
+      return res.status(200).json({ count: aggregatedData.length, filteredDocs, totalDocs, data: aggregatedData });
     }
-
-    // Get total count for pagination
-    const totalDocs = await GradesInInstitute.countDocuments(query);
 
     // Aggregate all data without ID filtering
     const allData = await GradesInInstitute.aggregate([
@@ -151,6 +156,7 @@ exports.gradesInInstituteAg = async (req, res) => {
         }
       },
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+      ...generalDataLookup('gradeDuration', 'gradeDuration', 'gradeDurationDetails', 'gradeDurationValue'),
       {
         $project: {
           // Only use fields that exist in the model
@@ -166,7 +172,8 @@ exports.gradesInInstituteAg = async (req, res) => {
           updatedAt: 1,
           // Add lookup data with clear naming
           instituteName: '$instituteDetails.instituteName',
-          departmentName: '$departmentDetails.departmentName'
+          departmentName: '$departmentDetails.departmentName',
+          gradeDurationValue: '$gradeDurationDetails.gradeDurationValue'
         }
       },
       // Add pagination to main aggregation
@@ -194,10 +201,11 @@ exports.gradesInInstituteAg = async (req, res) => {
           as: 'departmentDetails'
         }
       },
-      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
+      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+      ...generalDataLookup('gradeDuration', 'gradeDuration', 'gradeDurationDetails', 'gradeDurationValue')
     ];
     const filteredDocsArr = await GradesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-    const filteredDocs = filteredDocsArr[0]?.count || 0;
+    filteredDocs = filteredDocsArr[0]?.count || 0;
 
     return res.status(200).json({ count: allData.length, filteredDocs, totalDocs, data: allData });
 

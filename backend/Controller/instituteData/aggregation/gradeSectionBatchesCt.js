@@ -32,6 +32,10 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
       return res.status(200).json({ data });
     }
     
+    // Total docs in the collection
+    const totalDocs = await GradeSectionBatchesInInstitute.countDocuments();
+    let filteredDocs;
+    
     const query = { ...matchConditions };
     
     if (ids && Array.isArray(ids)) {
@@ -43,8 +47,8 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
         let findQuery = GradeSectionBatchesInInstitute.find(query);
         findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
         const matchingData = await findQuery;
-        const filteredDocs = await GradeSectionBatchesInInstitute.countDocuments(query);
-        return res.status(200).json({ count: matchingData.length, filteredDocs, data: matchingData });
+        filteredDocs = await GradeSectionBatchesInInstitute.countDocuments(query);
+        return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
 
       const aggregatedData = await GradeSectionBatchesInInstitute.aggregate([
@@ -72,10 +76,10 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
             from: 'gradesections',
             localField: 'sectionId',
             foreignField: '_id',
-            as: 'gradeSectionDetails'
+            as: 'sectionDetails'
           }
         },
-        { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$sectionDetails', preserveNullAndEmptyArrays: true } },
         {
           $lookup: {
             from: 'departmentdatas',
@@ -96,13 +100,14 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
             sectionBatchName: 1,
             description: 1,
             archive: 1,
+            createdAt: 1,
+            updatedAt: 1,
             // Add lookup data with clear naming
             instituteName: '$instituteDetails.instituteName',
-            gradeCode: '$gradeDetails.gradeCode',
+            departmentName: '$departmentDetails.departmentName',
             gradeName: '$gradeDetails.gradeName',
-            gradeDuration: '$gradeDetails.gradeDuration',
-            sectionName: '$gradeSectionDetails.sectionName',
-            departmentName: '$departmentDetails.departmentName'
+            gradeCode: '$gradeDetails.gradeCode',
+            sectionName: '$sectionDetails.sectionName'
           }
         },
         // Add pagination to aggregation
@@ -136,10 +141,10 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
             from: 'gradesections',
             localField: 'sectionId',
             foreignField: '_id',
-            as: 'gradeSectionDetails'
+            as: 'sectionDetails'
           }
         },
-        { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$sectionDetails', preserveNullAndEmptyArrays: true } },
         {
           $lookup: {
             from: 'departmentdatas',
@@ -151,13 +156,10 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
       ];
       const filteredDocsArr = await GradeSectionBatchesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-      const filteredDocs = filteredDocsArr[0]?.count || 0;
+      filteredDocs = filteredDocsArr[0]?.count || 0;
       
-      return res.status(200).json({ count: aggregatedData.length, filteredDocs, data: aggregatedData });
+      return res.status(200).json({ count: aggregatedData.length, filteredDocs, totalDocs, data: aggregatedData });
     }
-
-    // Get total count for pagination
-    const totalDocs = await GradeSectionBatchesInInstitute.countDocuments(query);
 
     // Aggregate all data without ID filtering
     const allData = await GradeSectionBatchesInInstitute.aggregate([
@@ -185,10 +187,10 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
           from: 'gradesections',
           localField: 'sectionId',
           foreignField: '_id',
-          as: 'gradeSectionDetails'
+          as: 'sectionDetails'
         }
       },
-      { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$sectionDetails', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'departmentdatas',
@@ -209,13 +211,14 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
           sectionBatchName: 1,
           description: 1,
           archive: 1,
+          createdAt: 1,
+          updatedAt: 1,
           // Add lookup data with clear naming
           instituteName: '$instituteDetails.instituteName',
-          gradeCode: '$gradeDetails.gradeCode',
+          departmentName: '$departmentDetails.departmentName',
           gradeName: '$gradeDetails.gradeName',
-          gradeDuration: '$gradeDetails.gradeDuration',
-          sectionName: '$gradeSectionDetails.sectionName',
-          departmentName: '$departmentDetails.departmentName'
+          gradeCode: '$gradeDetails.gradeCode',
+          sectionName: '$sectionDetails.sectionName'
         }
       },
       // Add pagination to main aggregation
@@ -249,10 +252,10 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
           from: 'gradesections',
           localField: 'sectionId',
           foreignField: '_id',
-          as: 'gradeSectionDetails'
+          as: 'sectionDetails'
         }
       },
-      { $unwind: { path: '$gradeSectionDetails', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$sectionDetails', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'departmentdatas',
@@ -264,7 +267,7 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
     ];
     const filteredDocsArr = await GradeSectionBatchesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-    const filteredDocs = filteredDocsArr[0]?.count || 0;
+    filteredDocs = filteredDocsArr[0]?.count || 0;
 
     return res.status(200).json({ count: allData.length, filteredDocs, totalDocs, data: allData });
 
@@ -275,45 +278,41 @@ exports.gradeSectionBatchesInInstituteAg = async (req, res) => {
 
 exports.createGradeSectionBatchesInInstitute = async (req, res) => {
   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  const { instituteId, gradeId, departmentId, sectionBatchName, description, sectionId } = req.body;
+  const { instituteId, departmentId, gradeId, sectionId, sectionBatchName, description } = req.body;
 
   try {
-    const newGradeSection = await handleCRUD(GradeSectionBatchesInInstitute, 'create', {}, {
+    const newGradeSectionBatch = await handleCRUD(GradeSectionBatchesInInstitute, 'create', {}, {
       instituteId,
       departmentId,
       gradeId,
       sectionId,
       sectionBatchName,
-      description,
+      description
     });
 
     res.status(200).json({
       message: 'Grade Section Batch added successfully!',
-      data: newGradeSection
+      data: newGradeSectionBatch
     });
   } catch (error) {
-    // Handle custom validation errors from schema middleware
-    if (error.code === 'DUPLICATE_SECTION_BATCH_NAME') {
-      return res.status(400).json({
-        error: 'Duplicate value',
-        details: `Section batch name '${sectionBatchName}' already exists in this section within the institute`,
-        field: 'sectionBatchName',
-        value: sectionBatchName,
-        suggestion: 'Section batch names must be unique per section within each institute'
-      });
-    }
-    
-    // Handle MongoDB duplicate key errors (fallback)
+    // Handle compound unique constraint violations
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
+      let fieldDisplayName = '';
+      let suggestion = '';
+      
+      if (field === 'sectionBatchName') {
+        fieldDisplayName = 'Section Batch Name';
+        suggestion = 'Section batch name must be unique within this section';
+      }
       
       return res.status(400).json({
         error: 'Duplicate value',
-        details: `Section batch name '${value}' already exists in this section within the institute`,
+        details: `${fieldDisplayName} '${value}' already exists in this section`,
         field: field,
         value: value,
-        suggestion: 'Section batch names must be unique per section within an institute'
+        suggestion: suggestion
       });
     }
     
@@ -321,53 +320,57 @@ exports.createGradeSectionBatchesInInstitute = async (req, res) => {
   }
 };
 
-
 exports.updateGradeSectionBatchesInInstitute = async (req, res) => {
   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
   const { _id, updatedData } = req.body;
 
   try {
+    console.log("Update Request Body:", req.body);
     const result = await handleCRUD(GradeSectionBatchesInInstitute, 'update', { _id }, { $set: updatedData });
+
+    console.log("Update Result:", result);
 
     if (result.modifiedCount > 0) {
       res.status(200).json({ message: 'Grade Section Batch updated successfully' });
     } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
       res.status(200).json({ message: 'No updates were made' });
     } else {
-      res.status(404).json({ message: 'No matching gradeSection found or values are unchanged' });
+      res.status(404).json({ message: 'No matching grade section batch found or values are unchanged' });
     }
   } catch (error) {
+    console.error("Update Error:", error);
+    
     // Handle custom validation errors from schema middleware
     if (error.code === 'DUPLICATE_SECTION_BATCH_NAME') {
       return res.status(400).json({
         error: 'Duplicate value',
-        details: `Section batch name '${updatedData.sectionBatchName}' already exists in this section within the institute`,
+        details: `Section batch name '${updatedData.sectionBatchName}' already exists in this section`,
         field: 'sectionBatchName',
         value: updatedData.sectionBatchName,
-        suggestion: 'Section batch names must be unique per section within each institute'
+        suggestion: 'Section batch names must be unique within each section'
       });
     }
     
-    res.status(500).json({ error: 'Failed to update gradeSection', details: error.message });
+    // Handle unique constraint violations (fallback)
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      console.log("Error Key Pattern:", error.keyPattern);
+      console.log("Error Key Value:", error.keyValue);
+      let fieldDisplayName = 'Section Batch Name';
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists`,
+        field: field,
+        value: value,
+        suggestion: 'Please choose a different section batch name'
+      });
+    }
+    
+    res.status(500).json({ error: 'Failed to update grade section batch', details: error.message });
   }
 };
-
-// exports.deleteGradeSectionBatchesInInstitute = async (req, res) => {
-//   const GradeSectionBatchesInInstitute = createGradeSectionBatchesInInstituteModel(req.collegeDB);
-//   const { ids } = req.body;
-
-//   try {
-//     const result = await handleCRUD(GradeSectionBatchesInInstitute, 'delete', { _id: { $in: ids.map(id => id) } });
-
-//     if (result.deletedCount > 0) {
-//       res.status(200).json({ message: 'GradeSectionBatches deleted successfully' });
-//     } else {
-//       res.status(404).json({ message: 'No matching gradeSectionBatches found' });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ error: 'Failed to delete gradeSectionBatches', details: error.message });
-//   }
-// };
 
 // Delete Grade Section Batch(s) with dependency options
 exports.deleteGradeSectionBatchesInInstitute = async (req, res) => {
@@ -393,10 +396,10 @@ exports.deleteGradeSectionBatchesInInstitute = async (req, res) => {
   const { countDependents, deleteWithDependents, transferDependents, archiveParents } = require('../../../Utilities/dependencyCascadeUtils');
 
   try {
-    // Archive/unarchive logic (match gradeBatchesCt.js)
+    // Archive/unarchive logic
     if (archive !== undefined) {
       const archiveResult = await archiveParents(req.collegeDB, ids, 'GradeSectionBatches', Boolean(archive));
-                        // Check if any documents were actually updated
+      // Check if any documents were actually updated
       if (!archiveResult || !archiveResult.archivedCount) {
         return res.status(404).json({ message: 'No matching Grade Section Batch found to archive/unarchive' });
       }
@@ -405,14 +408,14 @@ exports.deleteGradeSectionBatchesInInstitute = async (req, res) => {
 
     // 1. Count dependents for each Grade Section Batch
     const depCounts = await countDependents(req.collegeDB, ids, gradeSectionBatchDependents);
-    // Fetch original GradeSectionBatch docs to get the value field (e.g., gradeSectionBatch)
+    // Fetch original Grade Section Batch docs to get the value field (e.g., sectionBatchName)
     const originalDocs = await GradeSectionBatchesInInstitute.find(
       { _id: { $in: ids.map(id => new ObjectId(id)) } },
-      { sectionBatchName: 1 }  // Changed from gradeSectionBatch: 1
+      { sectionBatchName: 1 }
     );
     const docMap = {};
     originalDocs.forEach(doc => {
-      docMap[doc._id.toString()] = doc.sectionBatchName;  // Changed from gradeSectionBatch
+      docMap[doc._id.toString()] = doc.sectionBatchName;
     });
 
     // Partition IDs into zero and non-zero dependents
@@ -461,10 +464,10 @@ exports.deleteGradeSectionBatchesInInstitute = async (req, res) => {
     if (result.deletedCount > 0) {
       res.status(200).json({ message: 'Grade Section Batch(s) deleted successfully', deletedCount: result.deletedCount });
     } else {
-      res.status(404).json({ message: 'No matching Grade Section Batch found for deletion' });
+      res.status(404).json({ message: 'No matching Grade Section Batches found for deletion' });
     }
   } catch (error) {
-    console.error('Error deleting Grade Section Batch:', error);
+    console.error('Error deleting Grade Section Batches:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

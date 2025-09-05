@@ -33,6 +33,10 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
       return res.status(200).json({ data });
     }
     
+    // Total docs in the collection
+    const totalDocs = await GradeSectionsInInstitute.countDocuments();
+    let filteredDocs;
+    
     const query = { ...matchConditions };
     
     if (ids && Array.isArray(ids)) {
@@ -44,8 +48,8 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
         let findQuery = GradeSectionsInInstitute.find(query);
         findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
         const matchingData = await findQuery;
-        const filteredDocs = await GradeSectionsInInstitute.countDocuments(query);
-        return res.status(200).json({ count: matchingData.length, filteredDocs, data: matchingData });
+        filteredDocs = await GradeSectionsInInstitute.countDocuments(query);
+        return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
 
       const aggregatedData = await GradeSectionsInInstitute.aggregate([
@@ -87,12 +91,13 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
             sectionName: 1,
             description: 1,
             archive: 1,
+            createdAt: 1,
+            updatedAt: 1,
             // Add lookup data with clear naming
             instituteName: '$instituteDetails.instituteName',
-            gradeCode: '$gradeDetails.gradeCode',
+            departmentName: '$departmentDetails.departmentName',
             gradeName: '$gradeDetails.gradeName',
-            gradeDuration: '$gradeDetails.gradeDuration',
-            departmentName: '$departmentDetails.departmentName'
+            gradeCode: '$gradeDetails.gradeCode'
           }
         },
         // Add pagination to aggregation
@@ -132,13 +137,10 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
       ];
       const filteredDocsArr = await GradeSectionsInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-      const filteredDocs = filteredDocsArr[0]?.count || 0;
+      filteredDocs = filteredDocsArr[0]?.count || 0;
       
-      return res.status(200).json({ count: aggregatedData.length, filteredDocs, data: aggregatedData });
+      return res.status(200).json({ count: aggregatedData.length, filteredDocs, totalDocs, data: aggregatedData });
     }
-
-    // Get total count for pagination
-    const totalDocs = await GradeSectionsInInstitute.countDocuments(query);
 
     // Aggregate all data without ID filtering
     const allData = await GradeSectionsInInstitute.aggregate([
@@ -149,85 +151,86 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
           localField: 'instituteId',
           foreignField: '_id',
           as: 'instituteDetails'
-          }
-        },
-        { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'grades',
-            localField: 'gradeId',
-            foreignField: '_id',
-            as: 'gradeDetails'
-          }
-        },
-        { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'departmentdatas',
-            localField: 'departmentId',
-            foreignField: '_id',
-            as: 'departmentDetails'
-          }
-        },
-        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $project: {
-            // Only use fields that exist in the model
-            _id: 1,
-            instituteId: 1,
-            departmentId: 1,
-            gradeId: 1,
-            sectionName: 1,
-            description: 1,
-            archive: 1,
-            // Add lookup data with clear naming
-            instituteName: '$instituteDetails.instituteName',
-            gradeCode: '$gradeDetails.gradeCode',
-            gradeName: '$gradeDetails.gradeName',
-            gradeDuration: '$gradeDetails.gradeDuration',
-            departmentName: '$departmentDetails.departmentName'
-          }
-        },
-        // Add pagination to main aggregation
-        { $skip: (pageNum - 1) * limitNum },
-        { $limit: limitNum }
-      ]);
+        }
+      },
+      { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'grades',
+          localField: 'gradeId',
+          foreignField: '_id',
+          as: 'gradeDetails'
+        }
+      },
+      { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'departmentdatas',
+          localField: 'departmentId',
+          foreignField: '_id',
+          as: 'departmentDetails'
+        }
+      },
+      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          // Only use fields that exist in the model
+          _id: 1,
+          instituteId: 1,
+          departmentId: 1,
+          gradeId: 1,
+          sectionName: 1,
+          description: 1,
+          archive: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          // Add lookup data with clear naming
+          instituteName: '$instituteDetails.instituteName',
+          departmentName: '$departmentDetails.departmentName',
+          gradeName: '$gradeDetails.gradeName',
+          gradeCode: '$gradeDetails.gradeCode'
+        }
+      },
+      // Add pagination to main aggregation
+      { $skip: (pageNum - 1) * limitNum },
+      { $limit: limitNum }
+    ]);
 
-      // Count after all matches - exactly match department pattern
-      const countPipeline = [
-        { $match: query },
-        {
-          $lookup: {
-            from: 'instituteData',
-            localField: 'instituteId',
-            foreignField: '_id',
-            as: 'instituteDetails'
-          }
-        },
-        { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'grades',
-            localField: 'gradeId',
-            foreignField: '_id',
-            as: 'gradeDetails'
-          }
-        },
-        { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'departmentdatas',
-            localField: 'departmentId',
-            foreignField: '_id',
-            as: 'departmentDetails'
-          }
-        },
-        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
-      ];
-      const filteredDocsArr = await GradeSectionsInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-      const filteredDocs = filteredDocsArr[0]?.count || 0;
+    // Count after all matches - exactly match department pattern
+    const countPipeline = [
+      { $match: query },
+      {
+        $lookup: {
+          from: 'instituteData',
+          localField: 'instituteId',
+          foreignField: '_id',
+          as: 'instituteDetails'
+        }
+      },
+      { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'grades',
+          localField: 'gradeId',
+          foreignField: '_id',
+          as: 'gradeDetails'
+        }
+      },
+      { $unwind: { path: '$gradeDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'departmentdatas',
+          localField: 'departmentId',
+          foreignField: '_id',
+          as: 'departmentDetails'
+        }
+      },
+      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
+    ];
+    const filteredDocsArr = await GradeSectionsInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
+    filteredDocs = filteredDocsArr[0]?.count || 0;
 
-      return res.status(200).json({ count: allData.length, filteredDocs, totalDocs, data: allData });
+    return res.status(200).json({ count: allData.length, filteredDocs, totalDocs, data: allData });
 
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -236,13 +239,13 @@ exports.gradeSectionsInInstituteAg = async (req, res) => {
 
 exports.createGradeSectionsInInstitute = async (req, res) => {
   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
-  const { instituteId, gradeId, departmentId, sectionName, description } = req.body;
+  const { instituteId, departmentId, gradeId, sectionName, description } = req.body;
 
   try {
     const newGradeSection = await handleCRUD(GradeSectionsInInstitute, 'create', {}, {
       instituteId,
-      gradeId,
       departmentId,
+      gradeId,
       sectionName,
       description
     });
@@ -256,13 +259,20 @@ exports.createGradeSectionsInInstitute = async (req, res) => {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
+      let fieldDisplayName = '';
+      let suggestion = '';
+      
+      if (field === 'sectionName') {
+        fieldDisplayName = 'Section Name';
+        suggestion = 'Section name must be unique within this grade';
+      }
       
       return res.status(400).json({
         error: 'Duplicate value',
-        details: `Section name '${value}' already exists in this grade within the institute`,
+        details: `${fieldDisplayName} '${value}' already exists in this grade`,
         field: field,
         value: value,
-        suggestion: 'Section names must be unique per grade within an institute'
+        suggestion: suggestion
       });
     }
     
@@ -275,24 +285,29 @@ exports.updateGradeSectionsInInstitute = async (req, res) => {
   const { _id, updatedData } = req.body;
 
   try {
-    const result = await handleCRUD(GradeSectionsInInstitute, 'update', { _id: new ObjectId(_id) }, { $set: updatedData });
+    console.log("Update Request Body:", req.body);
+    const result = await handleCRUD(GradeSectionsInInstitute, 'update', { _id }, { $set: updatedData });
+
+    console.log("Update Result:", result);
 
     if (result.modifiedCount > 0) {
-      res.status(200).json({ message: 'Grade section updated successfully' });
-    } else if (result.matchedCount > 0) {
+      res.status(200).json({ message: 'Grade Section updated successfully' });
+    } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
       res.status(200).json({ message: 'No updates were made' });
     } else {
       res.status(404).json({ message: 'No matching grade section found or values are unchanged' });
     }
   } catch (error) {
+    console.error("Update Error:", error);
+    
     // Handle custom validation errors from schema middleware
     if (error.code === 'DUPLICATE_SECTION_NAME') {
       return res.status(400).json({
         error: 'Duplicate value',
-        details: `Section name '${updatedData.sectionName}' already exists in this grade within the institute`,
+        details: `Section name '${updatedData.sectionName}' already exists in this grade`,
         field: 'sectionName',
         value: updatedData.sectionName,
-        suggestion: 'Section names must be unique per grade within each institute'
+        suggestion: 'Section names must be unique within each grade'
       });
     }
     
@@ -300,8 +315,9 @@ exports.updateGradeSectionsInInstitute = async (req, res) => {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
-      
-      let fieldDisplayName = field === 'sectionName' ? 'Section Name' : 'Section Code';
+      console.log("Error Key Pattern:", error.keyPattern);
+      console.log("Error Key Value:", error.keyValue);
+      let fieldDisplayName = 'Section Name';
       
       return res.status(400).json({
         error: 'Duplicate value',
@@ -315,25 +331,6 @@ exports.updateGradeSectionsInInstitute = async (req, res) => {
     res.status(500).json({ error: 'Failed to update grade section', details: error.message });
   }
 };
-
-// exports.deleteGradeSectionsInInstitute = async (req, res) => {
-//   const GradeSectionsInInstitute = createGradeSectionsInInstituteModel(req.collegeDB);
-//   const { ids } = req.body;
-
-//   try {
-//     const objectIds = ids.map(id => new ObjectId(id));
-//     const result = await handleCRUD(GradeSectionsInInstitute, 'delete', { _id: { $in: objectIds } });
-
-//     if (result.deletedCount > 0) {
-//       res.status(200).json({ message: 'Grade sections deleted successfully' });
-//     } else {
-//       res.status(404).json({ message: 'No matching grade sections found' });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ error: 'Failed to delete grade sections', details: error.message });
-//   }
-// };
-
 
 // Delete Grade Section(s) with dependency options
 exports.deleteGradeSectionsInInstitute = async (req, res) => {
@@ -360,10 +357,10 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
   const { countDependents, deleteWithDependents, transferDependents, archiveParents } = require('../../../Utilities/dependencyCascadeUtils');
 
   try {
-    // Archive/unarchive logic (match gradeBatchesCt.js)
+    // Archive/unarchive logic
     if (archive !== undefined) {
       const archiveResult = await archiveParents(req.collegeDB, ids, 'GradeSections', Boolean(archive));
-                              // Check if any documents were actually updated
+      // Check if any documents were actually updated
       if (!archiveResult || !archiveResult.archivedCount) {
         return res.status(404).json({ message: 'No matching Grade Section found to archive/unarchive' });
       }
@@ -372,14 +369,14 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
 
     // 1. Count dependents for each Grade Section
     const depCounts = await countDependents(req.collegeDB, ids, gradeSectionDependents);
-    // Fetch original GradeSection docs to get the value field (e.g., section)
+    // Fetch original Grade Section docs to get the value field (e.g., sectionName)
     const originalDocs = await GradeSectionsInInstitute.find(
       { _id: { $in: ids.map(id => new ObjectId(id)) } },
       { sectionName: 1 }
     );
     const docMap = {};
     originalDocs.forEach(doc => {
-      docMap[doc._id.toString()] = doc.sectionName ;
+      docMap[doc._id.toString()] = doc.sectionName;
     });
 
     // Partition IDs into zero and non-zero dependents
@@ -396,7 +393,7 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
     if (!deleteDependents && !transferTo) {
       const dependencies = nonZeroDepIds.map(id => ({
         _id: id,
-        value: docMap[id] ,
+        value: docMap[id] || null,
         dependsOn: depCounts[id]
       }));
       return res.status(201).json({ message: 'Dependency summary', deleted: zeroDepIds, dependencies: dependencies });
@@ -428,10 +425,10 @@ exports.deleteGradeSectionsInInstitute = async (req, res) => {
     if (result.deletedCount > 0) {
       res.status(200).json({ message: 'Grade Section(s) deleted successfully', deletedCount: result.deletedCount });
     } else {
-      res.status(404).json({ message: 'No matching Grade Section found for deletion' });
+      res.status(404).json({ message: 'No matching Grade Sections found for deletion' });
     }
   } catch (error) {
-    console.error('Error deleting Grade Section:', error);
+    console.error('Error deleting Grade Sections:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

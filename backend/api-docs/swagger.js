@@ -78,7 +78,8 @@ const options = {
     "./routes/membersModule/*.js",
     "./routes/generalData/*.js",
     "./routes/asideData/*.js",
-    "./routes/s3Module/*.js"
+    "./routes/s3Module/*.js",
+    "./routes/enrollments/*.js"
   ]
 };
 

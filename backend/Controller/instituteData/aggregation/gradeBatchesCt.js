@@ -32,6 +32,10 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
       return res.status(200).json({ data });
     }
     
+    // Total docs in the collection
+    const totalDocs = await GradeBatchesInInstitute.countDocuments();
+    let filteredDocs;
+    
     const query = { ...matchConditions };
     
     if (ids && Array.isArray(ids)) {
@@ -43,8 +47,8 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
         let findQuery = GradeBatchesInInstitute.find(query);
         findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
         const matchingData = await findQuery;
-        const filteredDocs = await GradeBatchesInInstitute.countDocuments(query);
-        return res.status(200).json({ count: matchingData.length, filteredDocs, data: matchingData });
+        filteredDocs = await GradeBatchesInInstitute.countDocuments(query);
+        return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
       }
 
       const aggregatedData = await GradeBatchesInInstitute.aggregate([
@@ -86,12 +90,13 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
             batch: 1,
             description: 1,
             archive: 1,
+            createdAt: 1,
+            updatedAt: 1,
             // Add lookup data with clear naming
             instituteName: '$instituteDetails.instituteName',
-            gradeCode: '$gradeDetails.gradeCode',
+            departmentName: '$departmentDetails.departmentName',
             gradeName: '$gradeDetails.gradeName',
-            gradeDuration: '$gradeDetails.gradeDuration',
-            departmentName: '$departmentDetails.departmentName'
+            gradeCode: '$gradeDetails.gradeCode'
           }
         },
         // Add pagination to aggregation
@@ -131,13 +136,10 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
         { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
       ];
       const filteredDocsArr = await GradeBatchesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-      const filteredDocs = filteredDocsArr[0]?.count || 0;
+      filteredDocs = filteredDocsArr[0]?.count || 0;
       
-      return res.status(200).json({ count: aggregatedData.length, filteredDocs, data: aggregatedData });
+      return res.status(200).json({ count: aggregatedData.length, filteredDocs, totalDocs, data: aggregatedData });
     }
-
-    // Get total count for pagination
-    const totalDocs = await GradeBatchesInInstitute.countDocuments(query);
 
     // Aggregate all data without ID filtering
     const allData = await GradeBatchesInInstitute.aggregate([
@@ -179,12 +181,13 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
           batch: 1,
           description: 1,
           archive: 1,
+          createdAt: 1,
+          updatedAt: 1,
           // Add lookup data with clear naming
           instituteName: '$instituteDetails.instituteName',
-          gradeCode: '$gradeDetails.gradeCode',
+          departmentName: '$departmentDetails.departmentName',
           gradeName: '$gradeDetails.gradeName',
-          gradeDuration: '$gradeDetails.gradeDuration',
-          departmentName: '$departmentDetails.departmentName'
+          gradeCode: '$gradeDetails.gradeCode'
         }
       },
       // Add pagination to main aggregation
@@ -224,7 +227,7 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
       { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }
     ];
     const filteredDocsArr = await GradeBatchesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-    const filteredDocs = filteredDocsArr[0]?.count || 0;
+    filteredDocs = filteredDocsArr[0]?.count || 0;
 
     return res.status(200).json({ count: allData.length, filteredDocs, totalDocs, data: allData });
 
@@ -235,19 +238,19 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
 
 exports.createGradeBatchesInInstitute = async (req, res) => {
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
-  const { instituteId, gradeId, departmentId, batch, description } = req.body;
+  const { instituteId, departmentId, gradeId, batch, description } = req.body;
 
   try {
     const newGradeBatch = await handleCRUD(GradeBatchesInInstitute, 'create', {}, {
       instituteId,
-      gradeId,
       departmentId,
+      gradeId,
       batch,
       description
     });
 
     res.status(200).json({
-      message: 'GradeBatch added successfully!',
+      message: 'Grade Batch added successfully!',
       data: newGradeBatch
     });
   } catch (error) {
@@ -255,69 +258,78 @@ exports.createGradeBatchesInInstitute = async (req, res) => {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       const value = error.keyValue[field];
+      let fieldDisplayName = '';
+      let suggestion = '';
+      
+      if (field === 'batch') {
+        fieldDisplayName = 'Batch';
+        suggestion = 'Batch name must be unique within this grade';
+      }
       
       return res.status(400).json({
         error: 'Duplicate value',
-        details: `Batch name '${value}' already exists in this grade within the institute`,
+        details: `${fieldDisplayName} '${value}' already exists in this grade`,
         field: field,
         value: value,
-        suggestion: 'Batch names must be unique per grade within an institute'
+        suggestion: suggestion
       });
     }
     
-    res.status(500).json({ error: 'Failed to add gradeBatch', details: error.message });
+    res.status(500).json({ error: 'Failed to add grade batch', details: error.message });
   }
 };
-
-
 
 exports.updateGradeBatchesInInstitute = async (req, res) => {
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
   const { _id, updatedData } = req.body;
 
   try {
+    console.log("Update Request Body:", req.body);
     const result = await handleCRUD(GradeBatchesInInstitute, 'update', { _id }, { $set: updatedData });
 
+    console.log("Update Result:", result);
+
     if (result.modifiedCount > 0) {
-      res.status(200).json({ message: 'GradeBatch updated successfully' });
+      res.status(200).json({ message: 'Grade Batch updated successfully' });
     } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
       res.status(200).json({ message: 'No updates were made' });
     } else {
-      res.status(404).json({ message: 'No matching grade found or values are unchanged' });
+      res.status(404).json({ message: 'No matching grade batch found or values are unchanged' });
     }
   } catch (error) {
+    console.error("Update Error:", error);
+    
     // Handle custom validation errors from schema middleware
-    if (error.code === 'DUPLICATE_BATCH_NAME') {
+    if (error.code === 'DUPLICATE_BATCH') {
       return res.status(400).json({
         error: 'Duplicate value',
-        details: `Batch name '${updatedData.batch}' already exists in this grade within the institute`,
+        details: `Batch '${updatedData.batch}' already exists in this grade`,
         field: 'batch',
         value: updatedData.batch,
-        suggestion: 'Batch names must be unique per grade within each institute'
+        suggestion: 'Batch names must be unique within each grade'
       });
     }
     
-    res.status(500).json({ error: 'Failed to update gradeBatch', details: error.message });
+    // Handle unique constraint violations (fallback)
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+      console.log("Error Key Pattern:", error.keyPattern);
+      console.log("Error Key Value:", error.keyValue);
+      let fieldDisplayName = 'Batch';
+      
+      return res.status(400).json({
+        error: 'Duplicate value',
+        details: `${fieldDisplayName} '${value}' already exists`,
+        field: field,
+        value: value,
+        suggestion: 'Please choose a different batch name'
+      });
+    }
+    
+    res.status(500).json({ error: 'Failed to update grade batch', details: error.message });
   }
 };
-
-
-// exports.deleteGradeBatchesInInstitute = async (req, res) => {
-//   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
-//   const { ids } = req.body;
-
-//   try {
-//     const result = await handleCRUD(GradeBatchesInInstitute, 'delete', { _id: { $in: ids.map(id => id) } });
-
-//     if (result.deletedCount > 0) {
-//       res.status(200).json({ message: 'GradeBatches deleted successfully' });
-//     } else {
-//       res.status(404).json({ message: 'No matching gradeBatches found' });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ error: 'Failed to delete gradeBatches', details: error.message });
-//   }
-// };
 
 // Delete Grade Batch(s) with dependency options
 exports.deleteGradeBatchesInInstitute = async (req, res) => {
@@ -346,7 +358,7 @@ exports.deleteGradeBatchesInInstitute = async (req, res) => {
     // Archive/unarchive logic
     if (archive !== undefined) {
       const archiveResult = await archiveParents(req.collegeDB, ids, 'GradeBatches', Boolean(archive));
-                  // Check if any documents were actually updated
+      // Check if any documents were actually updated
       if (!archiveResult || !archiveResult.archivedCount) {
         return res.status(404).json({ message: 'No matching Grade Batch found to archive/unarchive' });
       }
@@ -355,7 +367,7 @@ exports.deleteGradeBatchesInInstitute = async (req, res) => {
 
     // 1. Count dependents for each Grade Batch
     const depCounts = await countDependents(req.collegeDB, ids, gradeBatchDependents);
-    // Fetch original GradeBatch docs to get the value field (e.g., batch)
+    // Fetch original Grade Batch docs to get the value field (e.g., batch)
     const originalDocs = await GradeBatchesInInstitute.find(
       { _id: { $in: ids.map(id => new ObjectId(id)) } },
       { batch: 1 }
@@ -397,7 +409,7 @@ exports.deleteGradeBatchesInInstitute = async (req, res) => {
       const result = await handleCRUD(GradeBatchesInInstitute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
       return res.status(200).json({ message: 'Dependents transferred and Grade Batch(s) deleted', transfer: transferRes, deletedCount: result.deletedCount });
     }
-    // 3. Delete dependents and Grade(s) in a transaction
+    // 3. Delete dependents and Grade Batch(s) in a transaction
     if (deleteDependents) {
       const results = [];
       for (const id of ids) {
@@ -411,10 +423,10 @@ exports.deleteGradeBatchesInInstitute = async (req, res) => {
     if (result.deletedCount > 0) {
       res.status(200).json({ message: 'Grade Batch(s) deleted successfully', deletedCount: result.deletedCount });
     } else {
-      res.status(404).json({ message: 'No matching Grade Batch found for deletion' });
+      res.status(404).json({ message: 'No matching Grade Batches found for deletion' });
     }
   } catch (error) {
-    console.error('Error deleting Grade Batch:', error);
+    console.error('Error deleting Grade Batches:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
