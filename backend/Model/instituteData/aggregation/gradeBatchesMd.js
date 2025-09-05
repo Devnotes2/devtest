@@ -17,7 +17,7 @@ const GradeBatchesSchema = new Schema({
     required: true,
     ref: 'Grades'
   },
-  batch: {
+  batchName: {
     type: String,
     required: true,
     trim: true
@@ -35,7 +35,7 @@ const GradeBatchesSchema = new Schema({
 
 // Compound unique indexes for proper constraint enforcement
 GradeBatchesSchema.index(
-  { instituteId: 1, gradeId: 1, batch: 1 }, 
+  { instituteId: 1, gradeId: 1, batchName: 1 }, 
   { 
     unique: true, 
     name: 'unique_batch_per_grade',
@@ -45,14 +45,14 @@ GradeBatchesSchema.index(
 
 // Pre-save middleware to validate uniqueness before saving
 GradeBatchesSchema.pre('save', async function(next) {
-  if (this.isNew || this.isModified('instituteId') || this.isModified('gradeId') || this.isModified('batch')) {
+  if (this.isNew || this.isModified('instituteId') || this.isModified('gradeId') || this.isModified('batchName')) {
     const GradeBatches = this.constructor;
     
     // Check for duplicate batch name within the same grade within the same institute
     const existingBatch = await GradeBatches.findOne({
       instituteId: this.instituteId,
       gradeId: this.gradeId,
-      batch: this.batch,
+      batchName: this.batchName,
       _id: { $ne: this._id },
       archive: { $ne: true }
     });
@@ -71,7 +71,7 @@ GradeBatchesSchema.pre('findOneAndUpdate', async function(next) {
   const update = this.getUpdate();
   const filter = this.getFilter();
   
-  if (update.instituteId || update.gradeId || update.batch) {
+  if (update.instituteId || update.gradeId || update.batchName) {
     const GradeBatches = this.model;
     const doc = await GradeBatches.findOne(filter);
     
@@ -79,14 +79,14 @@ GradeBatchesSchema.pre('findOneAndUpdate', async function(next) {
     
     const instituteId = update.instituteId || doc.instituteId;
     const gradeId = update.gradeId || doc.gradeId;
-    const batch = update.batch || doc.batch;
+    const batchName = update.batchName || doc.batchName;
     
     // Check for duplicate batch name
-    if (update.batch) {
+    if (update.batchName) {
       const existingBatch = await GradeBatches.findOne({
         instituteId,
         gradeId,
-        batch,
+        batchName,
         _id: { $ne: doc._id },
         archive: { $ne: true }
       });

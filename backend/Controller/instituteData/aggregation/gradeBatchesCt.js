@@ -25,9 +25,9 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
     if (departmentId) matchConditions.departmentId = new ObjectId(departmentId);
     
     if (dropdown === 'true') {
-      // Fix: Change gradeBatch to batch to match model
-      let findQuery = GradeBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, batch: 1 });
-      findQuery = findQuery.sort({batch:1});
+      // Fix: Change gradeBatch to batchName to match model
+      let findQuery = GradeBatchesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, batchName: 1 });
+      findQuery = findQuery.sort({batchName:1});
       const data = await findQuery;
       return res.status(200).json( data );
     }
@@ -87,7 +87,7 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
             instituteId: 1,
             departmentId: 1,
             gradeId: 1,
-            batch: 1,
+            batchName: 1,
             description: 1,
             archive: 1,
             createdAt: 1,
@@ -178,7 +178,7 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
           instituteId: 1,
           departmentId: 1,
           gradeId: 1,
-          batch: 1,
+          batchName: 1,
           description: 1,
           archive: 1,
           createdAt: 1,
@@ -238,14 +238,14 @@ exports.gradeBatchesInInstituteAg = async (req, res) => {
 
 exports.createGradeBatchesInInstitute = async (req, res) => {
   const GradeBatchesInInstitute = createGradeBatchesInInstituteModel(req.collegeDB);
-  const { instituteId, departmentId, gradeId, batch, description } = req.body;
+  const { instituteId, departmentId, gradeId, batchName, description } = req.body;
 
   try {
     const newGradeBatch = await handleCRUD(GradeBatchesInInstitute, 'create', {}, {
       instituteId,
       departmentId,
       gradeId,
-      batch,
+      batchName,
       description
     });
 
@@ -261,8 +261,8 @@ exports.createGradeBatchesInInstitute = async (req, res) => {
       let fieldDisplayName = '';
       let suggestion = '';
       
-      if (field === 'batch') {
-        fieldDisplayName = 'Batch';
+      if (field === 'batchName') {
+        fieldDisplayName = 'Batch Name';
         suggestion = 'Batch name must be unique within this grade';
       }
       
@@ -303,9 +303,9 @@ exports.updateGradeBatchesInInstitute = async (req, res) => {
     if (error.code === 'DUPLICATE_BATCH') {
       return res.status(400).json({
         error: 'Duplicate value',
-        details: `Batch '${updatedData.batch}' already exists in this grade`,
-        field: 'batch',
-        value: updatedData.batch,
+        details: `Batch '${updatedData.batchName}' already exists in this grade`,
+        field: 'batchName',
+        value: updatedData.batchName,
         suggestion: 'Batch names must be unique within each grade'
       });
     }
@@ -367,14 +367,14 @@ exports.deleteGradeBatchesInInstitute = async (req, res) => {
 
     // 1. Count dependents for each Grade Batch
     const depCounts = await countDependents(req.collegeDB, ids, gradeBatchDependents);
-    // Fetch original Grade Batch docs to get the value field (e.g., batch)
+    // Fetch original Grade Batch docs to get the value field (e.g., batchName)
     const originalDocs = await GradeBatchesInInstitute.find(
       { _id: { $in: ids.map(id => new ObjectId(id)) } },
-      { batch: 1 }
+      { batchName: 1 }
     );
     const docMap = {};
     originalDocs.forEach(doc => {
-      docMap[doc._id.toString()] = doc.batch;
+      docMap[doc._id.toString()] = doc.batchName;
     });
 
     // Partition IDs into zero and non-zero dependents
