@@ -1,0 +1,39 @@
+{
+  "id": "dev-environment",
+  "name": "Development Environment",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://ss.local:8000",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "environment",
+      "value": "development",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "iterationDelay",
+      "value": "5000",
+      "enabled": true,
+      "type": "default",
+      "description": "5 seconds for dev testing"
+    },
+    {
+      "key": "maxIterations",
+      "value": "2",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "timeout",
+      "value": "10000",
+      "enabled": true,
+      "type": "default",
+      "description": "10 second timeout for dev"
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

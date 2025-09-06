@@ -64,7 +64,7 @@ router.use('/membersDataRt', multiTenantMiddleware, require('./membersModule/mem
 // UTILITY SERVICES
 // ============================================================================
 
-router.use('/auth', require('./authentication/authRt'));
+router.use('/auth', multiTenantMiddleware, require('./authentication/authRt'));
 
 // S3 file upload/download services
 router.use('/s3', require('./s3Module/s3Rt'));

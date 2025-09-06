@@ -1,0 +1,39 @@
+{
+  "id": "prod-environment",
+  "name": "Production Environment",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "https://devtest2.onrender.com",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "environment",
+      "value": "production",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "iterationDelay",
+      "value": "60000",
+      "enabled": true,
+      "type": "default",
+      "description": "1 minute for production testing"
+    },
+    {
+      "key": "maxIterations",
+      "value": "2",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "timeout",
+      "value": "30000",
+      "enabled": true,
+      "type": "default",
+      "description": "30 second timeout for production"
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

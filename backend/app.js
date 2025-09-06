@@ -45,7 +45,6 @@ app.use(cookieParser());
 // Public routes for authentication
 // These routes use middleware that connects to the tenant DB
 app.post('/auth/register', connectTenantDBMiddleware, memberDataCt.createMember);
-app.post('/auth/login', connectTenantDBMiddleware, authCt.login);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

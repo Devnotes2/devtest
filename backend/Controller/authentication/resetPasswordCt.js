@@ -6,6 +6,11 @@ const resetPassword = async (req, res) => {
 
   console.log(`[RESET_PASSWORD] Request body: Email=${email}, Token=${token}, Password=***`);
 
+  // Validate required fields
+  if (!email || !token || !password) {
+    return res.status(400).json({ message: 'Email, token, and password are required.' });
+  }
+
   // 1. Hash the token from the body
   const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
   console.log(`[RESET_PASSWORD] Hashed Token: ${hashedToken}`);

@@ -12,9 +12,10 @@ const multiTenantMiddleware = async (req, res, next) => {
   const { instituteCode } = req.body || {};
   
   // Define public routes that rely on instituteCode in the request body
-  const publicAuthPaths = ['/authRt/login', '/authRt/forgot-password', '/authRt/verify-otp', '/authRt/reset-password'];
+  // Note: These paths are relative to the /auth mount point in routes.js
+  const publicAuthPaths = ['/login', '/forgot-password', '/verify-otp', '/reset-password'];
   const isPublicAuthRequest = publicAuthPaths.some(path => req.path.startsWith(path));
-  console.log(isPublicAuthRequest , instituteCode);
+  console.log('DEBUG: isPublicAuthRequest:', isPublicAuthRequest, 'instituteCode:', instituteCode, 'path:', req.path);
   try {
     let tenant;
     let cacheKey;
