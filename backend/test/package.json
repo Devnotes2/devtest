@@ -7,7 +7,7 @@
     "test": "node standalone-test-runner.js health-check dev",
     "test:dev": "node standalone-test-runner.js health-check dev",
     "test:prod": "node standalone-test-runner.js health-check prod",
-    "test:health": "node standalone-test-runner.js health-check prod",
+    "test:health": "node standalone-test-runner.js health-check dev",
     "install-deps": "npm install newman newman-reporter-htmlextra"
   },
   "dependencies": {

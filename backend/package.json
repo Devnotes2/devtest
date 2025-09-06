@@ -6,8 +6,9 @@
   "scripts": {
     "start": "node app",
     "dev": "node --watch app",
-    "test": "node test/standalone-test-runner.js health-check dev",
+    "test": "node test/standalone-test-runner.js health-check prod",
     "test:dev": "node test/standalone-test-runner.js health-check dev",
+    "test:prod": "node test/standalone-test-runner.js health-check prod",
     "test:health": "node test/run-iterative-tests.js health-check dev",
     "test:health:dev": "node test/run-iterative-tests.js health-check dev",
     "test:health:prod": "node test/run-iterative-tests.js health-check prod"
