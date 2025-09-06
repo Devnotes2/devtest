@@ -4,7 +4,7 @@
   "description": "Standalone API test suite - can run independently of backend",
   "main": "standalone-test-runner.js",
   "scripts": {
-    "test": "node standalone-test-runner.js health-check prod",
+    "test": "node standalone-test-runner.js health-check dev",
     "test:dev": "node standalone-test-runner.js health-check dev",
     "test:prod": "node standalone-test-runner.js health-check prod",
     "test:health": "node standalone-test-runner.js health-check prod",

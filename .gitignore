@@ -1,2 +1,4 @@
-backend/.gitignore
+backend/node_modules
 backend/.env
+backend/Bodyparser.zip
+backend/test/reports
