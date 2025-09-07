@@ -7,6 +7,9 @@ const institutesCt = require('../../Controller/instituteData/institutesCt');
  * @swagger
  * components:
  *   schemas:
+ *     # ============================================================================
+ *     # INSTITUTE MANAGEMENT SCHEMAS
+ *     # ============================================================================
  *     Institute:
  *       type: object
  *       required:
@@ -70,43 +73,16 @@ const institutesCt = require('../../Controller/instituteData/institutesCt');
  *           type: boolean
  *           default: false
  *           description: Archive status
- *     InstituteResponse:
- *       type: object
- *       properties:
- *         message:
+
+ *         createdAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: object
- *           properties:
- *             institute:
- *               $ref: '#/components/schemas/Institute'
- *             id:
- *               type: string
- *               description: Created institute ID
- *     InstituteListResponse:
- *       type: object
- *       properties:
- *         message:
+ *           format: date-time
+ *           description: Creation timestamp
+
+ *         updatedAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Institute'
- *         pagination:
- *           type: object
- *           properties:
- *             currentPage:
- *               type: integer
- *             totalPages:
- *               type: integer
- *             totalItems:
- *               type: integer
- *             hasNextPage:
- *               type: boolean
- *             hasPrevPage:
- *               type: boolean
+ *           format: date-time
+ *           description: Last update timestamp
  *     InstituteUpdateRequest:
  *       type: object
  *       required:

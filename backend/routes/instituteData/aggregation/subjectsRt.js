@@ -24,65 +24,45 @@ const subjectsCt = require('../../../Controller/instituteData/aggregation/subjec
  *       properties:
  *         subject:
  *           type: string
- *           description: Subject name (e.g., Mathematics, English, Science)
+ *           description: Subject name (e.g., Mathematics, English, Science)
+
  *         subjectCode:
  *           type: string
- *           description: Unique subject code
+ *           description: Unique subject code
+
  *         instituteId:
  *           type: string
- *           description: Associated institute ID
+ *           description: Associated institute ID
+
  *         departmentId:
  *           type: string
- *           description: Associated department ID
+ *           description: Associated department ID
+
  *         gradeId:
  *           type: string
- *           description: Associated grade ID
+ *           description: Associated grade ID
+
  *         subjectTypeId:
  *           type: string
- *           description: Subject type ID
+ *           description: Subject type ID
+
  *         learningTypeId:
  *           type: string
- *           description: Learning type ID
+ *           description: Learning type ID
+
  *         description:
  *           type: string
- *           description: Subject description
- *     SubjectResponse:
- *       type: object
- *       properties:
- *         message:
+ *           description: Subject description
+
+ *         createdAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: object
- *           properties:
- *             subject:
- *               $ref: '#/components/schemas/Subject'
- *             id:
- *               type: string
- *               description: Created subject ID
- *     SubjectListResponse:
- *       type: object
- *       properties:
- *         message:
+ *           format: date-time
+ *           description: Creation timestamp
+
+ *         updatedAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Subject'
- *         pagination:
- *           type: object
- *           properties:
- *             currentPage:
- *               type: integer
- *             totalPages:
- *               type: integer
- *             totalItems:
- *               type: integer
- *             hasNextPage:
- *               type: boolean
- *             hasPrevPage:
- *               type: boolean
+ *           format: date-time
+ *           description: Last update timestamp
  *     SubjectUpdateRequest:
  *       type: object
  *       required:
@@ -129,7 +109,8 @@ const subjectsCt = require('../../../Controller/instituteData/aggregation/subjec
  *       properties:
  *         id:
  *           type: string
- *           description: Subject ID to delete
+ *           description: Subject ID to delete
+
  *     SuccessResponse:
  *       type: object
  *       properties:
@@ -199,7 +180,8 @@ const subjectsCt = require('../../../Controller/instituteData/aggregation/subjec
  *           type: integer
  *           minimum: 1
  *           default: 1
- *         description: Page number for pagination
+ *         description: Page number for pagination
+
  *       - in: query
  *         name: limit
  *         schema:
@@ -207,69 +189,81 @@ const subjectsCt = require('../../../Controller/instituteData/aggregation/subjec
  *           minimum: 1
  *           maximum: 100
  *           default: 10
- *         description: Number of items per page (max 100)
+ *         description: Number of items per page (max 100)
+
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
- *         description: Search subjects by name or code
+ *         description: Search subjects by name or code
+
  *       - in: query
  *         name: instituteId
  *         schema:
  *           type: string
- *         description: Filter by institute ID
+ *         description: Filter by institute ID
+
  *       - in: query
  *         name: departmentId
  *         schema:
  *           type: string
- *         description: Filter by department ID
+ *         description: Filter by department ID
+
  *       - in: query
  *         name: gradeId
  *         schema:
  *           type: string
- *         description: Filter by grade ID
+ *         description: Filter by grade ID
+
  *       - in: query
  *         name: subjectTypeId
  *         schema:
  *           type: string
- *         description: Filter by subject type ID
+ *         description: Filter by subject type ID
+
  *       - in: query
  *         name: learningTypeId
  *         schema:
  *           type: string
- *         description: Filter by learning type ID
+ *         description: Filter by learning type ID
+
  *       - in: query
  *         name: category
  *         schema:
  *           type: string
  *           enum: [core, elective, optional, practical]
- *         description: Filter by subject category
+ *         description: Filter by subject category
+
  *       - in: query
  *         name: difficulty
  *         schema:
  *           type: string
  *           enum: [beginner, intermediate, advanced, expert]
- *         description: Filter by difficulty level
+ *         description: Filter by difficulty level
+
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [active, inactive, suspended]
- *         description: Filter by status
+ *         description: Filter by status
+
  *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
  *           enum: [subject, subjectCode, createdAt, updatedAt, credits]
  *           default: "subject"
- *         description: Field to sort by
+ *         description: Field to sort by
+
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc]
  *           default: "asc"
- *         description: Sort order
+ *         description: Sort order
+
  *     responses:
  *       200:
  *         description: Subjects retrieved successfully
@@ -279,65 +273,89 @@ const subjectsCt = require('../../../Controller/instituteData/aggregation/subjec
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 data:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       _id:
- *                         type: string
+ *                         type: string
+
  *                       subject:
- *                         type: string
+ *                         type: string
+
  *                       subjectCode:
- *                         type: string
+ *                         type: string
+
  *                       instituteId:
- *                         type: string
+ *                         type: string
+
  *                       departmentId:
- *                         type: string
+ *                         type: string
+
  *                       gradeId:
- *                         type: string
+ *                         type: string
+
  *                       subjectTypeId:
- *                         type: string
+ *                         type: string
+
  *                       learningTypeId:
- *                         type: string
+ *                         type: string
+
  *                       description:
- *                         type: string
+ *                         type: string
+
  *                       category:
- *                         type: string
+ *                         type: string
+
  *                       difficulty:
- *                         type: string
+ *                         type: string
+
  *                       credits:
- *                         type: number
+ *                         type: number
+
  *                       maxStudents:
- *                         type: integer
+ *                         type: integer
+
  *                       status:
- *                         type: string
+ *                         type: string
+
  *                       order:
- *                         type: integer
+ *                         type: integer
+
  *                       createdAt:
  *                         type: string
- *                         format: date-time
+ *                         format: date-time
+
  *                       updatedAt:
  *                         type: string
- *                         format: date-time
+ *                         format: date-time
+
  *                 count:
  *                   type: integer
- *                   description: Number of subjects returned
+ *                   description: Number of subjects returned
+
  *                 total:
  *                   type: integer
- *                   description: Total number of subjects
+ *                   description: Total number of subjects
+
  *                 page:
  *                   type: integer
- *                   description: Current page number
+ *                   description: Current page number
+
  *                 limit:
  *                   type: integer
- *                   description: Items per page
+ *                   description: Items per page
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               all_subjects:
  *                 summary: All subjects with pagination
@@ -392,23 +410,29 @@ const subjectsCt = require('../../../Controller/instituteData/aggregation/subjec
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       401:
  *         description: Unauthorized
  *         content:
@@ -417,23 +441,29 @@ const subjectsCt = require('../../../Controller/instituteData/aggregation/subjec
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       500:
  *         description: Internal server error
  *         content:
@@ -442,23 +472,29 @@ const subjectsCt = require('../../../Controller/instituteData/aggregation/subjec
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  */
 
 router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
@@ -509,52 +545,66 @@ router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
  *             properties:
  *               subject:
  *                 type: string
- *                 description: Subject name
+ *                 description: Subject name
+
  *               subjectCode:
  *                 type: string
- *                 description: Unique subject code within institute
+ *                 description: Unique subject code within institute
+
  *               instituteId:
  *                 type: string
- *                 description: Associated institute ID
+ *                 description: Associated institute ID
+
  *               departmentId:
  *                 type: string
- *                 description: Associated department ID
+ *                 description: Associated department ID
+
  *               gradeId:
  *                 type: string
- *                 description: Associated grade ID
+ *                 description: Associated grade ID
+
  *               subjectTypeId:
  *                 type: string
- *                 description: Subject type ID
+ *                 description: Subject type ID
+
  *               learningTypeId:
  *                 type: string
- *                 description: Learning type ID
+ *                 description: Learning type ID
+
  *               description:
  *                 type: string
- *                 description: Subject description
+ *                 description: Subject description
+
  *               category:
  *                 type: string
  *                 enum: [core, elective, optional, practical]
- *                 description: Subject category (optional)
+ *                 description: Subject category (optional)
+
  *               difficulty:
  *                 type: string
  *                 enum: [beginner, intermediate, advanced, expert]
- *                 description: Difficulty level (optional)
+ *                 description: Difficulty level (optional)
+
  *               credits:
  *                 type: number
  *                 minimum: 0
- *                 description: Number of credits (optional)
+ *                 description: Number of credits (optional)
+
  *               maxStudents:
  *                 type: integer
  *                 minimum: 1
- *                 description: Maximum number of students (optional)
+ *                 description: Maximum number of students (optional)
+
  *               status:
  *                 type: string
  *                 enum: [active, inactive, suspended]
- *                 description: Subject status (optional, defaults to active)
+ *                 description: Subject status (optional, defaults to active)
+
  *               order:
  *                 type: integer
  *                 minimum: 1
- *                 description: Display order (optional)
+ *                 description: Display order (optional)
+
  *           examples:
  *             basic_subject:
  *               summary: Basic subject creation
@@ -613,9 +663,11 @@ router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 data:
  *                   type: object
  *                   properties:
@@ -623,44 +675,62 @@ router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
  *                       type: object
  *                       properties:
  *                         _id:
- *                           type: string
+ *                           type: string
+
  *                         subject:
- *                           type: string
+ *                           type: string
+
  *                         subjectCode:
- *                           type: string
+ *                           type: string
+
  *                         instituteId:
- *                           type: string
+ *                           type: string
+
  *                         departmentId:
- *                           type: string
+ *                           type: string
+
  *                         gradeId:
- *                           type: string
+ *                           type: string
+
  *                         subjectTypeId:
- *                           type: string
+ *                           type: string
+
  *                         learningTypeId:
- *                           type: string
+ *                           type: string
+
  *                         description:
- *                           type: string
+ *                           type: string
+
  *                         category:
- *                           type: string
+ *                           type: string
+
  *                         difficulty:
- *                           type: string
+ *                           type: string
+
  *                         credits:
- *                           type: number
+ *                           type: number
+
  *                         maxStudents:
- *                           type: integer
+ *                           type: integer
+
  *                         status:
- *                           type: string
+ *                           type: string
+
  *                         order:
- *                           type: integer
+ *                           type: integer
+
  *                         createdAt:
  *                           type: string
- *                           format: date-time
+ *                           format: date-time
+
  *                         updatedAt:
  *                           type: string
- *                           format: date-time
+ *                           format: date-time
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               basic_creation:
  *                 summary: Basic subject creation
@@ -720,23 +790,29 @@ router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               validation_error:
  *                 summary: Validation error
@@ -772,23 +848,29 @@ router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       409:
  *         description: Conflict - subject code already exists
  *         content:
@@ -797,23 +879,29 @@ router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       500:
  *         description: Internal server error
  *         content:
@@ -822,23 +910,29 @@ router.get('/subjectsInInstitute',subjectsCt.subjectsInInstituteAg);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  */
 
 router.post('/subjectsInInstitute',subjectsCt.createSubjectsInInstitute);
@@ -882,40 +976,50 @@ router.post('/subjectsInInstitute',subjectsCt.createSubjectsInInstitute);
  *             properties:
  *               id:
  *                 type: string
- *                 description: Subject ID to update
+ *                 description: Subject ID to update
+
  *               subject:
  *                 type: string
- *                 description: Updated subject name
+ *                 description: Updated subject name
+
  *               subjectCode:
  *                 type: string
- *                 description: Updated subject code
+ *                 description: Updated subject code
+
  *               description:
  *                 type: string
- *                 description: Updated description
+ *                 description: Updated description
+
  *               category:
  *                 type: string
  *                 enum: [core, elective, optional, practical]
- *                 description: Updated category
+ *                 description: Updated category
+
  *               difficulty:
  *                 type: string
  *                 enum: [beginner, intermediate, advanced, expert]
- *                 description: Updated difficulty level
+ *                 description: Updated difficulty level
+
  *               credits:
  *                 type: number
  *                 minimum: 0
- *                 description: Updated credits
+ *                 description: Updated credits
+
  *               maxStudents:
  *                 type: integer
  *                 minimum: 1
- *                 description: Updated maximum students
+ *                 description: Updated maximum students
+
  *               status:
  *                 type: string
  *                 enum: [active, inactive, suspended]
- *                 description: Updated status
+ *                 description: Updated status
+
  *               order:
  *                 type: integer
  *                 minimum: 1
- *                 description: Updated display order
+ *                 description: Updated display order
+
  *           examples:
  *             basic_update:
  *               summary: Basic subject update
@@ -968,9 +1072,11 @@ router.post('/subjectsInInstitute',subjectsCt.createSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 data:
  *                   type: object
  *                   properties:
@@ -978,41 +1084,58 @@ router.post('/subjectsInInstitute',subjectsCt.createSubjectsInInstitute);
  *                       type: object
  *                       properties:
  *                         _id:
- *                           type: string
+ *                           type: string
+
  *                         subject:
- *                           type: string
+ *                           type: string
+
  *                         subjectCode:
- *                           type: string
+ *                           type: string
+
  *                         instituteId:
- *                           type: string
+ *                           type: string
+
  *                         departmentId:
- *                           type: string
+ *                           type: string
+
  *                         gradeId:
- *                           type: string
+ *                           type: string
+
  *                         subjectTypeId:
- *                           type: string
+ *                           type: string
+
  *                         learningTypeId:
- *                           type: string
+ *                           type: string
+
  *                         description:
- *                           type: string
+ *                           type: string
+
  *                         category:
- *                           type: string
+ *                           type: string
+
  *                         difficulty:
- *                           type: string
+ *                           type: string
+
  *                         credits:
- *                           type: number
+ *                           type: number
+
  *                         maxStudents:
- *                           type: integer
+ *                           type: integer
+
  *                         status:
- *                           type: string
+ *                           type: string
+
  *                         order:
- *                           type: integer
+ *                           type: integer
+
  *                         updatedAt:
  *                           type: string
- *                           format: date-time
+ *                           format: date-time
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               basic_update_success:
  *                 summary: Basic update success
@@ -1060,23 +1183,29 @@ router.post('/subjectsInInstitute',subjectsCt.createSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               validation_error:
  *                 summary: Validation error
@@ -1109,23 +1238,29 @@ router.post('/subjectsInInstitute',subjectsCt.createSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       404:
  *         description: Subject not found
  *         content:
@@ -1134,23 +1269,29 @@ router.post('/subjectsInInstitute',subjectsCt.createSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       500:
  *         description: Internal server error
  *         content:
@@ -1159,23 +1300,29 @@ router.post('/subjectsInInstitute',subjectsCt.createSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  */
 
 router.put('/subjectsInInstitute',subjectsCt.updateSubjectsInInstitute);
@@ -1219,18 +1366,22 @@ router.put('/subjectsInInstitute',subjectsCt.updateSubjectsInInstitute);
  *             properties:
  *               id:
  *                 type: string
- *                 description: Subject ID to delete
+ *                 description: Subject ID to delete
+
  *               deleteType:
  *                 type: string
  *                 enum: [soft, hard, cascade]
  *                 default: "soft"
- *                 description: Type of deletion to perform
+ *                 description: Type of deletion to perform
+
  *               confirm:
  *                 type: boolean
- *                 description: Confirmation flag for hard/cascade deletion
+ *                 description: Confirmation flag for hard/cascade deletion
+
  *               reason:
  *                 type: string
- *                 description: Reason for deletion (optional)
+ *                 description: Reason for deletion (optional)
+
  *           examples:
  *             soft_delete:
  *               summary: Soft delete (recommended)
@@ -1264,9 +1415,11 @@ router.put('/subjectsInInstitute',subjectsCt.updateSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 data:
  *                   type: object
  *                   properties:
@@ -1274,31 +1427,41 @@ router.put('/subjectsInInstitute',subjectsCt.updateSubjectsInInstitute);
  *                       type: object
  *                       properties:
  *                         _id:
- *                           type: string
+ *                           type: string
+
  *                         subject:
- *                           type: string
+ *                           type: string
+
  *                         subjectCode:
- *                           type: string
+ *                           type: string
+
  *                         deleteType:
- *                           type: string
+ *                           type: string
+
  *                         deletedAt:
  *                           type: string
- *                           format: date-time
+ *                           format: date-time
+
  *                         reason:
- *                           type: string
+ *                           type: string
+
  *                     relatedRecords:
  *                       type: object
  *                       description: Information about related records affected
  *                       properties:
  *                         enrollments:
- *                           type: integer
+ *                           type: integer
+
  *                         grades:
- *                           type: integer
+ *                           type: integer
+
  *                         schedules:
- *                           type: integer
+ *                           type: integer
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               soft_delete_success:
  *                 summary: Soft delete success
@@ -1362,23 +1525,29 @@ router.put('/subjectsInInstitute',subjectsCt.updateSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               validation_error:
  *                 summary: Validation error
@@ -1418,23 +1587,29 @@ router.put('/subjectsInInstitute',subjectsCt.updateSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       404:
  *         description: Subject not found
  *         content:
@@ -1443,23 +1618,29 @@ router.put('/subjectsInInstitute',subjectsCt.updateSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       409:
  *         description: Conflict - subject cannot be deleted
  *         content:
@@ -1468,23 +1649,29 @@ router.put('/subjectsInInstitute',subjectsCt.updateSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       500:
  *         description: Internal server error
  *         content:
@@ -1493,23 +1680,29 @@ router.put('/subjectsInInstitute',subjectsCt.updateSubjectsInInstitute);
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  */
 
 router.delete('/subjectsInInstitute',subjectsCt.deleteSubjectsInInstitute);

@@ -6,6 +6,9 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  * @swagger
  * components:
  *   schemas:
+ *     # ============================================================================
+ *     # ASIDE DATA MANAGEMENT SCHEMAS
+ *     # ============================================================================
  *     AsideData:
  *       type: object
  *       required:
@@ -43,58 +46,15 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *           type: object
  *           description: Additional metadata for the aside data
 
- *             version: "1.0"
- *             permissions: ["admin", "teacher"]
- *     AsideDataResponse:
- *       type: object
- *       properties:
- *         message:
+ *         createdAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/AsideData'
- *         pagination:
- *           type: object
- *           properties:
- *             currentPage:
- *               type: integer
- *             totalPages:
- *               type: integer
- *             totalItems:
- *               type: integer
- *             hasNextPage:
- *               type: boolean
- *             hasPrevPage:
- *               type: boolean
- *     SuccessResponse:
- *       type: object
- *       properties:
- *         message:
+ *           format: date-time
+ *           description: Creation timestamp
+
+ *         updatedAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: object
- *           description: Response data
- *     ErrorResponse:
- *       type: object
- *       properties:
- *         message:
- *           type: string
- *           description: Error message
- *         status:
- *           type: string
- *           description: Error status
- *         errors:
- *           type: array
- *           items:
- *             type: object
- *             properties:
- *               field:
- *                 type: string
- *               message:
- *                 type: string
+ *           format: date-time
+ *           description: Last update timestamp
  */
 
 /**
@@ -110,7 +70,7 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *   get:
  *     summary: Get aside data by type
  *     tags: [Aside Data]
- *     description: Retrieve aside data (menus, notifications, announcements, etc.) by type for an institute
+ *     description: Retrieve aside data (menus, notifications, announcements, etc.) by type for an institute with enhanced filtering and pagination
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -121,48 +81,152 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *           type: string
  *           enum: [menu, member, notification, announcement, quick_links, sidebar]
  *         description: Type of aside data to retrieve
-
+ *         example: "menu"
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
  *           default: 1
  *         description: Page number for pagination
+ *         example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
  *         description: Number of items per page
+ *         example: 10
  *       - in: query
- *         name: instituteId
+ *         name: ids
  *         schema:
- *           type: string
- *         description: Filter by institute ID
+ *           type: array
+ *           items:
+ *             type: string
+ *             pattern: '^[0-9a-fA-F]{24}$'
+ *         style: form
+ *         explode: false
+ *         description: Array of specific IDs to retrieve (comma-separated)
+ *         example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
  *       - in: query
- *         name: isActive
+ *         name: dropdown
  *         schema:
  *           type: boolean
- *         description: Filter by active status
+ *           default: false
+ *         description: Return simplified data with only _id and title fields for dropdowns
+ *         example: true
  *       - in: query
- *         name: search
+ *         name: aggregate
+ *         schema:
+ *           type: boolean
+ *           default: true
+ *         description: Include related data in response
+ *         example: true
+ *       - in: query
+ *         name: sortField
  *         schema:
  *           type: string
- *         description: Search aside data by title
+ *         description: Field to sort by
+ *         example: "order"
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort order (asc or desc)
+ *         example: "asc"
+ *       - in: query
+ *         name: filterField
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: false
+ *         description: Field(s) to filter by
+ *         example: ["isActive", "instituteId"]
+ *       - in: query
+ *         name: operator
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [equals, contains, startsWith, endsWith, gt, gte, lt, lte, in, nin, exists, regex]
+ *         style: form
+ *         explode: false
+ *         description: Filter operator(s) corresponding to filterField(s)
+ *         example: ["equals", "equals"]
+ *       - in: query
+ *         name: value
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: false
+ *         description: Filter value(s) corresponding to filterField(s)
+ *         example: ["true", "507f1f77bcf86cd799439012"]
+ *       - in: query
+ *         name: validate
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Validate filter fields against schema
+ *         example: true
  *     responses:
  *       200:
- *         description: Aside data retrieved successfully
+ *         description: Operation completed successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AsideDataResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Operation completed successfully"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/AsideData'
+ *                 count:
+ *                   type: integer
+ *                   example: 2
+ *                 filteredDocs:
+ *                   type: integer
+ *                   example: 2
+ *                 totalDocs:
+ *                   type: integer
+ *                   example: 5
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 limit:
+ *                   type: integer
+ *                   example: 10
+ *                 mode:
+ *                   type: string
+ *                   example: "aggregated"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-15T10:30:00.000Z"
+ *                 requestId:
+ *                   type: string
+ *                   example: "req_1705312200000_abc123def"
+ *                 version:
+ *                   type: string
+ *                   example: "1.0"
  *             examples:
  *               menuData:
  *                 summary: Menu aside data
  *                 value:
- *                   message: "Aside data retrieved successfully"
+ *                   success: true
+ *                   message: "Operation completed successfully"
  *                   data:
- *                     - id: "507f1f77bcf86cd799439011"
+ *                     - _id: "507f1f77bcf86cd799439011"
  *                       title: "Main Menu"
  *                       type: "menu"
  *                       instituteId: "507f1f77bcf86cd799439012"
@@ -174,62 +238,85 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *                           - label: "Members"
  *                             icon: "users"
  *                             url: "/members"
- *                           - label: "Institutes"
- *                             icon: "building"
- *                             url: "/institutes"
  *                       order: 1
  *                       isActive: true
- *               notificationData:
- *                 summary: Notification aside data
- *                 value:
- *                   message: "Aside data retrieved successfully"
- *                   data:
- *                     - id: "507f1f77bcf86cd799439013"
- *                       title: "System Notifications"
- *                       type: "notification"
- *                       instituteId: "507f1f77bcf86cd799439012"
- *                       content:
- *                         notifications:
- *                           - id: "1"
- *                             message: "New member registration"
- *                             type: "info"
- *                             timestamp: "2024-01-15T10:30:00Z"
- *                       order: 2
- *                       isActive: true
- *                   pagination:
- *                     currentPage: 1
- *                     totalPages: 1
- *                     totalItems: 2
- *                     hasNextPage: false
- *                     hasPrevPage: false
+ *                       createdAt: "2024-01-15T10:30:00.000Z"
+ *                       updatedAt: "2024-01-15T10:30:00.000Z"
+ *                   count: 1
+ *                   filteredDocs: 1
+ *                   totalDocs: 3
+ *                   page: 1
+ *                   limit: 10
+ *                   mode: "aggregated"
+ *                   timestamp: "2024-01-15T10:30:00.000Z"
+ *                   requestId: "req_1705312200000_abc123def"
+ *                   version: "1.0"
  *       400:
- *         description: Bad request - validation error
+ *         description: Bad request
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
-
- *               status: "error"
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed"
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: "type"
+ *                       message:
+ *                         type: string
+ *                         example: "Invalid type value"
+ *                       code:
+ *                         type: string
+ *                         example: "INVALID_ENUM"
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized access"
  *       404:
- *         description: Aside data not found for the specified type
+ *         description: Resource not found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
-
- *               status: "error"
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Resource not found"
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 // GET aside data by type (menu, member, etc.)

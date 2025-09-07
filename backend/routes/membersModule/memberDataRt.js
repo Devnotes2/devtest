@@ -77,43 +77,16 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *         profileImage:
  *           type: string
  *           description: Profile image URL
- *     MemberResponse:
- *       type: object
- *       properties:
- *         message:
+
+ *         createdAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: object
- *           properties:
- *             member:
- *               $ref: '#/components/schemas/Member'
- *             id:
- *               type: string
- *               description: Created member ID
- *     MemberListResponse:
- *       type: object
- *       properties:
- *         message:
+ *           format: date-time
+ *           description: Creation timestamp
+
+ *         updatedAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Member'
- *         pagination:
- *           type: object
- *           properties:
- *             currentPage:
- *               type: integer
- *             totalPages:
- *               type: integer
- *             totalItems:
- *               type: integer
- *             hasNextPage:
- *               type: boolean
- *             hasPrevPage:
- *               type: boolean
+ *           format: date-time
+ *           description: Last update timestamp
  *     MemberUpdateRequest:
  *       type: object
  *       properties:
@@ -263,44 +236,122 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *                 description: Profile image file (JPEG, PNG)
  *     responses:
  *       201:
- *         description: Member created successfully
+ *         description: Resource created successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/MemberResponse'
-
- *               data:
- *                 member:
- *                   firstName: "John"
- *                   lastName: "Doe"
- *                   email: "john.doe@example.com"
- *                   role: "teacher"
- *                   instituteId: "507f1f77bcf86cd799439011"
- *                 id: "507f1f77bcf86cd799439014"
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Resource created successfully"
+ *                 data:
+ *                   type: object
+ *                 created:
+ *                   type: boolean
+ *                   example: true
+ *                 id:
+ *                   type: string
+ *                   example: "507f1f77bcf86cd799439011"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-15T10:30:00.000Z"
+ *                 requestId:
+ *                   type: string
+ *                   example: "req_1705312200000_abc123def"
+ *                 version:
+ *                   type: string
+ *                   example: "1.0"
+ *             examples:
+ *               member_created:
+ *                 summary: Member Created Successfully
+ *                 value:
+ *                   success: true
+ *                   message: "Resource created successfully"
+ *                   data:
+ *                     member:
+ *                       _id: "507f1f77bcf86cd799439011"
+ *                       firstName: "John"
+ *                       lastName: "Doe"
+ *                       email: "john.doe@example.com"
+ *                       role: "teacher"
+ *                       instituteId: "507f1f77bcf86cd799439011"
+ *                       createdAt: "2024-01-15T10:30:00.000Z"
+ *                   created: true
+ *                   id: "507f1f77bcf86cd799439011"
+ *                   timestamp: "2024-01-15T10:30:00.000Z"
+ *                   requestId: "req_1705312200000_abc123def"
+ *                   version: "1.0"
  *       400:
- *         description: Bad request - validation error
+ *         description: Bad request
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed"
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: "email"
+ *                       message:
+ *                         type: string
+ *                         example: "Email is required"
+ *                       code:
+ *                         type: string
+ *                         example: "REQUIRED_FIELD"
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized access"
  *       409:
- *         description: Member with this email already exists
+ *         description: Conflict
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Resource already exists"
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 // POST route for adding member data with image upload
@@ -445,37 +496,128 @@ router.post('/member', upload, memberDataCt.createMember);  // Apply upload midd
 
  *     responses:
  *       200:
- *         description: Members retrieved successfully
+ *         description: Operation completed successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/MemberListResponse'
-
- *               data:
- *                 - id: "507f1f77bcf86cd799439011"
- *                   firstName: "John"
- *                   lastName: "Doe"
- *                   email: "john.doe@example.com"
- *                   role: "teacher"
- *                   status: "active"
- *               pagination:
- *                 currentPage: 1
- *                 totalPages: 5
- *                 totalItems: 50
- *                 hasNextPage: true
- *                 hasPrevPage: false
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Operation completed successfully"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Member'
+ *                 count:
+ *                   type: integer
+ *                   example: 10
+ *                 filteredDocs:
+ *                   type: integer
+ *                   example: 8
+ *                 totalDocs:
+ *                   type: integer
+ *                   example: 100
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 limit:
+ *                   type: integer
+ *                   example: 10
+ *                 mode:
+ *                   type: string
+ *                   example: "aggregated"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-15T10:30:00.000Z"
+ *                 requestId:
+ *                   type: string
+ *                   example: "req_1705312200000_abc123def"
+ *                 version:
+ *                   type: string
+ *                   example: "1.0"
+ *             examples:
+ *               members_list:
+ *                 summary: Members List
+ *                 value:
+ *                   success: true
+ *                   message: "Operation completed successfully"
+ *                   data:
+ *                     - _id: "507f1f77bcf86cd799439011"
+ *                       firstName: "John"
+ *                       lastName: "Doe"
+ *                       email: "john.doe@example.com"
+ *                       role: "teacher"
+ *                       status: "active"
+ *                       instituteId: "507f1f77bcf86cd799439012"
+ *                       createdAt: "2024-01-15T10:30:00.000Z"
+ *                       updatedAt: "2024-01-15T10:30:00.000Z"
+ *                   count: 1
+ *                   filteredDocs: 1
+ *                   totalDocs: 50
+ *                   page: 1
+ *                   limit: 10
+ *                   mode: "aggregated"
+ *                   timestamp: "2024-01-15T10:30:00.000Z"
+ *                   requestId: "req_1705312200000_abc123def"
+ *                   version: "1.0"
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed"
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: "role"
+ *                       message:
+ *                         type: string
+ *                         example: "Invalid role value"
+ *                       code:
+ *                         type: string
+ *                         example: "INVALID_ENUM"
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized access"
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 router.get('/member', memberDataCt.getMembersData);
@@ -501,40 +643,120 @@ router.get('/member', memberDataCt.getMembersData);
  *             status: "active"
  *     responses:
  *       200:
- *         description: Member updated successfully
+ *         description: Resource updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
-
- *               data:
- *                 updatedMember:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Resource updated successfully"
+ *                 data:
+ *                   type: object
+ *                 updated:
+ *                   type: boolean
+ *                   example: true
+ *                 id:
+ *                   type: string
+ *                   example: "507f1f77bcf86cd799439011"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-15T10:30:00.000Z"
+ *                 requestId:
+ *                   type: string
+ *                   example: "req_1705312200000_abc123def"
+ *                 version:
+ *                   type: string
+ *                   example: "1.0"
+ *             examples:
+ *               member_updated:
+ *                 summary: Member Updated Successfully
+ *                 value:
+ *                   success: true
+ *                   message: "Resource updated successfully"
+ *                   data:
+ *                     updatedMember:
+ *                       _id: "507f1f77bcf86cd799439011"
+ *                       firstName: "John Updated"
+ *                       lastName: "Doe"
+ *                       email: "john.doe@example.com"
+ *                       updatedAt: "2024-01-15T10:30:00.000Z"
+ *                   updated: true
  *                   id: "507f1f77bcf86cd799439011"
- *                   firstName: "John Updated"
+ *                   timestamp: "2024-01-15T10:30:00.000Z"
+ *                   requestId: "req_1705312200000_abc123def"
+ *                   version: "1.0"
  *       400:
- *         description: Bad request - validation error
+ *         description: Bad request
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed"
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: "email"
+ *                       message:
+ *                         type: string
+ *                         example: "Invalid email format"
+ *                       code:
+ *                         type: string
+ *                         example: "INVALID_FORMAT"
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized access"
  *       404:
- *         description: Member not found
+ *         description: Resource not found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Resource not found"
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 router.put('/member', memberDataCt.updateMember);
@@ -557,37 +779,114 @@ router.put('/member', memberDataCt.updateMember);
 
  *     responses:
  *       200:
- *         description: Member deleted successfully
+ *         description: Resource deleted successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
-
- *               data: {}
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Resource deleted successfully"
+ *                 data:
+ *                   type: object
+ *                 deleted:
+ *                   type: boolean
+ *                   example: true
+ *                 id:
+ *                   type: string
+ *                   example: "507f1f77bcf86cd799439011"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-15T10:30:00.000Z"
+ *                 requestId:
+ *                   type: string
+ *                   example: "req_1705312200000_abc123def"
+ *                 version:
+ *                   type: string
+ *                   example: "1.0"
+ *             examples:
+ *               member_deleted:
+ *                 summary: Member Deleted Successfully
+ *                 value:
+ *                   success: true
+ *                   message: "Resource deleted successfully"
+ *                   data: {}
+ *                   deleted: true
+ *                   id: "507f1f77bcf86cd799439011"
+ *                   timestamp: "2024-01-15T10:30:00.000Z"
+ *                   requestId: "req_1705312200000_abc123def"
+ *                   version: "1.0"
  *       400:
- *         description: Bad request - validation error
+ *         description: Bad request
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed"
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: "id"
+ *                       message:
+ *                         type: string
+ *                         example: "Member ID is required"
+ *                       code:
+ *                         type: string
+ *                         example: "REQUIRED_FIELD"
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized access"
  *       404:
- *         description: Member not found
+ *         description: Resource not found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Resource not found"
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 router.delete('/member', memberDataCt.deleteMembers);

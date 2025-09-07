@@ -37,103 +37,16 @@ const departmentCt = require('../../Controller/instituteData/departmentCt');
  *           type: boolean
  *           default: false
  *           description: Archive status (OPTIONAL - defaults to false)
- *     DepartmentResponse:
- *       type: object
- *       properties:
- *         message:
+
+ *         createdAt:
  *           type: string
- *           description: Success message
+ *           format: date-time
+ *           description: Creation timestamp
 
- *         data:
- *           type: object
- *           properties:
- *             _id:
- *               type: string
- *               description: Created department ID
-
- *             instituteId:
- *               type: string
- *               description: Associated institute ID
-
- *             departmentName:
- *               type: string
- *               description: Department name
-
- *             departmentCode:
- *               type: string
- *               description: Department code
-
- *             description:
- *               type: string
- *               description: Department description
-
- *             archive:
- *               type: boolean
- *               description: Archive status
-
- *             createdAt:
- *               type: string
- *               format: date-time
- *               description: Creation timestamp
- *             updatedAt:
- *               type: string
- *               format: date-time
- *               description: Last update timestamp
- *     DepartmentListResponse:
- *       type: object
- *       properties:
- *         count:
- *           type: integer
- *           description: Number of items in current page
-
- *         filteredDocs:
- *           type: integer
- *           description: Total number of filtered documents
-
- *         totalDocs:
- *           type: integer
- *           description: Total number of documents in collection
-
- *         data:
- *           type: array
- *           items:
- *             type: object
- *             properties:
- *               _id:
- *                 type: string
- *                 description: Department ID
-
- *               instituteId:
- *                 type: string
- *                 description: Associated institute ID
-
- *               departmentName:
- *                 type: string
- *                 description: Department name
-
- *               departmentCode:
- *                 type: string
- *                 description: Department code
-
- *               description:
- *                 type: string
- *                 description: Department description
-
- *               archive:
- *                 type: boolean
- *                 description: Archive status
-
- *               createdAt:
- *                 type: string
- *                 format: date-time
- *                 description: Creation timestamp
- *               updatedAt:
- *                 type: string
- *                 format: date-time
- *                 description: Last update timestamp
- *               instituteName:
- *                 type: string
- *                 description: Institute name (from lookup)
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Last update timestamp
  *     DepartmentUpdateRequest:
  *       type: object
  *       required:
@@ -297,77 +210,213 @@ const departmentCt = require('../../Controller/instituteData/departmentCt');
  *         description: Filter by archive status
 
  *       - in: query
- *         name: validate
+ *         name: ids
  *         schema:
- *           type: string
- *           enum: [true, false]
- *         description: Validate if departmentName exists (requires departmentName parameter)
+ *           type: array
+ *           items:
+ *             type: string
+ *             pattern: '^[0-9a-fA-F]{24}$'
+ *         style: form
+ *         explode: false
+ *         description: Array of specific IDs to retrieve (comma-separated)
+ *         example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
  *       - in: query
  *         name: dropdown
  *         schema:
- *           type: string
- *           enum: [true, false]
- *         description: Return simplified data for dropdown (only _id and departmentName)
+ *           type: boolean
+ *           default: false
+ *         description: Return simplified data with only _id and departmentName fields for dropdowns
+ *         example: true
  *       - in: query
- *         name: sortBy
+ *         name: aggregate
+ *         schema:
+ *           type: boolean
+ *           default: true
+ *         description: Include related data in response
+ *         example: true
+ *       - in: query
+ *         name: sortField
  *         schema:
  *           type: string
  *         description: Field to sort by
-
+ *         example: "departmentName"
  *       - in: query
- *         name: sortOrder
+ *         name: sort
  *         schema:
  *           type: string
  *           enum: [asc, desc]
  *           default: asc
- *         description: Sort order
+ *         description: Sort order (asc or desc)
+ *         example: "asc"
+ *       - in: query
+ *         name: filterField
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: false
+ *         description: Field(s) to filter by
+ *         example: ["archive", "instituteId"]
+ *       - in: query
+ *         name: operator
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [equals, contains, startsWith, endsWith, gt, gte, lt, lte, in, nin, exists, regex]
+ *         style: form
+ *         explode: false
+ *         description: Filter operator(s) corresponding to filterField(s)
+ *         example: ["equals", "equals"]
+ *       - in: query
+ *         name: value
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: false
+ *         description: Filter value(s) corresponding to filterField(s)
+ *         example: ["false", "507f1f77bcf86cd799439012"]
+ *       - in: query
+ *         name: validate
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Validate filter fields against schema
+ *         example: true
  *     responses:
  *       200:
- *         description: Departments retrieved successfully
+ *         description: Operation completed successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/DepartmentListResponse'
-
- *               filteredDocs: 25
- *               totalDocs: 100
- *               data:
- *                 - _id: "507f1f77bcf86cd799439011"
- *                   instituteId: "507f1f77bcf86cd799439012"
- *                   departmentName: "Computer Science"
- *                   departmentCode: "CS001"
- *                   description: "Computer Science and Engineering Department"
- *                   archive: false
- *                   createdAt: "2023-01-01T00:00:00.000Z"
- *                   updatedAt: "2023-01-01T00:00:00.000Z"
- *                   instituteName: "ABC International School"
- *                 - _id: "507f1f77bcf86cd799439013"
- *                   instituteId: "507f1f77bcf86cd799439012"
- *                   departmentName: "Mathematics"
- *                   departmentCode: "MATH001"
- *                   description: "Mathematics Department"
- *                   archive: false
- *                   createdAt: "2023-01-01T00:00:00.000Z"
- *                   updatedAt: "2023-01-01T00:00:00.000Z"
- *                   instituteName: "ABC International School"
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Operation completed successfully"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Department'
+ *                 count:
+ *                   type: integer
+ *                   example: 2
+ *                 filteredDocs:
+ *                   type: integer
+ *                   example: 2
+ *                 totalDocs:
+ *                   type: integer
+ *                   example: 25
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 limit:
+ *                   type: integer
+ *                   example: 10
+ *                 mode:
+ *                   type: string
+ *                   example: "aggregated"
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2024-01-15T10:30:00.000Z"
+ *                 requestId:
+ *                   type: string
+ *                   example: "req_1705312200000_abc123def"
+ *                 version:
+ *                   type: string
+ *                   example: "1.0"
+ *             examples:
+ *               departments_list:
+ *                 summary: Departments List
+ *                 value:
+ *                   success: true
+ *                   message: "Operation completed successfully"
+ *                   data:
+ *                     - _id: "507f1f77bcf86cd799439011"
+ *                       instituteId: "507f1f77bcf86cd799439012"
+ *                       departmentName: "Computer Science"
+ *                       departmentCode: "CS001"
+ *                       description: "Computer Science and Engineering Department"
+ *                       archive: false
+ *                       createdAt: "2023-01-01T00:00:00.000Z"
+ *                       updatedAt: "2023-01-01T00:00:00.000Z"
+ *                     - _id: "507f1f77bcf86cd799439013"
+ *                       instituteId: "507f1f77bcf86cd799439012"
+ *                       departmentName: "Mathematics"
+ *                       departmentCode: "MATH001"
+ *                       description: "Mathematics Department"
+ *                       archive: false
+ *                       createdAt: "2023-01-01T00:00:00.000Z"
+ *                       updatedAt: "2023-01-01T00:00:00.000Z"
+ *                   count: 2
+ *                   filteredDocs: 2
+ *                   totalDocs: 25
+ *                   page: 1
+ *                   limit: 10
+ *                   mode: "aggregated"
+ *                   timestamp: "2024-01-15T10:30:00.000Z"
+ *                   requestId: "req_1705312200000_abc123def"
+ *                   version: "1.0"
  *       400:
- *         description: Bad request - validation error
+ *         description: Bad request
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed"
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: "instituteId"
+ *                       message:
+ *                         type: string
+ *                         example: "Institute ID is required"
+ *                       code:
+ *                         type: string
+ *                         example: "REQUIRED_FIELD"
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized access"
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 router.get('/department', departmentCt.getDepartment);
@@ -394,49 +443,110 @@ router.get('/department', departmentCt.getDepartment);
  *             description: "Computer Science and Engineering Department"
  *     responses:
  *       201:
- *         description: Department created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/DepartmentResponse'
-
- *               data:
- *                 _id: "507f1f77bcf86cd799439011"
- *                 instituteId: "507f1f77bcf86cd799439012"
- *                 departmentName: "Computer Science"
- *                 departmentCode: "CS001"
- *                 description: "Computer Science and Engineering Department"
- *                 archive: false
- *                 createdAt: "2023-01-01T00:00:00.000Z"
- *                 updatedAt: "2023-01-01T00:00:00.000Z"
- *       400:
- *         description: Bad request - validation error or duplicate value
+ *         description: Resource created successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 error:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
  *                   type: string
-
- *                 details:
+ *                   example: "Resource created successfully"
+ *                 data:
+ *                   type: object
+ *                 created:
+ *                   type: boolean
+ *                   example: true
+ *                 id:
  *                   type: string
-
- *                 field:
+ *                   example: "507f1f77bcf86cd799439011"
+ *                 timestamp:
  *                   type: string
-
+ *                   format: date-time
+ *                   example: "2024-01-15T10:30:00.000Z"
+ *                 requestId:
+ *                   type: string
+ *                   example: "req_1705312200000_abc123def"
+ *                 version:
+ *                   type: string
+ *                   example: "1.0"
+ *             examples:
+ *               department_created:
+ *                 summary: Department Created Successfully
  *                 value:
+ *                   success: true
+ *                   message: "Resource created successfully"
+ *                   data:
+ *                     department:
+ *                       _id: "507f1f77bcf86cd799439011"
+ *                       instituteId: "507f1f77bcf86cd799439012"
+ *                       departmentName: "Computer Science"
+ *                       departmentCode: "CS001"
+ *                       description: "Computer Science and Engineering Department"
+ *                       archive: false
+ *                       createdAt: "2023-01-01T00:00:00.000Z"
+ *                       updatedAt: "2023-01-01T00:00:00.000Z"
+ *                   created: true
+ *                   id: "507f1f77bcf86cd799439011"
+ *                   timestamp: "2024-01-15T10:30:00.000Z"
+ *                   requestId: "req_1705312200000_abc123def"
+ *                   version: "1.0"
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
  *                   type: string
-
- *                 suggestion:
- *                   type: string
-
+ *                   example: "Validation failed"
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                         example: "departmentName"
+ *                       message:
+ *                         type: string
+ *                         example: "Department name is required"
+ *                       code:
+ *                         type: string
+ *                         example: "REQUIRED_FIELD"
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized access"
+ *       409:
+ *         description: Conflict
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Resource already exists"
  *       500:
  *         description: Internal server error
  *         content:
@@ -444,12 +554,12 @@ router.get('/department', departmentCt.getDepartment);
  *             schema:
  *               type: object
  *               properties:
- *                 error:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
  *                   type: string
-
- *                 details:
- *                   type: string
-
+ *                   example: "Internal server error"
  */
 
 router.post('/department', departmentCt.createDepartment);

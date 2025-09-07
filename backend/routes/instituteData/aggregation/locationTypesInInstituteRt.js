@@ -15,39 +15,33 @@ const locationTypesInInstituteCt = require('../../../Controller/instituteData/ag
  *       properties:
  *         instituteId:
  *           type: string
- *           description: Associated institute ID
+ *           description: Associated institute ID
+
  *         locationTypes:
  *           type: string
- *           description: Associated location type ID
+ *           description: Associated location type ID
+
  *         capacity:
  *           type: number
- *           description: Maximum capacity of the location
+ *           description: Maximum capacity of the location
+
  *         description:
  *           type: string
- *           description: Location description
+ *           description: Location description
+
  *         location:
  *           type: string
- *           description: Physical location/address
- *     LocationTypeInInstituteResponse:
- *       type: object
- *       properties:
- *         message:
+ *           description: Physical location/address
+
+ *         createdAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: object
- *           properties:
- *             locationTypeInInstitute:
- *               $ref: '#/components/schemas/LocationTypeInInstitute'
- *             id:
- *               type: string
- *               description: Created location type in institute ID
- *     LocationTypeInInstituteListResponse:
- *       type: object
- *       properties:
- *         message:
+ *           format: date-time
+ *           description: Creation timestamp
+
+ *         updatedAt:
  *           type: string
- *           description: Success message
+ *           format: date-time
+ *           description: Last update timestamp
  *         data:
  *           type: array
  *           items:
@@ -138,7 +132,8 @@ const locationTypesInInstituteCt = require('../../../Controller/instituteData/ag
  *       properties:
  *         id:
  *           type: string
- *           description: Location type in institute ID to delete
+ *           description: Location type in institute ID to delete
+
  *     SuccessResponse:
  *       type: object
  *       properties:
@@ -249,37 +244,43 @@ const locationTypesInInstituteCt = require('../../../Controller/instituteData/ag
  *             pattern: '^[0-9a-fA-F]{24}$'
  *         style: form
  *         explode: false
- *         description: Array of specific location type IDs to retrieve (comma-separated)
+ *         description: Array of specific location type IDs to retrieve (comma-separated)
+
  *       - in: query
  *         name: id
  *         schema:
  *           type: string
  *           pattern: '^[0-9a-fA-F]{24}$'
- *         description: Get a specific location type by its ID (alternative to ids array)
+ *         description: Get a specific location type by its ID (alternative to ids array)
+
  *       - in: query
  *         name: dropdown
  *         schema:
  *           type: boolean
  *           default: false
- *         description: Return simplified data with only _id and locationTypes fields for dropdowns
+ *         description: Return simplified data with only _id and locationTypes fields for dropdowns
+
  *       - in: query
  *         name: aggregate
  *         schema:
  *           type: boolean
  *           default: true
- *         description: Include related data (institute details) in response
+ *         description: Include related data (institute details) in response
+
  *       - in: query
  *         name: sortField
  *         schema:
  *           type: string
- *         description: Field to sort by (e.g., locationTypes, createdAt, updatedAt)
+ *         description: Field to sort by (e.g., locationTypes, createdAt, updatedAt)
+
  *       - in: query
  *         name: sort
  *         schema:
  *           type: string
  *           enum: [asc, desc]
  *           default: asc
- *         description: Sort order (asc or desc)
+ *         description: Sort order (asc or desc)
+
  *       - in: query
  *         name: filterField
  *         schema:
@@ -288,7 +289,8 @@ const locationTypesInInstituteCt = require('../../../Controller/instituteData/ag
  *             type: string
  *         style: form
  *         explode: false
- *         description: Field(s) to filter by (e.g., locationTypes, description, location)
+ *         description: Field(s) to filter by (e.g., locationTypes, description, location)
+
  *       - in: query
  *         name: operator
  *         schema:
@@ -298,7 +300,8 @@ const locationTypesInInstituteCt = require('../../../Controller/instituteData/ag
  *             enum: [equals, contains, startsWith, endsWith, gt, gte, lt, lte, in, nin, exists, regex]
  *         style: form
  *         explode: false
- *         description: Filter operator(s) corresponding to filterField(s)
+ *         description: Filter operator(s) corresponding to filterField(s)
+
  *       - in: query
  *         name: value
  *         schema:
@@ -307,20 +310,23 @@ const locationTypesInInstituteCt = require('../../../Controller/instituteData/ag
  *             type: string
  *         style: form
  *         explode: false
- *         description: Filter value(s) corresponding to filterField(s)
+ *         description: Filter value(s) corresponding to filterField(s)
+
  *       - in: query
  *         name: validate
  *         schema:
  *           type: boolean
  *           default: false
- *         description: Validate filter fields against schema
+ *         description: Validate filter fields against schema
+
  *     responses:
  *       200:
  *         description: Location types in institute retrieved successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/LocationTypeInInstituteListResponse'
+ *               $ref: '#/components/schemas/LocationTypeInInstituteListResponse'
+
  *               data:
  *                 - id: "507f1f77bcf86cd799439011"
  *                   name: "Main Campus"
@@ -376,7 +382,8 @@ router.get('/locationTypesInInstitute',locationTypesInInstituteCt.getLocationTyp
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/LocationTypeInInstitute'
+ *             $ref: '#/components/schemas/LocationTypeInInstitute'
+
  *             code: "MC-001"
  *             instituteId: "507f1f77bcf86cd799439011"
  *             locationTypeId: "507f1f77bcf86cd799439012"
@@ -399,7 +406,8 @@ router.get('/locationTypesInInstitute',locationTypesInInstituteCt.getLocationTyp
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/LocationTypeInInstituteResponse'
+ *               $ref: '#/components/schemas/LocationTypeInInstituteResponse'
+
  *               data:
  *                 locationTypeInInstitute:
  *                   name: "Main Campus"
@@ -453,7 +461,8 @@ router.post('/locationTypesInInstitute',locationTypesInInstituteCt.createLocatio
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/LocationTypeInInstituteUpdateRequest'
+ *             $ref: '#/components/schemas/LocationTypeInInstituteUpdateRequest'
+
  *             name: "Main Campus Updated"
  *             capacity: 1200
  *             status: "active"
@@ -463,7 +472,8 @@ router.post('/locationTypesInInstitute',locationTypesInInstituteCt.createLocatio
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
+ *               $ref: '#/components/schemas/SuccessResponse'
+
  *               data:
  *                 updatedLocationTypeInInstitute:
  *                   id: "507f1f77bcf86cd799439011"
@@ -511,14 +521,16 @@ router.put('/locationTypesInInstitute',locationTypesInInstituteCt.updateLocation
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/LocationTypeInInstituteDeleteRequest'
+ *             $ref: '#/components/schemas/LocationTypeInInstituteDeleteRequest'
+
  *     responses:
  *       200:
  *         description: Location type in institute deleted successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
+ *               $ref: '#/components/schemas/SuccessResponse'
+
  *               data: {}
  *       400:
  *         description: Bad request - validation error

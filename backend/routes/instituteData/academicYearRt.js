@@ -50,43 +50,16 @@ const academicYearCt = require('../../Controller/instituteData/academicYearCt');
  *           type: boolean
  *           default: false
  *           description: Whether this is the current academic year
- *     AcademicYearResponse:
- *       type: object
- *       properties:
- *         message:
+
+ *         createdAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: object
- *           properties:
- *             academicYear:
- *               $ref: '#/components/schemas/AcademicYear'
- *             id:
- *               type: string
- *               description: Created academic year ID
- *     AcademicYearListResponse:
- *       type: object
- *       properties:
- *         message:
+ *           format: date-time
+ *           description: Creation timestamp
+
+ *         updatedAt:
  *           type: string
- *           description: Success message
- *         data:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/AcademicYear'
- *         pagination:
- *           type: object
- *           properties:
- *             currentPage:
- *               type: integer
- *             totalPages:
- *               type: integer
- *             totalItems:
- *               type: integer
- *             hasNextPage:
- *               type: boolean
- *             hasPrevPage:
- *               type: boolean
+ *           format: date-time
+ *           description: Last update timestamp
  *     AcademicYearUpdateRequest:
  *       type: object
  *       required:
