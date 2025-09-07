@@ -22,35 +22,44 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *       properties:
  *         firstName:
  *           type: string
- *           description: User's first name
+ *           description: User's first name
+
  *         lastName:
  *           type: string
- *           description: User's last name
+ *           description: User's last name
+
  *         email:
  *           type: string
  *           format: email
- *           description: User's email address
+ *           description: User's email address
+
  *         password:
  *           type: string
  *           minLength: 8
- *           description: User's password (minimum 8 characters)
+ *           description: User's password (minimum 8 characters)
+
  *         phoneNumber:
  *           type: string
- *           description: User's phone number
+ *           description: User's phone number
+
  *         instituteCode:
  *           type: string
- *           description: Institute code for multi-tenant registration
+ *           description: Institute code for multi-tenant registration
+
  *         dateOfBirth:
  *           type: string
  *           format: date
- *           description: User's date of birth
+ *           description: User's date of birth
+
  *         gender:
  *           type: string
  *           enum: [male, female, other]
- *           description: User's gender
+ *           description: User's gender
+
  *         address:
  *           type: string
- *           description: User's address
+ *           description: User's address
+
  *     LoginRequest:
  *       type: object
  *       required:
@@ -61,23 +70,29 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *         email:
  *           type: string
  *           format: email
- *           description: User's email address
+ *           description: User's email address
+
  *         password:
  *           type: string
- *           description: User's password
+ *           description: User's password
+
  *         instituteCode:
  *           type: string
- *           description: Institute code for multi-tenant login
+ *           description: Institute code for multi-tenant login
+
  *         rememberMe:
  *           type: boolean
- *           description: Whether to remember the user for extended session
+ *           description: Whether to remember the user for extended session
+
  *     RegisterResponse:
  *       type: object
  *       properties:
  *         success:
- *           type: boolean
+ *           type: boolean
+
  *         message:
- *           type: string
+ *           type: string
+
  *         data:
  *           type: object
  *           properties:
@@ -85,38 +100,51 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *               type: object
  *               properties:
  *                 _id:
- *                   type: string
+ *                   type: string
+
  *                 firstName:
- *                   type: string
+ *                   type: string
+
  *                 lastName:
- *                   type: string
+ *                   type: string
+
  *                 email:
- *                   type: string
+ *                   type: string
+
  *                 phoneNumber:
- *                   type: string
+ *                   type: string
+
  *                 instituteCode:
- *                   type: string
+ *                   type: string
+
  *                 isActive:
- *                   type: boolean
+ *                   type: boolean
+
  *                 createdAt:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             token:
  *               type: string
- *               description: JWT authentication token
+ *               description: JWT authentication token
+
  *             refreshToken:
  *               type: string
- *               description: JWT refresh token
+ *               description: JWT refresh token
+
  *         timestamp:
  *           type: string
- *           format: date-time
+ *           format: date-time
+
  *     LoginResponse:
  *       type: object
  *       properties:
  *         success:
- *           type: boolean
+ *           type: boolean
+
  *         message:
- *           type: string
+ *           type: string
+
  *         data:
  *           type: object
  *           properties:
@@ -124,57 +152,76 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *               type: object
  *               properties:
  *                 _id:
- *                   type: string
+ *                   type: string
+
  *                 firstName:
- *                   type: string
+ *                   type: string
+
  *                 lastName:
- *                   type: string
+ *                   type: string
+
  *                 email:
- *                   type: string
+ *                   type: string
+
  *                 phoneNumber:
- *                   type: string
+ *                   type: string
+
  *                 instituteCode:
- *                   type: string
+ *                   type: string
+
  *                 role:
- *                   type: string
+ *                   type: string
+
  *                 isActive:
- *                   type: boolean
+ *                   type: boolean
+
  *                 lastLogin:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             token:
  *               type: string
- *               description: JWT authentication token
+ *               description: JWT authentication token
+
  *             refreshToken:
  *               type: string
- *               description: JWT refresh token
+ *               description: JWT refresh token
+
  *             expiresIn:
  *               type: string
- *               description: Token expiration time
+ *               description: Token expiration time
+
  *         timestamp:
  *           type: string
- *           format: date-time
+ *           format: date-time
+
  *     ErrorResponse:
  *       type: object
  *       properties:
  *         success:
- *           type: boolean
+ *           type: boolean
+
  *         message:
- *           type: string
+ *           type: string
+
  *         errors:
  *           type: array
  *           items:
  *             type: object
  *             properties:
  *               field:
- *                 type: string
+ *                 type: string
+
  *               message:
- *                 type: string
+ *                 type: string
+
  *               code:
- *                 type: string
+ *                 type: string
+
  *         timestamp:
  *           type: string
- *           format: date-time
+ *           format: date-time
+
  */
 
 /**
@@ -215,44 +262,55 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *               action:
  *                 type: string
  *                 enum: [register, login]
- *                 description: Operation type
+ *                 description: Operation type
+
  *               # Registration fields (when action=register)
  *               firstName:
  *                 type: string
- *                 description: User's first name (required for register)
+ *                 description: User's first name (required for register)
+
  *               lastName:
  *                 type: string
- *                 description: User's last name (required for register)
+ *                 description: User's last name (required for register)
+
  *               email:
  *                 type: string
  *                 format: email
- *                 description: User's email address (required for both)
+ *                 description: User's email address (required for both)
+
  *               password:
  *                 type: string
  *                 minLength: 8
- *                 description: User's password (required for both)
+ *                 description: User's password (required for both)
+
  *               phoneNumber:
  *                 type: string
- *                 description: User's phone number (required for register)
+ *                 description: User's phone number (required for register)
+
  *               instituteCode:
  *                 type: string
- *                 description: Institute code for multi-tenant (required for both)
+ *                 description: Institute code for multi-tenant (required for both)
+
  *               # Optional fields for registration
  *               dateOfBirth:
  *                 type: string
  *                 format: date
- *                 description: User's date of birth (optional for register)
+ *                 description: User's date of birth (optional for register)
+
  *               gender:
  *                 type: string
  *                 enum: [male, female, other]
- *                 description: User's gender (optional for register)
+ *                 description: User's gender (optional for register)
+
  *               address:
  *                 type: string
- *                 description: User's address (optional for register)
+ *                 description: User's address (optional for register)
+
  *               # Login specific fields
  *               rememberMe:
  *                 type: boolean
- *                 description: Whether to remember the user for extended session (optional for login)
+ *                 description: Whether to remember the user for extended session (optional for login)
+
  *           examples:
  *             register_basic:
  *               summary: Basic Registration
@@ -301,9 +359,11 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 data:
  *                   type: object
  *                   properties:
@@ -311,39 +371,53 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *                       type: object
  *                       properties:
  *                         _id:
- *                           type: string
+ *                           type: string
+
  *                         firstName:
- *                           type: string
+ *                           type: string
+
  *                         lastName:
- *                           type: string
+ *                           type: string
+
  *                         email:
- *                           type: string
+ *                           type: string
+
  *                         phoneNumber:
- *                           type: string
+ *                           type: string
+
  *                         instituteCode:
- *                           type: string
+ *                           type: string
+
  *                         role:
- *                           type: string
+ *                           type: string
+
  *                         isActive:
- *                           type: boolean
+ *                           type: boolean
+
  *                         createdAt:
  *                           type: string
- *                           format: date-time
+ *                           format: date-time
+
  *                         lastLogin:
  *                           type: string
- *                           format: date-time
+ *                           format: date-time
+
  *                     token:
  *                       type: string
- *                       description: JWT authentication token
+ *                       description: JWT authentication token
+
  *                     refreshToken:
  *                       type: string
- *                       description: JWT refresh token
+ *                       description: JWT refresh token
+
  *                     expiresIn:
  *                       type: string
- *                       description: Token expiration time
+ *                       description: Token expiration time
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               register_success:
  *                 summary: Registration Success
@@ -391,23 +465,29 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               validation_error:
  *                 summary: Validation Error
@@ -440,23 +520,29 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *             examples:
  *               invalid_credentials:
  *                 summary: Invalid Credentials
@@ -486,23 +572,29 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  *       500:
  *         description: Internal server error
  *         content:
@@ -511,23 +603,29 @@ const regLoginCt = require('../../Controller/authentication/regLoginCt')
  *               type: object
  *               properties:
  *                 success:
- *                   type: boolean
+ *                   type: boolean
+
  *                 message:
- *                   type: string
+ *                   type: string
+
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
  *                       field:
- *                         type: string
+ *                         type: string
+
  *                       message:
- *                         type: string
+ *                         type: string
+
  *                       code:
- *                         type: string
+ *                         type: string
+
  *                 timestamp:
  *                   type: string
- *                   format: date-time
+ *                   format: date-time
+
  */
 
 router.post('/register', regLoginCt.register);
