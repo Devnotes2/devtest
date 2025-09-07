@@ -9,6 +9,8 @@ const createGradeSectionsInInstituteModel = require('../../../Model/instituteDat
 const createGradeSectionBatchesInInstituteModel = require('../../../Model/instituteData/aggregation/gradeSectionBatchesMd');
 const { createMembersDataModel } = require('../../../Model/membersModule/memberDataMd');
 const { generalDataLookup } = require('../../../Utilities/aggregations/generalDataLookups');
+const { enhancedStandardizedGet, enhancedStandardizedPost, enhancedStandardizedPut, enhancedStandardizedDelete } = require('../../../Utilities/enhancedStandardizedApiUtils');
+const { gradesInInstituteLookup } = require('../../../Utilities/aggregations/gradesLookups');
 
 // --- Grade DEPENDENTS CONFIG ---
 const gradesDependents = [
@@ -22,144 +24,20 @@ const gradesDependents = [
 
 
 exports.gradesInInstituteAg = async (req, res) => {
-  const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  try {
-    // Use utility for filtering
-    const matchConditions = buildMatchConditions(req.query);
-    let valueBasedField = matchConditions.__valueBasedField;
-    delete matchConditions.__valueBasedField;
-    
-    // Add pagination parameters - exactly match department pattern
-    const pageNum = parseInt(req.query.page) || 1;
-    const limitNum = parseInt(req.query.limit) || 10;
-
-    const { ids, aggregate, dropdown } = req.query;
-    
-    if (dropdown === 'true') {
-      let findQuery = GradesInInstitute.find({...matchConditions, archive: { $ne: true } }, { _id: 1, gradeName: 1, gradeCode: 1 });
-      findQuery = findQuery.sort({gradeName:1});
-      const data = await findQuery;
-      return res.status(200).json( data );
-    }
-    
-    // Total docs in the collection
-    const totalDocs = await GradesInInstitute.countDocuments();
-    let filteredDocs;
-    
-    const query = { ...matchConditions };
-    
-    if (ids && Array.isArray(ids)) {
-      const objectIds = ids.map(id => new ObjectId(id));
-      query._id = { $in: objectIds };
-      
-      if (aggregate === 'false') {
-        // Add pagination to simple find - exactly match department pattern
-        let findQuery = GradesInInstitute.find(query);
-        findQuery = findQuery.skip((pageNum - 1) * limitNum).limit(limitNum);
-        const matchingData = await findQuery;
-        filteredDocs = await GradesInInstitute.countDocuments(query);
-        return res.status(200).json({ count: matchingData.length, filteredDocs, totalDocs, data: matchingData });
-      }
-
-      const aggregatedData = await GradesInInstitute.aggregate([
-        { $match: query },
-        {
-          $lookup: {
-            from: 'instituteData',
-            localField: 'instituteId',
-            foreignField: '_id',
-            as: 'instituteDetails'
-          }
-        },
-        { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'departmentdatas',
-            localField: 'departmentId',
-            foreignField: '_id',
-            as: 'departmentDetails'
-          }
-        },
-        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
-        ...generalDataLookup('gradeDuration', 'gradeDurationId', 'gradeDurationDetails', 'gradeDurationValue'),
-        {
-          $project: {
-            // Only use fields that exist in the model
-            _id: 1,
-            instituteId: 1,
-            departmentId: 1,
-            gradeName: 1,
-            gradeCode: 1,
-            description: 1,
-            gradeDurationId: 1,
-            archive: 1,
-            createdAt: 1,
-            updatedAt: 1,
-            // Add lookup data with clear naming
-            instituteName: '$instituteDetails.instituteName',
-            departmentName: '$departmentDetails.departmentName',
-            gradeDurationValue: '$gradeDurationDetails.gradeDurationValue'
-          }
-        },
-        // Add pagination to aggregation
-        { $skip: (pageNum - 1) * limitNum },
-        { $limit: limitNum }
-      ]);
-
-      // Count after all matches - exactly match department pattern
-      const countPipeline = [
-        { $match: query },
-        {
-          $lookup: {
-            from: 'instituteData',
-            localField: 'instituteId',
-            foreignField: '_id',
-            as: 'instituteDetails'
-          }
-        },
-        { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'departmentdatas',
-            localField: 'departmentId',
-            foreignField: '_id',
-            as: 'departmentDetails'
-          }
-        },
-        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
+  const options = {
+    lookups: [
+      ...gradesInInstituteLookup(),
         ...generalDataLookup('gradeDuration', 'gradeDurationId', 'gradeDurationDetails', 'gradeDurationValue')
-      ];
-      const filteredDocsArr = await GradesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-      filteredDocs = filteredDocsArr[0]?.count || 0;
-      
-      return res.status(200).json({ count: aggregatedData.length, filteredDocs, totalDocs, data: aggregatedData });
-    }
-
-    // Aggregate all data without ID filtering
-    const allData = await GradesInInstitute.aggregate([
-      { $match: query },
-      {
-        $lookup: {
-          from: 'instituteData',
-          localField: 'instituteId',
-          foreignField: '_id',
-          as: 'instituteDetails'
-        }
-      },
-      { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'departmentdatas',
-          localField: 'departmentId',
-          foreignField: '_id',
-          as: 'departmentDetails'
-        }
-      },
-      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
-      ...generalDataLookup('gradeDuration', 'gradeDurationId', 'gradeDurationDetails', 'gradeDurationValue'),
-      {
-        $project: {
-          // Only use fields that exist in the model
+    ],
+    joinedFieldMap: {
+      institute: 'instituteDetails.instituteName',
+      department: 'departmentDetails.departmentName',
+      gradeDuration: 'gradeDurationDetails.gradeDurationValue'
+    },
+    dropdownFields: ['_id', 'gradeName', 'gradeCode'],
+    validationField: 'gradeName',
+    defaultSort: { gradeName: 1 },
+    projectFields: {
           _id: 1,
           instituteId: 1,
           departmentId: 1,
@@ -175,154 +53,46 @@ exports.gradesInInstituteAg = async (req, res) => {
           departmentName: '$departmentDetails.departmentName',
           gradeDurationValue: '$gradeDurationDetails.gradeDurationValue'
         }
-      },
-      // Add pagination to main aggregation
-      { $skip: (pageNum - 1) * limitNum },
-      { $limit: limitNum }
-    ]);
+  };
 
-    // Count after all matches - exactly match department pattern
-    const countPipeline = [
-      { $match: query },
-      {
-        $lookup: {
-          from: 'instituteData',
-          localField: 'instituteId',
-          foreignField: '_id',
-          as: 'instituteDetails'
-        }
-      },
-      { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'departmentdatas',
-          localField: 'departmentId',
-          foreignField: '_id',
-          as: 'departmentDetails'
-        }
-      },
-      { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } },
-      ...generalDataLookup('gradeDuration', 'gradeDurationId', 'gradeDurationDetails', 'gradeDurationValue')
-    ];
-    const filteredDocsArr = await GradesInInstitute.aggregate([...countPipeline, { $count: 'count' }]);
-    filteredDocs = filteredDocsArr[0]?.count || 0;
-
-    return res.status(200).json({ count: allData.length, filteredDocs, totalDocs, data: allData });
-
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
+  await enhancedStandardizedGet(req, res, createGradesInInstituteModel, options);
 };
 
 exports.createGradesInInstitute = async (req, res) => {
-  const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { instituteId, gradeCode, departmentId, gradeName, description, gradeDurationId } = req.body;
-
-  try {
-    const newGrade = await handleCRUD(GradesInInstitute, 'create', {}, {
-      instituteId,
-      gradeCode,
-      departmentId,
-      gradeName,
-      description,
-      gradeDurationId
-    });
-
-    res.status(200).json({
-      message: 'Grade added successfully!',
-      data: newGrade
-    });
-  } catch (error) {
-    // Handle compound unique constraint violations
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-      const value = error.keyValue[field];
-      let fieldDisplayName = '';
-      let suggestion = '';
-      
-      if (field === 'gradeName') {
-        fieldDisplayName = 'Grade Name';
-        suggestion = 'Grade name must be unique within this institute';
-      } else if (field === 'gradeCode') {
-        fieldDisplayName = 'Grade Code';
-        suggestion = 'Grade code must be unique within this institute';
+  const options = {
+    successMessage: 'Grade created successfully',
+    requiredFields: ['instituteId', 'departmentId', 'gradeName', 'gradeCode'],
+    uniqueFields: [
+      {
+        fields: ['instituteId', 'gradeName'],
+        message: 'Grade name already exists for this institute'
+      },
+      {
+        fields: ['instituteId', 'gradeCode'],
+        message: 'Grade code already exists for this institute'
       }
-      
-      return res.status(400).json({
-        error: 'Duplicate value',
-        details: `${fieldDisplayName} '${value}' already exists in this institute`,
-        field: field,
-        value: value,
-        suggestion: suggestion
-      });
-    }
-    
-    res.status(500).json({ error: 'Failed to add grade', details: error.message });
-  }
+    ]
+  };
+
+  await enhancedStandardizedPost(req, res, createGradesInInstituteModel, options);
 };
 
 exports.updateGradesInInstitute = async (req, res) => {
-  const GradesInInstitute = createGradesInInstituteModel(req.collegeDB);
-  const { _id, updatedData } = req.body;
+  const options = {
+    successMessage: 'Grade updated successfully',
+    uniqueFields: [
+      {
+        fields: ['instituteId', 'gradeName'],
+        message: 'Grade name already exists for this institute'
+      },
+      {
+        fields: ['instituteId', 'gradeCode'],
+        message: 'Grade code already exists for this institute'
+      }
+    ]
+  };
 
-  try {
-    console.log("Update Request Body:", req.body);
-    const result = await handleCRUD(GradesInInstitute, 'update', { _id }, { $set: updatedData });
-
-    console.log("Update Result:", result);
-
-    if (result.modifiedCount > 0) {
-      res.status(200).json({ message: 'Grade updated successfully' });
-    } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
-      res.status(200).json({ message: 'No updates were made' });
-    } else {
-      res.status(404).json({ message: 'No matching grade found or values are unchanged' });
-    }
-  } catch (error) {
-    console.error("Update Error:", error);
-    
-    // Handle custom validation errors from schema middleware
-    if (error.code === 'DUPLICATE_GRADE_NAME') {
-      return res.status(400).json({
-        error: 'Duplicate value',
-        details: `Grade name '${updatedData.gradeName}' already exists in this institute`,
-        field: 'gradeName',
-        value: updatedData.gradeName,
-        suggestion: 'Grade names must be unique within each institute'
-      });
-    }
-    
-    if (error.code === 'DUPLICATE_GRADE_CODE') {
-      return res.status(400).json({
-        error: 'Duplicate value',
-        details: `Grade code '${updatedData.gradeCode}' already exists in this institute`,
-        field: 'gradeCode',
-        value: updatedData.gradeCode,
-        suggestion: 'Grade codes must be unique within each institute'
-      });
-    }
-    
-    // Handle unique constraint violations (fallback)
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-      const value = error.keyValue[field];
-      console.log("Error Key Pattern:", error.keyPattern);
-      console.log("Error Key Value:", error.keyValue);
-      let fieldDisplayName = field === 'gradeName' ? 'Grade Name' : 'Grade Code';
-      
-      return res.status(400).json({
-        error: 'Duplicate value',
-        details: `${fieldDisplayName} '${value}' already exists`,
-        field: field,
-        value: value,
-        suggestion: field === 'gradeName' 
-          ? 'Please choose a different grade name' 
-          : 'Please choose a different grade code'
-      });
-    }
-    
-    res.status(500).json({ error: 'Failed to update grade', details: error.message });
-  }
+  await enhancedStandardizedPut(req, res, createGradesInInstituteModel, options);
 };
 
 
@@ -346,106 +116,12 @@ exports.updateGradesInInstitute = async (req, res) => {
 // };
 
 
-// Delete grades(s) with dependency options
 exports.deleteGradesInInstitute = async (req, res) => {
-  // Register all dependent models for the current connection
-  createSubjectsInInstituteModel(req.collegeDB);
-  createGradeBatchesInInstituteModel(req.collegeDB);
-  createGradeSectionsInInstituteModel(req.collegeDB);
-  createGradeSectionBatchesInInstituteModel(req.collegeDB);
-  createMembersDataModel(req.collegeDB);
+  const options = {
+    successMessage: 'Grade deleted successfully',
+    dependencies: gradesDependents,
+    modelName: 'Grades'
+  };
 
-  const Grade = createGradesInInstituteModel(req.collegeDB);
-  const { ids, deleteDependents, transferTo, archive } = req.body;
-
-  if (!ids || !Array.isArray(ids)) {
-    return res.status(400).json({ message: 'Grade ID(s) required' });
-  }
-  // Only one of archive or transferTo can be requested at a time
-  if (archive !== undefined && transferTo) {
-    return res.status(400).json({ message: 'Only one of archive or transfer can be requested at a time.' });
-  }
-  // Archive must be a boolean if present
-  if (archive !== undefined && typeof archive !== 'boolean') {
-    return res.status(400).json({ message: 'The archive parameter must be a boolean (true or false).' });
-  }
-
-  // Import generic cascade utils
-  const { countDependents, deleteWithDependents, transferDependents, archiveParents } = require('../../../Utilities/dependencyCascadeUtils');
-
-  try {
-    // Archive/unarchive logic (match gradeBatchesCt.js)
-    if (archive !== undefined) {
-      const archiveResult = await archiveParents(req.collegeDB, ids, 'Grades', Boolean(archive));
-                        // Check if any documents were actually updated
-      if (!archiveResult || !archiveResult.archivedCount) {
-        return res.status(404).json({ message: 'No matching Grade found to archive/unarchive' });
-      }
-      return res.status(200).json({ message: `Grade(s) ${archive ? 'archived' : 'unarchived'} successfully`, archiveResult });
-    }
-
-    // 1. Count dependents for each grade
-    const depCounts = await countDependents(req.collegeDB, ids, gradesDependents);
-    // Fetch original Grade docs to get the value field (e.g., gradeCode or gradeDescription)
-    const originalDocs = await Grade.find(
-      { _id: { $in: ids.map(id => new ObjectId(id)) } },
-      { gradeCode: 1, gradeName: 1 }  // Changed from gradeDescription
-    );
-    const docMap = {};
-    originalDocs.forEach(doc => {
-      docMap[doc._id.toString()] = doc.gradeName;  // Changed from gradeDescription
-    });
-
-    // Partition IDs into zero and non-zero dependents
-    const zeroDepIds = Object.keys(depCounts).filter(id => Object.values(depCounts[id]).every(count => count === 0));
-    const nonZeroDepIds = Object.keys(depCounts).filter(id => !zeroDepIds.includes(id));
-    let deletedCount = 0;
-    if (zeroDepIds.length > 0) {
-      const result = await handleCRUD(Grade, 'delete', { _id: { $in: zeroDepIds.map(id => new ObjectId(id)) } });
-      deletedCount = result.deletedCount || 0;
-    }
-    if (nonZeroDepIds.length === 0) {
-      return res.status(200).json({ message: 'Grade(s) deleted successfully', deleted: zeroDepIds, dependencies: [] });
-    }
-    if (!deleteDependents && !transferTo) {
-      const dependencies = nonZeroDepIds.map(id => ({
-        _id: id,
-        value: docMap[id] || null,
-        dependsOn: depCounts[id]
-      }));
-      return res.status(201).json({ message: 'Dependency summary', deleted: zeroDepIds, dependencies: dependencies });
-    }
-    if (deleteDependents && transferTo) {
-      return res.status(400).json({ message: 'Either transfer or delete dependencies'});
-    }
-    // 2. Transfer dependents if requested
-    if (transferTo) {
-      if (ids.length !== 1) {
-        return res.status(400).json({ message: 'Please select one grade to transfer dependents from.' });
-      }
-      const transferRes = await transferDependents(req.collegeDB, ids[0], transferTo, gradesDependents);
-      // After transfer, delete the original Grade(s)
-      const result = await handleCRUD(Grade, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
-      return res.status(200).json({ message: 'Dependents transferred and Grade(s) deleted', transfer: transferRes, deletedCount: result.deletedCount });
-    }
-    // 3. Delete dependents and Grade(s) in a transaction
-    if (deleteDependents) {
-      const results = [];
-      for (const id of ids) {
-        const delRes = await deleteWithDependents(req.collegeDB, id, gradesDependents, 'Grades');
-        results.push({ gradeId: id, ...delRes });
-      }
-      return res.status(200).json({ message: 'Deleted with dependents', results });
-    }
-    // Default: just delete the Grade(s) if no dependents
-    const result = await handleCRUD(Grade, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
-    if (result.deletedCount > 0) {
-      res.status(200).json({ message: 'Grade(s) deleted successfully', deletedCount: result.deletedCount });
-    } else {
-      res.status(404).json({ message: 'No matching Grades found for deletion' });
-    }
-  } catch (error) {
-    console.error('Error deleting Grades:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
+  await enhancedStandardizedDelete(req, res, createGradesInInstituteModel, options);
 };

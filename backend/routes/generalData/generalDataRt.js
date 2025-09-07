@@ -16,35 +16,27 @@ const generalDataCt = require('../../Controller/generalData/generalDataCt');
  *       properties:
  *         key:
  *           type: string
- *           description: Data key identifier
- *           example: "blood_group"
+ *           description: Data key identifier
  *         value:
  *           type: string
- *           description: Data value
- *           example: "O+"
+ *           description: Data value
  *         type:
  *           type: string
  *           enum: [blood_group, gender, member_type, status, other]
- *           description: Category of general data
- *           example: "blood_group"
+ *           description: Category of general data
  *         description:
  *           type: string
- *           description: Optional description of the data
- *           example: "O positive blood group"
+ *           description: Optional description of the data
  *         order:
  *           type: integer
- *           description: Display order for sorting
- *           example: 1
+ *           description: Display order for sorting
  *         isActive:
  *           type: boolean
  *           default: true
- *           description: Whether the data item is active
- *           example: true
+ *           description: Whether the data item is active
  *         instituteId:
  *           type: string
- *           description: Associated institute ID
- *           example: "507f1f77bcf86cd799439011"
- *     
+ *           description: Associated institute ID
  *     GeneralDataResponse:
  *       type: object
  *       properties:
@@ -59,7 +51,6 @@ const generalDataCt = require('../../Controller/generalData/generalDataCt');
  *             id:
  *               type: string
  *               description: Created general data ID
- *     
  *     GeneralDataListResponse:
  *       type: object
  *       properties:
@@ -83,7 +74,6 @@ const generalDataCt = require('../../Controller/generalData/generalDataCt');
  *               type: boolean
  *             hasPrevPage:
  *               type: boolean
- *     
  *     GeneralDataUpdateRequest:
  *       type: object
  *       required:
@@ -112,7 +102,6 @@ const generalDataCt = require('../../Controller/generalData/generalDataCt');
  *         isActive:
  *           type: boolean
  *           description: Updated active status
- *     
  *     GeneralDataDeleteRequest:
  *       type: object
  *       required:
@@ -120,9 +109,7 @@ const generalDataCt = require('../../Controller/generalData/generalDataCt');
  *       properties:
  *         id:
  *           type: string
- *           description: General data ID to delete
- *           example: "507f1f77bcf86cd799439011"
- *     
+ *           description: General data ID to delete
  *     SuccessResponse:
  *       type: object
  *       properties:
@@ -132,7 +119,6 @@ const generalDataCt = require('../../Controller/generalData/generalDataCt');
  *         data:
  *           type: object
  *           description: Response data
- *     
  *     ErrorResponse:
  *       type: object
  *       properties:
@@ -176,15 +162,13 @@ const generalDataCt = require('../../Controller/generalData/generalDataCt');
  *         schema:
  *           type: string
  *           enum: [blood_group, gender, member_type, status, other]
- *         description: Type of general data to retrieve
- *         example: "blood_group"
+ *         description: Type of general data to retrieve
  *       - in: path
  *         name: itemId
  *         required: false
  *         schema:
  *           type: string
- *         description: Specific item ID to retrieve (optional)
- *         example: "507f1f77bcf86cd799439011"
+ *         description: Specific item ID to retrieve (optional)
  *       - in: query
  *         name: page
  *         schema:
@@ -290,8 +274,7 @@ router.get('/:type?/:itemId?', generalDataCt.getGeneraldata);
  *         schema:
  *           type: string
  *           enum: [blood_group, gender, member_type, status, other]
- *         description: Type of general data to add
- *         example: "blood_group"
+ *         description: Type of general data to add
  *     requestBody:
  *       required: true
  *       content:
@@ -303,30 +286,23 @@ router.get('/:type?/:itemId?', generalDataCt.getGeneraldata);
  *               - value
  *             properties:
  *               key:
- *                 type: string
- *                 example: "blood_group"
+ *                 type: string
  *               value:
- *                 type: string
- *                 example: "AB+"
+ *                 type: string
  *               description:
- *                 type: string
- *                 example: "AB positive blood group"
+ *                 type: string
  *               order:
- *                 type: integer
- *                 example: 5
+ *                 type: integer
  *               isActive:
  *                 type: boolean
- *                 default: true
- *                 example: true
+ *                 default: true
  *     responses:
  *       201:
  *         description: General data added successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/GeneralDataResponse'
- *             example:
- *               message: "General data added successfully"
+ *               $ref: '#/components/schemas/GeneralDataResponse'
  *               data:
  *                 generalData:
  *                   key: "blood_group"
@@ -378,16 +354,13 @@ router.post('/:type?', generalDataCt.addGeneraldata);
  *         schema:
  *           type: string
  *           enum: [blood_group, gender, member_type, status, other]
- *         description: Type of general data to update
- *         example: "blood_group"
+ *         description: Type of general data to update
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/GeneralDataUpdateRequest'
- *           example:
- *             id: "507f1f77bcf86cd799439011"
+ *             $ref: '#/components/schemas/GeneralDataUpdateRequest'
  *             value: "AB+ Updated"
  *             description: "Updated AB positive blood group"
  *             isActive: true
@@ -397,9 +370,7 @@ router.post('/:type?', generalDataCt.addGeneraldata);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               message: "General data updated successfully"
+ *               $ref: '#/components/schemas/SuccessResponse'
  *               data:
  *                 updatedData:
  *                   id: "507f1f77bcf86cd799439011"
@@ -448,25 +419,20 @@ router.put('/:type?', generalDataCt.updateGeneraldata);
  *         schema:
  *           type: string
  *           enum: [blood_group, gender, member_type, status, other]
- *         description: Type of general data to delete
- *         example: "blood_group"
+ *         description: Type of general data to delete
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/GeneralDataDeleteRequest'
- *           example:
- *             id: "507f1f77bcf86cd799439011"
+ *             $ref: '#/components/schemas/GeneralDataDeleteRequest'
  *     responses:
  *       200:
  *         description: General data deleted successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               message: "General data deleted successfully"
+ *               $ref: '#/components/schemas/SuccessResponse'
  *               data: {}
  *       400:
  *         description: Bad request - validation error

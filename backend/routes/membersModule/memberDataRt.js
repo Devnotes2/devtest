@@ -8,6 +8,9 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  * @swagger
  * components:
  *   schemas:
+ *     # ============================================================================
+ *     # MEMBER MANAGEMENT SCHEMAS
+ *     # ============================================================================
  *     Member:
  *       type: object
  *       required:
@@ -20,62 +23,60 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *         firstName:
  *           type: string
  *           description: Member's first name
- *           example: "John"
+
  *         lastName:
  *           type: string
  *           description: Member's last name
- *           example: "Doe"
+
  *         email:
  *           type: string
  *           format: email
  *           description: Member's email address
- *           example: "john.doe@example.com"
+
  *         phone:
  *           type: string
  *           description: Member's phone number
- *           example: "+1234567890"
+
  *         role:
  *           type: string
  *           enum: [admin, teacher, student, parent, staff]
  *           description: Member's role in the system
- *           example: "teacher"
+
  *         dateOfBirth:
  *           type: string
  *           format: date
  *           description: Member's date of birth
- *           example: "1990-01-01"
+
  *         gender:
  *           type: string
  *           enum: [male, female, other]
  *           description: Member's gender
- *           example: "male"
+
  *         address:
  *           type: string
  *           description: Member's address
- *           example: "123 Main St, City, State"
+
  *         instituteId:
  *           type: string
  *           description: Associated institute ID
- *           example: "507f1f77bcf86cd799439011"
+
  *         departmentId:
  *           type: string
  *           description: Associated department ID
- *           example: "507f1f77bcf86cd799439012"
+
  *         gradeId:
  *           type: string
  *           description: Associated grade ID (for students)
- *           example: "507f1f77bcf86cd799439013"
+
  *         status:
  *           type: string
  *           enum: [active, inactive, suspended]
  *           default: active
  *           description: Member's status
- *           example: "active"
+
  *         profileImage:
  *           type: string
  *           description: Profile image URL
- *           example: "https://example.com/images/profile.jpg"
- *     
  *     MemberResponse:
  *       type: object
  *       properties:
@@ -90,7 +91,6 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *             id:
  *               type: string
  *               description: Created member ID
- *     
  *     MemberListResponse:
  *       type: object
  *       properties:
@@ -114,7 +114,6 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *               type: boolean
  *             hasPrevPage:
  *               type: boolean
- *     
  *     MemberUpdateRequest:
  *       type: object
  *       properties:
@@ -143,7 +142,6 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *           type: string
  *           enum: [active, inactive, suspended]
  *           description: Updated status
- *     
  *     MemberDeleteRequest:
  *       type: object
  *       required:
@@ -152,8 +150,6 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *         id:
  *           type: string
  *           description: Member ID to delete
- *           example: "507f1f77bcf86cd799439011"
- *     
  *     FileUpload:
  *       type: object
  *       properties:
@@ -161,7 +157,6 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *           type: string
  *           format: binary
  *           description: Profile image file (JPEG, PNG)
- *     
  *     SuccessResponse:
  *       type: object
  *       properties:
@@ -171,7 +166,6 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *         data:
  *           type: object
  *           description: Response data
- *     
  *     ErrorResponse:
  *       type: object
  *       properties:
@@ -223,46 +217,46 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *             properties:
  *               firstName:
  *                 type: string
- *                 example: "John"
+
  *               lastName:
  *                 type: string
- *                 example: "Doe"
+
  *               email:
  *                 type: string
  *                 format: email
- *                 example: "john.doe@example.com"
+
  *               phone:
  *                 type: string
- *                 example: "+1234567890"
+
  *               role:
  *                 type: string
  *                 enum: [admin, teacher, student, parent, staff]
- *                 example: "teacher"
+
  *               dateOfBirth:
  *                 type: string
  *                 format: date
- *                 example: "1990-01-01"
+
  *               gender:
  *                 type: string
  *                 enum: [male, female, other]
- *                 example: "male"
+
  *               address:
  *                 type: string
- *                 example: "123 Main St, City, State"
+
  *               instituteId:
  *                 type: string
- *                 example: "507f1f77bcf86cd799439011"
+
  *               departmentId:
  *                 type: string
- *                 example: "507f1f77bcf86cd799439012"
+
  *               gradeId:
  *                 type: string
- *                 example: "507f1f77bcf86cd799439013"
+
  *               status:
  *                 type: string
  *                 enum: [active, inactive, suspended]
  *                 default: active
- *                 example: "active"
+
  *               profileImage:
  *                 type: string
  *                 format: binary
@@ -274,8 +268,7 @@ const upload = require('../../Utilities/multerUtils');  // Import multer configu
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/MemberResponse'
- *             example:
- *               message: "Member created successfully"
+
  *               data:
  *                 member:
  *                   firstName: "John"
@@ -367,6 +360,89 @@ router.post('/member', upload, memberDataCt.createMember);  // Apply upload midd
  *         schema:
  *           type: string
  *         description: Search members by name or email
+ *       - in: query
+ *         name: ids
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             pattern: '^[0-9a-fA-F]{24}$'
+ *         style: form
+ *         explode: false
+ *         description: Array of specific member IDs to retrieve (comma-separated)
+
+ *       - in: query
+ *         name: dropdown
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Return simplified data with only _id and fullName fields for dropdowns
+
+ *       - in: query
+ *         name: aggregate
+ *         schema:
+ *           type: boolean
+ *           default: true
+ *         description: Include related data (institute, department, grade details) in response
+
+ *       - in: query
+ *         name: sortField
+ *         schema:
+ *           type: string
+ *         description: Field to sort by (e.g., fullName, createdAt, updatedAt, email)
+
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort order (asc or desc)
+
+ *       - in: query
+ *         name: filterField
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: false
+ *         description: Field(s) to filter by (e.g., fullName, email, memberId, firstName, lastName)
+
+ *       - in: query
+ *         name: operator
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [equals, contains, startsWith, endsWith, gt, gte, lt, lte, in, nin, exists, regex]
+ *         style: form
+ *         explode: false
+ *         description: Filter operator(s) corresponding to filterField(s)
+
+ *       - in: query
+ *         name: value
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: false
+ *         description: Filter value(s) corresponding to filterField(s)
+
+ *       - in: query
+ *         name: validate
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Validate filter fields against schema
+
+ *       - in: query
+ *         name: memberId
+ *         schema:
+ *           type: string
+ *         description: Validate if memberId already exists (use with validate=true)
+
  *     responses:
  *       200:
  *         description: Members retrieved successfully
@@ -374,8 +450,7 @@ router.post('/member', upload, memberDataCt.createMember);  // Apply upload midd
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/MemberListResponse'
- *             example:
- *               message: "Members retrieved successfully"
+
  *               data:
  *                 - id: "507f1f77bcf86cd799439011"
  *                   firstName: "John"
@@ -420,8 +495,7 @@ router.get('/member', memberDataCt.getMembersData);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/MemberUpdateRequest'
- *           example:
- *             id: "507f1f77bcf86cd799439011"
+
  *             firstName: "John Updated"
  *             phone: "+1987654321"
  *             status: "active"
@@ -432,8 +506,7 @@ router.get('/member', memberDataCt.getMembersData);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               message: "Member updated successfully"
+
  *               data:
  *                 updatedMember:
  *                   id: "507f1f77bcf86cd799439011"
@@ -481,8 +554,7 @@ router.put('/member', memberDataCt.updateMember);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/MemberDeleteRequest'
- *           example:
- *             id: "507f1f77bcf86cd799439011"
+
  *     responses:
  *       200:
  *         description: Member deleted successfully
@@ -490,8 +562,7 @@ router.put('/member', memberDataCt.updateMember);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               message: "Member deleted successfully"
+
  *               data: {}
  *       400:
  *         description: Bad request - validation error

@@ -17,33 +17,26 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *       properties:
  *         _id:
  *           type: string
- *           description: Unique identifier for the grade section
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Unique identifier for the grade section
  *         sectionName:
  *           type: string
- *           description: Grade section name (e.g., Section A, Section B)
- *           example: "Section A"
+ *           description: Grade section name (e.g., Section A, Section B)
  *         instituteId:
  *           type: string
- *           description: Associated institute ID
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Associated institute ID
  *         departmentId:
  *           type: string
- *           description: Associated department ID
- *           example: "507f1f77bcf86cd799439012"
+ *           description: Associated department ID
  *         gradeId:
  *           type: string
- *           description: Associated grade ID
- *           example: "507f1f77bcf86cd799439013"
+ *           description: Associated grade ID
  *         description:
  *           type: string
- *           description: Grade section description
- *           example: "Grade 10 Section A - Morning Shift"
+ *           description: Grade section description
  *         archive:
  *           type: boolean
  *           default: false
- *           description: Archive status
- *           example: false
+ *           description: Archive status
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -52,7 +45,6 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *           type: string
  *           format: date-time
  *           description: Last update timestamp
- *     
  *     GradeSectionWithDetails:
  *       type: object
  *       allOf:
@@ -61,21 +53,16 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *           properties:
  *             instituteName:
  *               type: string
- *               description: Name of the associated institute
- *               example: "ABC School"
+ *               description: Name of the associated institute
  *             departmentName:
  *               type: string
- *               description: Name of the associated department
- *               example: "Science Department"
+ *               description: Name of the associated department
  *             gradeName:
  *               type: string
- *               description: Name of the associated grade
- *               example: "Grade 10"
+ *               description: Name of the associated grade
  *             gradeCode:
  *               type: string
- *               description: Code of the associated grade
- *               example: "G10"
- *     
+ *               description: Code of the associated grade
  *     GradeSectionCreateRequest:
  *       type: object
  *       required:
@@ -86,25 +73,19 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *       properties:
  *         sectionName:
  *           type: string
- *           description: Grade section name (must be unique within the grade)
- *           example: "Section A"
+ *           description: Grade section name (must be unique within the grade)
  *         instituteId:
  *           type: string
- *           description: Associated institute ID
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Associated institute ID
  *         departmentId:
  *           type: string
- *           description: Associated department ID
- *           example: "507f1f77bcf86cd799439012"
+ *           description: Associated department ID
  *         gradeId:
  *           type: string
- *           description: Associated grade ID
- *           example: "507f1f77bcf86cd799439013"
+ *           description: Associated grade ID
  *         description:
  *           type: string
- *           description: Grade section description
- *           example: "Grade 10 Section A - Morning Shift"
- *     
+ *           description: Grade section description
  *     GradeSectionUpdateRequest:
  *       type: object
  *       required:
@@ -113,24 +94,19 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *       properties:
  *         _id:
  *           type: string
- *           description: Grade section ID to update
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Grade section ID to update
  *         updatedData:
  *           type: object
  *           properties:
  *             sectionName:
  *               type: string
- *               description: Updated section name
- *               example: "Section A Updated"
+ *               description: Updated section name
  *             description:
  *               type: string
- *               description: Updated description
- *               example: "Updated description"
+ *               description: Updated description
  *             archive:
  *               type: boolean
- *               description: Archive status
- *               example: false
- *     
+ *               description: Archive status
  *     GradeSectionDeleteRequest:
  *       type: object
  *       required:
@@ -140,41 +116,32 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *           type: array
  *           items:
  *             type: string
- *           description: Array of grade section IDs to delete
- *           example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *           description: Array of grade section IDs to delete
  *         deleteDependents:
  *           type: boolean
- *           description: Whether to delete dependent records
- *           example: false
+ *           description: Whether to delete dependent records
  *         transferTo:
  *           type: string
- *           description: ID to transfer dependents to (only when deleting single section)
- *           example: "507f1f77bcf86cd799439013"
+ *           description: ID to transfer dependents to (only when deleting single section)
  *         archive:
  *           type: boolean
- *           description: Archive instead of delete
- *           example: false
- *     
+ *           description: Archive instead of delete
  *     GradeSectionListResponse:
  *       type: object
  *       properties:
  *         count:
  *           type: integer
- *           description: Number of items in current page
- *           example: 10
+ *           description: Number of items in current page
  *         filteredDocs:
  *           type: integer
- *           description: Total number of documents matching filters
- *           example: 25
+ *           description: Total number of documents matching filters
  *         totalDocs:
  *           type: integer
- *           description: Total number of documents in collection
- *           example: 100
+ *           description: Total number of documents in collection
  *         data:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/GradeSectionWithDetails'
- *     
  *     GradeSectionDropdownResponse:
  *       type: object
  *       properties:
@@ -184,34 +151,26 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *             type: object
  *             properties:
  *               _id:
- *                 type: string
- *                 example: "507f1f77bcf86cd799439011"
+ *                 type: string
  *               sectionName:
- *                 type: string
- *                 example: "Section A"
- *     
+ *                 type: string
  *     GradeSectionCreateResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Grade Section added successfully!"
+ *           type: string
  *         data:
  *           $ref: '#/components/schemas/GradeSection'
- *     
  *     GradeSectionUpdateResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Grade Section updated successfully"
- *     
+ *           type: string
  *     GradeSectionDeleteResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Grade Section(s) deleted successfully"
+ *           type: string
  *         deleted:
  *           type: array
  *           items:
@@ -232,37 +191,29 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *         deletedCount:
  *           type: integer
  *           description: Number of sections deleted
- *     
  *     GradeSectionArchiveResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Grade Section(s) archived successfully"
+ *           type: string
  *         archiveResult:
  *           type: object
  *           properties:
  *             archivedCount:
  *               type: integer
- *     
  *     DuplicateErrorResponse:
  *       type: object
  *       properties:
  *         error:
- *           type: string
- *           example: "Duplicate value"
+ *           type: string
  *         details:
- *           type: string
- *           example: "Section name 'Section A' already exists in this grade"
+ *           type: string
  *         field:
- *           type: string
- *           example: "sectionName"
+ *           type: string
  *         value:
- *           type: string
- *           example: "Section A"
+ *           type: string
  *         suggestion:
- *           type: string
- *           example: "Section names must be unique within each grade"
+ *           type: string
  */
 
 /**
@@ -280,14 +231,12 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *     tags: [Grade Sections]
  *     description: |
  *       Retrieve grade sections with advanced filtering, pagination, and aggregation options.
- *       
  *       **Key Features:**
  *       - Filter by institute, department, or grade
  *       - Get specific sections by IDs
  *       - Dropdown mode for simple ID/name pairs
  *       - Aggregated data with related entity details
  *       - Pagination support
- *       
  *       **Parameter Combinations:**
  *       - **Basic List**: No parameters - returns all sections with pagination
  *       - **Filtered List**: Use instituteId, departmentId, gradeId for filtering
@@ -303,8 +252,7 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *           type: integer
  *           default: 1
  *           minimum: 1
- *         description: Page number for pagination
- *         example: 1
+ *         description: Page number for pagination
  *       - in: query
  *         name: limit
  *         schema:
@@ -312,8 +260,7 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *           default: 10
  *           minimum: 1
  *           maximum: 100
- *         description: Number of items per page
- *         example: 10
+ *         description: Number of items per page
  *       - in: query
  *         name: ids
  *         schema:
@@ -322,35 +269,30 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *             type: string
  *         style: form
  *         explode: false
- *         description: Array of specific grade section IDs to retrieve
- *         example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *         description: Array of specific grade section IDs to retrieve
  *       - in: query
  *         name: instituteId
  *         schema:
  *           type: string
  *           pattern: '^[0-9a-fA-F]{24}$'
- *         description: Filter by specific institute ID
- *         example: "507f1f77bcf86cd799439011"
+ *         description: Filter by specific institute ID
  *       - in: query
  *         name: departmentId
  *         schema:
  *           type: string
  *           pattern: '^[0-9a-fA-F]{24}$'
- *         description: Filter by specific department ID
- *         example: "507f1f77bcf86cd799439012"
+ *         description: Filter by specific department ID
  *       - in: query
  *         name: gradeId
  *         schema:
  *           type: string
  *           pattern: '^[0-9a-fA-F]{24}$'
- *         description: Filter by specific grade ID
- *         example: "507f1f77bcf86cd799439013"
+ *         description: Filter by specific grade ID
  *       - in: query
  *         name: sectionName
  *         schema:
  *           type: string
- *         description: Filter by section name (partial match)
- *         example: "Section A"
+ *         description: Filter by section name (partial match)
  *       - in: query
  *         name: aggregate
  *         schema:
@@ -360,8 +302,7 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *         description: |
  *           Whether to return aggregated data with related entity details.
  *           - true: Returns detailed data with institute, department, and grade information
- *           - false: Returns only basic grade section data
- *         example: "true"
+ *           - false: Returns only basic grade section data
  *       - in: query
  *         name: dropdown
  *         schema:
@@ -370,8 +311,7 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *           default: "false"
  *         description: |
  *           Dropdown mode - returns only ID and sectionName for dropdown lists.
- *           When true, other parameters are ignored except for filtering.
- *         example: "false"
+ *           When true, other parameters are ignored except for filtering.
  *     responses:
  *       200:
  *         description: Grade sections retrieved successfully
@@ -484,8 +424,7 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Invalid ObjectId format"
+ *                   type: string
  *       401:
  *         description: Unauthorized - invalid or missing token
  *         content:
@@ -494,8 +433,7 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Unauthorized access"
+ *                   type: string
  *       500:
  *         description: Internal server error
  *         content:
@@ -504,11 +442,9 @@ const gradeSectionsCt = require('../../../Controller/instituteData/aggregation/g
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Server error"
+ *                   type: string
  *                 error:
- *                   type: string
- *                   example: "Database connection failed"
+ *                   type: string
  */
 
 router.get('/gradeSectionsInInstitute',gradeSectionsCt.gradeSectionsInInstituteAg);
@@ -522,14 +458,12 @@ router.get('/gradeSectionsInInstitute',gradeSectionsCt.gradeSectionsInInstituteA
  *     tags: [Grade Sections]
  *     description: |
  *       Create a new grade section within an institute. The section name must be unique within the same grade.
- *       
  *       **Validation Rules:**
  *       - sectionName: Required, must be unique within the same grade
  *       - instituteId: Required, must be a valid ObjectId
  *       - departmentId: Required, must be a valid ObjectId
  *       - gradeId: Required, must be a valid ObjectId
  *       - description: Optional
- *       
  *       **Unique Constraint:**
  *       The combination of instituteId + gradeId + sectionName must be unique.
  *       Archived sections (archive: true) are excluded from uniqueness checks.
@@ -597,11 +531,9 @@ router.get('/gradeSectionsInInstitute',gradeSectionsCt.gradeSectionsInInstituteA
  *                 - type: object
  *                   properties:
  *                     error:
- *                       type: string
- *                       example: "Failed to add grade section"
+ *                       type: string
  *                     details:
- *                       type: string
- *                       example: "Validation failed"
+ *                       type: string
  *             examples:
  *               duplicate_section:
  *                 summary: Duplicate section name error
@@ -624,8 +556,7 @@ router.get('/gradeSectionsInInstitute',gradeSectionsCt.gradeSectionsInInstituteA
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Unauthorized access"
+ *                   type: string
  *       500:
  *         description: Internal server error
  *         content:
@@ -634,11 +565,9 @@ router.get('/gradeSectionsInInstitute',gradeSectionsCt.gradeSectionsInInstituteA
  *               type: object
  *               properties:
  *                 error:
- *                   type: string
- *                   example: "Failed to add grade section"
+ *                   type: string
  *                 details:
- *                   type: string
- *                   example: "Database connection failed"
+ *                   type: string
  */
 
 router.post('/gradeSectionsInInstitute',gradeSectionsCt.createGradeSectionsInInstitute);
@@ -651,13 +580,11 @@ router.post('/gradeSectionsInInstitute',gradeSectionsCt.createGradeSectionsInIns
  *     tags: [Grade Sections]
  *     description: |
  *       Update existing grade section information within an institute.
- *       
  *       **Update Rules:**
  *       - Only the fields provided in updatedData will be updated
  *       - sectionName must remain unique within the same grade if changed
  *       - Archive status can be toggled
  *       - Description can be updated
- *       
  *       **Request Structure:**
  *       The request body must contain _id and updatedData object with the fields to update.
  *     security:
@@ -721,11 +648,9 @@ router.post('/gradeSectionsInInstitute',gradeSectionsCt.createGradeSectionsInIns
  *                 - type: object
  *                   properties:
  *                     error:
- *                       type: string
- *                       example: "Failed to update grade section"
+ *                       type: string
  *                     details:
- *                       type: string
- *                       example: "Validation failed"
+ *                       type: string
  *             examples:
  *               duplicate_name:
  *                 summary: Duplicate section name error
@@ -748,8 +673,7 @@ router.post('/gradeSectionsInInstitute',gradeSectionsCt.createGradeSectionsInIns
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Unauthorized access"
+ *                   type: string
  *       404:
  *         description: Grade section not found or no changes made
  *         content:
@@ -758,8 +682,7 @@ router.post('/gradeSectionsInInstitute',gradeSectionsCt.createGradeSectionsInIns
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "No matching grade section found or values are unchanged"
+ *                   type: string
  *       500:
  *         description: Internal server error
  *         content:
@@ -768,11 +691,9 @@ router.post('/gradeSectionsInInstitute',gradeSectionsCt.createGradeSectionsInIns
  *               type: object
  *               properties:
  *                 error:
- *                   type: string
- *                   example: "Failed to update grade section"
+ *                   type: string
  *                 details:
- *                   type: string
- *                   example: "Database connection failed"
+ *                   type: string
  */
 
 router.put('/gradeSectionsInInstitute',gradeSectionsCt.updateGradeSectionsInInstitute);
@@ -785,18 +706,15 @@ router.put('/gradeSectionsInInstitute',gradeSectionsCt.updateGradeSectionsInInst
  *     tags: [Grade Sections]
  *     description: |
  *       Delete grade sections with comprehensive dependency management options.
- *       
  *       **Deletion Modes:**
  *       1. **Simple Delete**: Delete sections without dependents
  *       2. **Archive**: Archive sections instead of deleting (archive: true)
  *       3. **Transfer Dependents**: Transfer dependents to another section before deletion
  *       4. **Delete with Dependents**: Delete sections and all their dependents
- *       
  *       **Dependency Handling:**
  *       - Grade sections may have dependents: MembersData, GradeSectionBatches
  *       - If dependents exist, you must choose how to handle them
  *       - Only one section can be selected when using transferTo option
- *       
  *       **Response Codes:**
  *       - 200: Successful deletion/archive
  *       - 201: Dependencies found - requires action (deleteDependents or transferTo)
@@ -882,8 +800,7 @@ router.put('/gradeSectionsInInstitute',gradeSectionsCt.updateGradeSectionsInInst
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Dependency summary"
+ *                   type: string
  *                 deleted:
  *                   type: array
  *                   items:
@@ -898,9 +815,7 @@ router.put('/gradeSectionsInInstitute',gradeSectionsCt.updateGradeSectionsInInst
  *                       value:
  *                         type: string
  *                       dependsOn:
- *                         type: object
- *             example:
- *               message: "Dependency summary"
+ *                         type: object
  *               deleted: ["507f1f77bcf86cd799439012"]
  *               dependencies:
  *                 - _id: "507f1f77bcf86cd799439011"
@@ -946,8 +861,7 @@ router.put('/gradeSectionsInInstitute',gradeSectionsCt.updateGradeSectionsInInst
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Unauthorized access"
+ *                   type: string
  *       404:
  *         description: Grade sections not found
  *         content:
@@ -956,8 +870,7 @@ router.put('/gradeSectionsInInstitute',gradeSectionsCt.updateGradeSectionsInInst
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "No matching Grade Section found to archive/unarchive"
+ *                   type: string
  *       500:
  *         description: Internal server error
  *         content:
@@ -966,11 +879,9 @@ router.put('/gradeSectionsInInstitute',gradeSectionsCt.updateGradeSectionsInInst
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Server error"
+ *                   type: string
  *                 error:
- *                   type: string
- *                   example: "Database connection failed"
+ *                   type: string
  */
 
 router.delete('/gradeSectionsInInstitute',gradeSectionsCt.deleteGradeSectionsInInstitute);

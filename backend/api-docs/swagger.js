@@ -36,8 +36,10 @@ const options = {
         }
       },
       schemas: {
+        // Common schemas
         Error: {
           type: "object",
+          description: "Standard error response",
           properties: {
             message: {
               type: "string",
@@ -51,6 +53,7 @@ const options = {
         },
         Success: {
           type: "object",
+          description: "Standard success response",
           properties: {
             message: {
               type: "string",
@@ -95,7 +98,21 @@ module.exports = (app) => {
       displayRequestDuration: true,
       filter: true,
       showExtensions: true,
-      showCommonExtensions: true
+      showCommonExtensions: true,
+      docExpansion: "list",
+      defaultModelsExpandDepth: 1,
+      defaultModelExpandDepth: 1,
+      displayOperationId: false,
+      tryItOutEnabled: true,
+      requestSnippetsEnabled: false,
+      requestSnippets: {
+        generators: {
+          'curl_bash': {
+            title: 'cURL (bash)',
+            syntax: 'bash'
+          }
+        }
+      }
     }
   }));
 };

@@ -11,21 +11,41 @@ const path = require('path');
 
 // Configuration for standalone testing
 const config = {
-  prod: {
-    collection: 'test/collections/health-check/health-check-collection.json',
-    environment: 'test/environments/prod-environment.json',
-    iterations: 2,
-    delayBetweenIterations: 60000, // 1 minute
-    baseUrl: 'https://devtest2.onrender.com',
-    description: 'Production API Testing'
+  'health-check': {
+    prod: {
+      collection: 'test/collections/health-check/health-check-collection.json',
+      environment: 'test/environments/prod-environment.json',
+      iterations: 2,
+      delayBetweenIterations: 60000, // 1 minute
+      baseUrl: 'https://devtest2.onrender.com',
+      description: 'Production Health Check Testing'
+    },
+    dev: {
+      collection: 'test/collections/health-check/health-check-collection.json',
+      environment: 'test/environments/dev-environment.json',
+      iterations: 2,
+      delayBetweenIterations: 5000, // 5 seconds
+      baseUrl: 'http://svb.local:8000',
+      description: 'Development Health Check Testing'
+    }
   },
-  dev: {
-    collection: 'test/collections/health-check/health-check-collection.json',
-    environment: 'test/environments/dev-environment.json',
-    iterations: 2,
-    delayBetweenIterations: 5000, // 5 seconds
-    baseUrl: 'http://svb.local:8000',
-    description: 'Development API Testing'
+  'general-data': {
+    prod: {
+      collection: 'test/collections/general-data/general-data-collection.json',
+      environment: 'test/environments/prod-environment.json',
+      iterations: 1,
+      delayBetweenIterations: 30000, // 30 seconds
+      baseUrl: 'https://devtest2.onrender.com',
+      description: 'Production General Data API Testing'
+    },
+    dev: {
+      collection: 'test/collections/general-data/general-data-collection.json',
+      environment: 'test/environments/dev-environment.json',
+      iterations: 1,
+      delayBetweenIterations: 10000, // 10 seconds
+      baseUrl: 'http://svb.local:8000',
+      description: 'Development General Data API Testing'
+    }
   }
 };
 
@@ -39,8 +59,7 @@ function generateReportName(module, environment, iteration) {
   return `${module}-${environment}-standalone-${iteration}-${timestamp}.html`;
 }
 
-function runSingleIteration(module, environment, iteration, totalIterations) {
-  const envConfig = config[environment];
+function runSingleIteration(module, environment, iteration, totalIterations, envConfig) {
   const reportName = generateReportName(module, environment, iteration);
   const reportPath = path.join('test', 'reports', reportName);
   
@@ -49,7 +68,7 @@ function runSingleIteration(module, environment, iteration, totalIterations) {
   console.log(`📊 Report: ${reportName}`);
   
   try {
-    const command = `newman run ${envConfig.collection} -e ${envConfig.environment} -r htmlextra --reporter-htmlextra-export ${reportPath}`;
+    const command = `npx newman run ${envConfig.collection} -e ${envConfig.environment} -r htmlextra --reporter-htmlextra-export ${reportPath}`;
     execSync(command, { stdio: 'inherit' });
     console.log(`✅ Iteration ${iteration} completed successfully`);
     return true;
@@ -60,11 +79,19 @@ function runSingleIteration(module, environment, iteration, totalIterations) {
 }
 
 async function runStandaloneTests(module, environment) {
-  const envConfig = config[environment];
+  const moduleConfig = config[module];
+  
+  if (!moduleConfig) {
+    console.error(`❌ Unknown module: ${module}`);
+    console.log('Available modules:', Object.keys(config).join(', '));
+    process.exit(1);
+  }
+  
+  const envConfig = moduleConfig[environment];
   
   if (!envConfig) {
     console.error(`❌ Unknown environment: ${environment}`);
-    console.log('Available environments:', Object.keys(config).join(', '));
+    console.log(`Available environments for ${module}:`, Object.keys(moduleConfig).join(', '));
     process.exit(1);
   }
   
@@ -79,7 +106,7 @@ async function runStandaloneTests(module, environment) {
   const startTime = Date.now();
   
   for (let i = 1; i <= envConfig.iterations; i++) {
-    const success = runSingleIteration(module, environment, i, envConfig.iterations);
+    const success = runSingleIteration(module, environment, i, envConfig.iterations, envConfig);
     results.push({ iteration: i, success });
     
     // Don't wait after the last iteration

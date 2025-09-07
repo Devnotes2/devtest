@@ -19,8 +19,19 @@ exports.generatePresignedUrl = async (req, res) => {
     // Validate required fields
     if (!fileName || !mimeType) {
       return res.status(400).json({ 
-        error: 'Missing required fields',
-        message: 'fileName and mimeType are required'
+        success: false,
+        message: 'fileName and mimeType are required',
+        errors: [{
+          field: 'fileName',
+          message: 'fileName is required',
+          code: 'REQUIRED_FIELD'
+        }, {
+          field: 'mimeType',
+          message: 'mimeType is required',
+          code: 'REQUIRED_FIELD'
+        }],
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
       });
     }
     
@@ -105,24 +116,30 @@ exports.generatePresignedUrl = async (req, res) => {
     
     // Success response with user context and compression info
     const response = { 
-      url, 
-      key, 
-      message: 'success',
-      purpose,
-      compressionInfo,
-      targetFileSize,
-      formatNote,
-      mimeType,
-      fileName,
-      user: {
-        memberId: req.user.memberId,
-        instituteId: req.user.instituteId
-      }
+      success: true,
+      message: 'Presigned URL generated successfully',
+      data: {
+        url, 
+        key, 
+        purpose,
+        compressionInfo,
+        targetFileSize,
+        formatNote,
+        mimeType,
+        fileName,
+        user: {
+          memberId: req.user.memberId,
+          instituteId: req.user.instituteId
+        }
+      },
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString(),
+      version: '1.0'
     };
     
     // Add member info if available for profile pictures
     if (memberInfo && memberInfo.isValid) {
-      response.memberInfo = {
+      response.data.memberInfo = {
         memberId: memberInfo.memberId,
         instituteCode: memberInfo.instituteCode,
         uploadDate: memberInfo.uploadDate,
@@ -135,8 +152,11 @@ exports.generatePresignedUrl = async (req, res) => {
   } catch (err) {
     console.error('S3 Presign error:', err);
     res.status(400).json({ 
+      success: false,
+      message: 'Failed to generate upload URL',
       error: err.message,
-      message: 'Failed to generate upload URL'
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString()
     });
   }
 };

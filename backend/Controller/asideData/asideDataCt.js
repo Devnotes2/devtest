@@ -1,16 +1,43 @@
 const createAsideDataModel = require('../../Model/asideData/asideDataMd');
-const { handleCRUD } = require('../../Utilities/crudUtils');
+const { getApiConfig } = require('../../Utilities/apiConfig');
 
 exports.asideData = async (req, res) => {
-  const AsideData = createAsideDataModel(req.collegeDB);
+  const apiConfig = getApiConfig('asideData');
+  
   try {
     const { type } = req.params;
-    const asideData = await handleCRUD(AsideData, 'findOne', { _id: type });
+    const AsideData = createAsideDataModel(req.collegeDB);
+    
+    const asideData = await AsideData.findOne({ _id: type });
     if (!asideData) {
-      return res.status(404).json({ message: `${type} not found` });
+      return res.status(404).json({ 
+        success: false,
+        message: `${type} not found`,
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
+      });
     }
-    res.json(asideData);
+    
+    res.json({
+      success: true,
+      message: 'Aside data retrieved successfully',
+      data: asideData,
+      type: type,
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString(),
+      version: apiConfig.version
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error', 
+      error: error.message,
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString()
+    });
   }
+};
+
+module.exports = {
+  asideData: exports.asideData
 };

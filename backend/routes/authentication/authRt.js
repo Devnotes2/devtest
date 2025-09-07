@@ -19,28 +19,26 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *           type: string
  *           format: email
  *           description: User's email address
- *           example: "user@example.com"
+
  *         password:
  *           type: string
  *           minLength: 6
  *           description: User's password
- *           example: "password123"
- *     
  *     LoginResponse:
  *       type: object
  *       properties:
  *         message:
  *           type: string
  *           description: Success message
- *           example: "Login successful"
+
  *         token:
  *           type: string
  *           description: JWT access token
- *           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
  *         refreshToken:
  *           type: string
  *           description: JWT refresh token
- *           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
  *         user:
  *           type: object
  *           properties:
@@ -57,7 +55,6 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *             role:
  *               type: string
  *               enum: [admin, teacher, student, parent, staff]
- *     
  *     ForgotPasswordRequest:
  *       type: object
  *       required:
@@ -67,8 +64,6 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *           type: string
  *           format: email
  *           description: User's email address
- *           example: "user@example.com"
- *     
  *     OTPVerificationRequest:
  *       type: object
  *       required:
@@ -79,14 +74,12 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *           type: string
  *           format: email
  *           description: User's email address
- *           example: "user@example.com"
+
  *         otp:
  *           type: string
  *           minLength: 4
  *           maxLength: 6
  *           description: One-time password sent to email
- *           example: "123456"
- *     
  *     ResetPasswordRequest:
  *       type: object
  *       required:
@@ -98,19 +91,17 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *           type: string
  *           format: email
  *           description: User's email address
- *           example: "user@example.com"
+
  *         otp:
  *           type: string
  *           minLength: 4
  *           maxLength: 6
  *           description: One-time password for verification
- *           example: "123456"
+
  *         newPassword:
  *           type: string
  *           minLength: 6
  *           description: New password
- *           example: "newpassword123"
- *     
  *     SuccessResponse:
  *       type: object
  *       properties:
@@ -120,7 +111,6 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *         data:
  *           type: object
  *           description: Response data
- *     
  *     ErrorResponse:
  *       type: object
  *       properties:
@@ -161,8 +151,7 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/LoginRequest'
- *           example:
- *             email: "user@example.com"
+
  *             password: "password123"
  *     responses:
  *       200:
@@ -171,8 +160,7 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/LoginResponse'
- *             example:
- *               message: "Login successful"
+
  *               token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *               refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
  *               user:
@@ -187,8 +175,7 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: "Email and password are required"
+
  *               status: "error"
  *       401:
  *         description: Invalid credentials
@@ -196,8 +183,7 @@ const { verifyOtp } = require('../../Controller/authentication/verifyOtpCt'); //
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: "Invalid email or password"
+
  *               status: "error"
  *       500:
  *         description: Internal server error
@@ -224,8 +210,7 @@ router.post('/login', authCt.login);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/ForgotPasswordRequest'
- *           example:
- *             email: "user@example.com"
+
  *     responses:
  *       200:
  *         description: Password reset email sent successfully
@@ -233,8 +218,7 @@ router.post('/login', authCt.login);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               message: "OTP sent to your email"
+
  *               data: {}
  *       400:
  *         description: Bad request - validation error
@@ -272,8 +256,7 @@ router.post('/forgot-password', forgotPassword);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/OTPVerificationRequest'
- *           example:
- *             email: "user@example.com"
+
  *             otp: "123456"
  *     responses:
  *       200:
@@ -282,8 +265,7 @@ router.post('/forgot-password', forgotPassword);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               message: "OTP verified successfully"
+
  *               data: {}
  *       400:
  *         description: Bad request - invalid OTP
@@ -320,8 +302,7 @@ router.post('/verify-otp', verifyOtp); // New OTP verification route
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/ResetPasswordRequest'
- *           example:
- *             email: "user@example.com"
+
  *             otp: "123456"
  *             newPassword: "newpassword123"
  *     responses:
@@ -331,8 +312,7 @@ router.post('/verify-otp', verifyOtp); // New OTP verification route
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SuccessResponse'
- *             example:
- *               message: "Password reset successfully"
+
  *               data: {}
  *       400:
  *         description: Bad request - validation error
@@ -373,7 +353,7 @@ router.post('/reset-password', resetPassword); // Modified: no :token in URL
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Test route is working!"
+
  */
 
 // Test route (keep for now)

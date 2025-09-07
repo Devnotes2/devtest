@@ -16,44 +16,35 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *         title:
  *           type: string
  *           description: Aside data title
- *           example: "Main Menu"
+
  *         type:
  *           type: string
  *           enum: [menu, member, notification, announcement, quick_links, sidebar]
  *           description: Type of aside data
- *           example: "menu"
+
  *         instituteId:
  *           type: string
  *           description: Associated institute ID
- *           example: "507f1f77bcf86cd799439011"
+
  *         content:
  *           type: object
  *           description: Aside data content (can be any structure)
- *           example:
- *             items:
- *               - label: "Dashboard"
- *                 icon: "home"
- *                 url: "/dashboard"
- *               - label: "Members"
- *                 icon: "users"
- *                 url: "/members"
+
  *         order:
  *           type: integer
  *           description: Display order for sorting
- *           example: 1
+
  *         isActive:
  *           type: boolean
  *           default: true
  *           description: Whether the aside data is active
- *           example: true
+
  *         metadata:
  *           type: object
  *           description: Additional metadata for the aside data
- *           example:
- *             lastUpdated: "2024-01-15T10:30:00Z"
+
  *             version: "1.0"
  *             permissions: ["admin", "teacher"]
- *     
  *     AsideDataResponse:
  *       type: object
  *       properties:
@@ -77,7 +68,6 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *               type: boolean
  *             hasPrevPage:
  *               type: boolean
- *     
  *     SuccessResponse:
  *       type: object
  *       properties:
@@ -87,7 +77,6 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *         data:
  *           type: object
  *           description: Response data
- *     
  *     ErrorResponse:
  *       type: object
  *       properties:
@@ -132,7 +121,7 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *           type: string
  *           enum: [menu, member, notification, announcement, quick_links, sidebar]
  *         description: Type of aside data to retrieve
- *         example: "menu"
+
  *       - in: query
  *         name: page
  *         schema:
@@ -219,8 +208,7 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: "Invalid aside data type"
+
  *               status: "error"
  *       401:
  *         description: Unauthorized
@@ -234,8 +222,7 @@ const asideDataCt = require('../../Controller/asideData/asideDataCt'); // Assumi
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: "No aside data found for type 'menu'"
+
  *               status: "error"
  *       500:
  *         description: Internal server error

@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const createLocationTypesInInstituteModel = require('../../../Model/instituteData/aggregation/locationTypesInInstituteMd');
 const { handleCRUD } = require('../../../Utilities/crudUtils');
+const { enhancedStandardizedGet, enhancedStandardizedPost, enhancedStandardizedPut, enhancedStandardizedDelete } = require('../../../Utilities/enhancedStandardizedApiUtils');
+const { locationTypesInInstituteLookup } = require('../../../Utilities/aggregations/locationTypesLookups');
 
 // Get all location types or a specific location type by ID
 exports.getLocationTypesInInstitute = async (req, res) => {
@@ -27,103 +29,71 @@ exports.getLocationTypesInInstitute = async (req, res) => {
 
 // Add a new location type
 exports.createLocationTypesInInstitute = async (req, res) => {
-  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
-  const { newLocationType } = req.body;
+  const options = {
+    successMessage: 'Location type created successfully',
+    requiredFields: ['instituteId', 'locationTypes'],
+    uniqueFields: [
+      {
+        fields: ['instituteId', 'locationTypes'],
+        message: 'Location type already exists for this institute'
+      }
+    ]
+  };
 
-  try {
-    const newDoc = await handleCRUD(LocationTypesInInstitute, 'create', {}, newLocationType);
-    res.status(200).json({ message: 'Location type added successfully', newDoc });
-  } catch (error) {
-    console.error('Error creating location type:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
+  await enhancedStandardizedPost(req, res, createLocationTypesInInstituteModel, options);
 };
 
 // Update a location type
 exports.updateLocationTypesInInstitute = async (req, res) => {
-  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
-  const { id, updatedData } = req.body;
+  const options = {
+    successMessage: 'Location type updated successfully',
+    uniqueFields: [
+      {
+        fields: ['instituteId', 'locationTypes'],
+        message: 'Location type already exists for this institute'
+      }
+    ]
+  };
 
-  try {
-    const result = await handleCRUD(LocationTypesInInstitute, 'update', { _id: new ObjectId(id) }, { $set: updatedData });
-
-    if (result.modifiedCount > 0) {
-      res.status(200).json({ message: 'Location type updated successfully' });
-    } else if (result.matchedCount > 0 && result.modifiedCount === 0) {
-      res.status(200).json({ message: 'No updates were made' });
-    } else {
-      res.status(404).json({ message: 'Location type not found' });
-    }
-  } catch (error) {
-    console.error('Error updating location type:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
+  await enhancedStandardizedPut(req, res, createLocationTypesInInstituteModel, options);
 };
 
 // Delete location types
 exports.deleteLocationTypesInInstitute = async (req, res) => {
-  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
-  const { ids } = req.body;
+  const options = {
+    successMessage: 'Location type deleted successfully',
+    dependencies: [], // No dependencies for location types
+    modelName: 'LocationTypes'
+  };
 
-  try {
-    const result = await handleCRUD(LocationTypesInInstitute, 'delete', { _id: { $in: ids.map(id => new ObjectId(id)) } });
-
-    if (result.deletedCount > 0) {
-      res.status(200).json({ message: 'Location type(s) deleted successfully', deletedCount: result.deletedCount });
-    } else {
-      res.status(404).json({ message: 'No matching location types found for deletion' });
-    }
-  } catch (error) {
-    console.error('Error deleting location types:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
+  await enhancedStandardizedDelete(req, res, createLocationTypesInInstituteModel, options);
 };
 
 
 // Aggregation for enriched data
 exports.getLocationTypesInInstituteAgs = async (req, res) => {
-  const LocationTypesInInstitute = createLocationTypesInInstituteModel(req.collegeDB);
+  const options = {
+    lookups: locationTypesInInstituteLookup(),
+    joinedFieldMap: {
+      institute: 'instituteDetails.instituteName'
+    },
+    dropdownFields: ['_id', 'locationTypes'],
+    validationField: 'locationTypes',
+    defaultSort: { locationTypes: 1 },
+    projectFields: {
+      _id: 1,
+      instituteId: 1,
+      locationTypes: 1,
+      capacity: 1,
+      description: 1,
+      location: 1,
+      archive: 1,
+      createdAt: 1,
+      updatedAt: 1,
+      // Add lookup data with clear naming
+      instituteName: '$instituteDetails.instituteName'
+    }
+  };
 
-  try {
-    const aggregationPipeline = [
-      {
-        $lookup: {
-          from: 'instituteData', // Reference the new structure
-          localField: 'instituteId',
-          foreignField: '_id',
-          as: 'instituteDetails',
-        },
-      },
-      { $unwind: { path: '$instituteDetails', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'generalData',
-            let: { locationTypes: '$locationTypes' },
-            pipeline: [
-              { $match: { _id: 'locationTypes' } },
-              { $unwind: '$data' },
-              { $match: { $expr: { $eq: ['$data._id', '$$locationTypes'] } } },
-              { $project: { locationTypeValue: '$data.value' } }
-            ],
-            as: 'locationTypesDetails'
-          }
-        },
-        { $unwind: '$locationTypesDetails' },
-      {
-        $project: {
-          instituteName: '$instituteDetails.instituteName', // Adjusted to match the new structure
-          locationTypes: '$locationTypesDetails.locationTypeValue', // Adjusted to match the new structure
-          capacity: 1,
-          description: 1,
-          location: 1,
-        },
-      },
-    ];
-
-    const result = await LocationTypesInInstitute.aggregate(aggregationPipeline);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error('Error during aggregation:', error);
-    res.status(500).json({ error: 'Failed to fetch data', details: error.message });
-  }
+  await enhancedStandardizedGet(req, res, createLocationTypesInInstituteModel, options);
 };

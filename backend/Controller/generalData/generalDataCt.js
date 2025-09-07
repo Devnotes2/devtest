@@ -1,105 +1,283 @@
 const createGeneralDataModel = require('../../Model/generalData/generalDataMd');
-const { handleCRUD } = require('../../Utilities/crudUtils');
+const { enhancedStandardizedGet, enhancedStandardizedPost, enhancedStandardizedPut, enhancedStandardizedDelete } = require('../../Utilities/enhancedStandardizedApiUtils');
+const { getApiConfig } = require('../../Utilities/apiConfig');
 const { ObjectId } = require('mongoose').Types;
 
+// GET General Data
 exports.getGeneraldata = async (req, res) => {
-  const GeneralData = createGeneralDataModel(req.collegeDB);
+  const apiConfig = getApiConfig('generalData');
   const { type } = req.params;
   const { itemId } = req.params;
 
   try {
-    const generaldataDoc = await handleCRUD(GeneralData, 'findOne', { _id: type });
+    const GeneralData = createGeneralDataModel(req.collegeDB);
+    
+    // Find the general data document by type
+    const generaldataDoc = await GeneralData.findOne({ _id: type });
     if (!generaldataDoc) {
-      return res.status(404).json({ message: 'Generaldata type not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'General data type not found',
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
+      });
     }
 
     if (itemId) {
+      // Return specific item
       const item = generaldataDoc.data.find(item => item._id === parseInt(itemId));
       if (!item) {
-        return res.status(404).json({ message: 'Generaldata item not found' });
+        return res.status(404).json({ 
+          success: false,
+          message: 'General data item not found',
+          requestId: res.locals.requestId,
+          timestamp: new Date().toISOString()
+        });
       }
-      return res.json(item);
+      return res.json({
+        success: true,
+        message: 'General data item retrieved successfully',
+        data: item,
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString(),
+        version: apiConfig.version
+      });
     } else {
-      return res.json(generaldataDoc.data);
+      // Return all items for the type
+      return res.json({
+        success: true,
+        message: 'General data retrieved successfully',
+        data: generaldataDoc.data,
+        count: generaldataDoc.data.length,
+        type: type,
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString(),
+        version: apiConfig.version
+      });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error', 
+      error: error.message,
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString()
+    });
   }
 };
 
+// POST General Data
 exports.addGeneraldata = async (req, res) => {
-  const GeneralData = createGeneralDataModel(req.collegeDB);
+  const apiConfig = getApiConfig('generalData');
   const { type } = req.params;
   const { value } = req.body;
 
   try {
-    let generaldataDoc = await handleCRUD(GeneralData, 'findOne', { _id: type });
+    const GeneralData = createGeneralDataModel(req.collegeDB);
+    
+    // Validate required fields
+    if (!value) {
+      return res.status(400).json({
+        success: false,
+        message: 'Value is required',
+        errors: [{
+          field: 'value',
+          message: 'Value is required',
+          code: 'REQUIRED_FIELD'
+        }],
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    let generaldataDoc = await GeneralData.findOne({ _id: type });
     const newItem = { value };
 
     if (generaldataDoc) {
+      // Check for duplicate values
+      const existingItem = generaldataDoc.data.find(item => item.value === value);
+      if (existingItem) {
+        return res.status(409).json({
+          success: false,
+          message: 'Value already exists',
+          errors: [{
+            field: 'value',
+            message: 'Value already exists',
+            code: 'DUPLICATE_VALUE'
+          }],
+          requestId: res.locals.requestId,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       generaldataDoc.data.push(newItem);
       await generaldataDoc.save();
     } else {
-      await handleCRUD(GeneralData, 'create', {}, { _id: type, data: [newItem] });
+      await GeneralData.create({ _id: type, data: [newItem] });
     }
 
-    return res.status(200).json(newItem);
+    return res.status(201).json({
+      success: true,
+      message: 'General data added successfully',
+      data: newItem,
+      created: true,
+      type: type,
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString(),
+      version: apiConfig.version
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error', 
+      error: error.message,
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString()
+    });
   }
 };
 
+// PUT General Data
 exports.updateGeneraldata = async (req, res) => {
-  const GeneralData = createGeneralDataModel(req.collegeDB);
+  const apiConfig = getApiConfig('generalData');
   const { type } = req.params;
-  const { itemId, updatedData } = req.body;
+  const { itemId } = req.params;
+  const { value } = req.body;
 
   try {
-    const result = await handleCRUD(
-      GeneralData,
-      'update',
-      { _id: type, 'data._id': itemId },
-      { $set: { 'data.$.value': updatedData } }
-    );
-
-    if (result) {
-      return res.status(200).json({ message: 'Generaldata Updated successfully' });
-    } else {
-      return res.status(404).json({ message: 'Generaldata item not found' });
+    const GeneralData = createGeneralDataModel(req.collegeDB);
+    
+    // Validate required fields
+    if (!value) {
+      return res.status(400).json({
+        success: false,
+        message: 'Value is required',
+        errors: [{
+          field: 'value',
+          message: 'Value is required',
+          code: 'REQUIRED_FIELD'
+        }],
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
+      });
     }
+
+    const generaldataDoc = await GeneralData.findOne({ _id: type });
+    if (!generaldataDoc) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'General data type not found',
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const itemIndex = generaldataDoc.data.findIndex(item => item._id === parseInt(itemId));
+    if (itemIndex === -1) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'General data item not found',
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Check for duplicate values (excluding current item)
+    const existingItem = generaldataDoc.data.find(item => item.value === value && item._id !== parseInt(itemId));
+    if (existingItem) {
+      return res.status(409).json({
+        success: false,
+        message: 'Value already exists',
+        errors: [{
+          field: 'value',
+          message: 'Value already exists',
+          code: 'DUPLICATE_VALUE'
+        }],
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    generaldataDoc.data[itemIndex].value = value;
+    await generaldataDoc.save();
+
+    return res.json({
+      success: true,
+      message: 'General data updated successfully',
+      data: { _id: parseInt(itemId), value },
+      modified: true,
+      type: type,
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString(),
+      version: apiConfig.version
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error', 
+      error: error.message,
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString()
+    });
   }
 };
 
+// DELETE General Data
 exports.deleteGeneraldata = async (req, res) => {
-  const GeneralData = createGeneralDataModel(req.collegeDB);
+  const apiConfig = getApiConfig('generalData');
   const { type } = req.params;
-  const { ids } = req.body;
+  const { itemId } = req.params;
 
   try {
-    const generalDataDoc = await handleCRUD(GeneralData, 'findOne', { _id: type });
-
-    if (!generalDataDoc) {
-      return res.status(404).json({ message: 'Document not found' });
+    const GeneralData = createGeneralDataModel(req.collegeDB);
+    
+    const generaldataDoc = await GeneralData.findOne({ _id: type });
+    if (!generaldataDoc) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'General data type not found',
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
+      });
     }
 
-    // Convert ids to ObjectId for comparison
-    const objectIds = ids.map(id => new ObjectId(id));
-
-    const updatedData = generalDataDoc.data.filter(item => !objectIds.some(oid => oid.equals(item._id)));
-
-    if (updatedData.length === generalDataDoc.data.length) {
-      return res.status(404).json({ message: 'No matching items found for deletion' });
+    const itemIndex = generaldataDoc.data.findIndex(item => item._id === parseInt(itemId));
+    if (itemIndex === -1) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'General data item not found',
+        requestId: res.locals.requestId,
+        timestamp: new Date().toISOString()
+      });
     }
 
-    generalDataDoc.data = updatedData;
-    await generalDataDoc.save();
+    const deletedItem = generaldataDoc.data.splice(itemIndex, 1)[0];
+    await generaldataDoc.save();
 
-    return res.status(200).json(generalDataDoc);
+    return res.json({
+      success: true,
+      message: 'General data deleted successfully',
+      data: { deletedItem },
+      deleted: true,
+      type: type,
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString(),
+      version: apiConfig.version
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error', 
+      error: error.message,
+      requestId: res.locals.requestId,
+      timestamp: new Date().toISOString()
+    });
   }
 };
 
-
+module.exports = {
+  getGeneraldata: exports.getGeneraldata,
+  addGeneraldata: exports.addGeneraldata,
+  updateGeneraldata: exports.updateGeneraldata,
+  deleteGeneraldata: exports.deleteGeneraldata
+};

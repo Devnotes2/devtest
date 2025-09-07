@@ -15,6 +15,9 @@ const {
  * @swagger
  * components:
  *   schemas:
+ *     # ============================================================================
+ *     # ENROLLMENT MANAGEMENT SCHEMAS
+ *     # ============================================================================
  *     Enrollment:
  *       type: object
  *       required:
@@ -26,119 +29,92 @@ const {
  *       properties:
  *         _id:
  *           type: string
- *           description: Unique enrollment ID
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Unique enrollment ID
  *         instituteId:
  *           type: string
- *           description: Institute ID reference
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Institute ID reference
  *         departmentId:
  *           type: string
- *           description: Department ID reference
- *           example: "507f1f77bcf86cd799439012"
+ *           description: Department ID reference
  *         gradeId:
  *           type: string
- *           description: Grade ID reference
- *           example: "507f1f77bcf86cd799439013"
+ *           description: Grade ID reference
  *         gradeSectionId:
  *           type: string
- *           description: Grade Section ID reference (optional)
- *           example: "507f1f77bcf86cd799439014"
+ *           description: Grade Section ID reference (optional)
  *         gradeSectionBatchId:
  *           type: string
- *           description: Grade Section Batch ID reference (optional)
- *           example: "507f1f77bcf86cd799439015"
+ *           description: Grade Section Batch ID reference (optional)
  *         gradeBatchId:
  *           type: string
- *           description: Grade Batch ID reference (optional)
- *           example: "507f1f77bcf86cd799439016"
+ *           description: Grade Batch ID reference (optional)
  *         subjectsIds:
  *           type: array
  *           items:
  *             type: string
- *           description: Array of Subject IDs (optional)
- *           example:
- *             - "507f1f77bcf86cd799439017"
+ *           description: Array of Subject IDs (optional)
  *             - "507f1f77bcf86cd799439018"
  *         memberId:
  *           type: string
- *           description: Member ID reference
- *           example: "507f1f77bcf86cd799439019"
+ *           description: Member ID reference
  *         memberTypeId:
  *           type: string
- *           description: Member type ID (auto-populated from memberId)
- *           example: "507f1f77bcf86cd799439020"
+ *           description: Member type ID (auto-populated from memberId)
  *         enrollmentDate:
  *           type: string
  *           format: date-time
- *           description: Enrollment date
- *           example: "2024-01-15T10:30:00.000Z"
+ *           description: Enrollment date
  *         academicYearId:
  *           type: string
- *           description: Academic Year ID reference
- *           example: "507f1f77bcf86cd799439021"
+ *           description: Academic Year ID reference
  *         status:
  *           type: string
  *           enum: [active, inactive, completed, dropped]
  *           default: active
- *           description: Enrollment status
- *           example: "active"
+ *           description: Enrollment status
  *         description:
  *           type: string
- *           description: Additional enrollment description
- *           example: "Regular enrollment for Spring 2024"
+ *           description: Additional enrollment description
  *         archive:
  *           type: boolean
  *           default: false
- *           description: Archive status
- *           example: false
+ *           description: Archive status
  *         createdAt:
  *           type: string
  *           format: date-time
- *           description: Creation timestamp
- *           example: "2024-01-15T10:30:00.000Z"
+ *           description: Creation timestamp
  *         updatedAt:
  *           type: string
  *           format: date-time
- *           description: Last update timestamp
- *           example: "2024-01-15T10:30:00.000Z"
+ *           description: Last update timestamp
  *         # Aggregated fields (returned when using aggregation)
  *         instituteName:
  *           type: string
- *           description: Institute name (from aggregation)
- *           example: "ABC University"
+ *           description: Institute name (from aggregation)
  *         departmentName:
  *           type: string
- *           description: Department name (from aggregation)
- *           example: "Computer Science"
+ *           description: Department name (from aggregation)
  *         gradeName:
  *           type: string
- *           description: Grade name (from aggregation)
- *           example: "Grade 10"
+ *           description: Grade name (from aggregation)
  *         gradeCode:
  *           type: string
- *           description: Grade code (from aggregation)
- *           example: "G10"
+ *           description: Grade code (from aggregation)
  *         gradeDuration:
  *           type: number
- *           description: Grade duration in years (from aggregation)
- *           example: 1
+ *           description: Grade duration in years (from aggregation)
  *         batchName:
  *           type: string
- *           description: Batch name (from aggregation)
- *           example: "2024"
+ *           description: Batch name (from aggregation)
  *         sectionName:
  *           type: string
- *           description: Section name (from aggregation)
- *           example: "A"
+ *           description: Section name (from aggregation)
  *         sectionBatchName:
  *           type: string
- *           description: Section batch name (from aggregation)
- *           example: "A-2024"
+ *           description: Section batch name (from aggregation)
  *         academicYear:
  *           type: string
- *           description: Academic year (from aggregation)
- *           example: "2024-2025"
+ *           description: Academic year (from aggregation)
  *         subjects:
  *           type: array
  *           items:
@@ -153,13 +129,10 @@ const {
  *           description: Subject details (from aggregation)
  *         memberName:
  *           type: string
- *           description: Member full name (from aggregation)
- *           example: "John Doe"
+ *           description: Member full name (from aggregation)
  *         memberType:
  *           type: string
- *           description: Member type value (from aggregation)
- *           example: "Student"
- *     
+ *           description: Member type value (from aggregation)
  *     EnrollmentCreateRequest:
  *       type: object
  *       required:
@@ -171,55 +144,42 @@ const {
  *       properties:
  *         instituteId:
  *           type: string
- *           description: Institute ID reference
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Institute ID reference
  *         departmentId:
  *           type: string
- *           description: Department ID reference
- *           example: "507f1f77bcf86cd799439012"
+ *           description: Department ID reference
  *         gradeId:
  *           type: string
- *           description: Grade ID reference
- *           example: "507f1f77bcf86cd799439013"
+ *           description: Grade ID reference
  *         gradeSectionId:
  *           type: string
- *           description: Grade Section ID reference (optional)
- *           example: "507f1f77bcf86cd799439014"
+ *           description: Grade Section ID reference (optional)
  *         gradeSectionBatchId:
  *           type: string
- *           description: Grade Section Batch ID reference (optional)
- *           example: "507f1f77bcf86cd799439015"
+ *           description: Grade Section Batch ID reference (optional)
  *         gradeBatchId:
  *           type: string
- *           description: Grade Batch ID reference (optional)
- *           example: "507f1f77bcf86cd799439016"
+ *           description: Grade Batch ID reference (optional)
  *         subjectsIds:
  *           type: array
  *           items:
  *             type: string
- *           description: Array of Subject IDs (optional)
- *           example:
- *             - "507f1f77bcf86cd799439017"
+ *           description: Array of Subject IDs (optional)
  *             - "507f1f77bcf86cd799439018"
  *         memberId:
  *           type: string
- *           description: Member ID reference
- *           example: "507f1f77bcf86cd799439019"
+ *           description: Member ID reference
  *         academicYearId:
  *           type: string
- *           description: Academic Year ID reference
- *           example: "507f1f77bcf86cd799439021"
+ *           description: Academic Year ID reference
  *         status:
  *           type: string
  *           enum: [active, inactive, completed, dropped]
  *           default: active
- *           description: Enrollment status
- *           example: "active"
+ *           description: Enrollment status
  *         description:
  *           type: string
- *           description: Additional enrollment description
- *           example: "Regular enrollment for Spring 2024"
- *     
+ *           description: Additional enrollment description
  *     EnrollmentUpdateRequest:
  *       type: object
  *       required:
@@ -228,8 +188,7 @@ const {
  *       properties:
  *         _id:
  *           type: string
- *           description: Enrollment ID to update
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Enrollment ID to update
  *         updatedData:
  *           type: object
  *           description: Fields to update
@@ -237,25 +196,19 @@ const {
  *             status:
  *               type: string
  *               enum: [active, inactive, completed, dropped]
- *               description: New enrollment status
- *               example: "completed"
+ *               description: New enrollment status
  *             description:
  *               type: string
- *               description: Updated description
- *               example: "Updated enrollment description"
+ *               description: Updated description
  *             gradeSectionId:
  *               type: string
- *               description: New grade section ID
- *               example: "507f1f77bcf86cd799439014"
+ *               description: New grade section ID
  *             subjectsIds:
  *               type: array
  *               items:
  *                 type: string
- *               description: Updated subject IDs
- *               example:
- *                 - "507f1f77bcf86cd799439017"
+ *               description: Updated subject IDs
  *                 - "507f1f77bcf86cd799439018"
- *     
  *     EnrollmentDeleteRequest:
  *       type: object
  *       required:
@@ -265,43 +218,33 @@ const {
  *           type: array
  *           items:
  *             type: string
- *           description: Array of enrollment IDs to delete
- *           example:
- *             - "507f1f77bcf86cd799439011"
+ *           description: Array of enrollment IDs to delete
  *             - "507f1f77bcf86cd799439012"
  *         deleteDependents:
  *           type: boolean
- *           description: Whether to delete dependent records
- *           example: false
+ *           description: Whether to delete dependent records
  *         transferTo:
  *           type: string
- *           description: Transfer dependents to this enrollment ID
- *           example: "507f1f77bcf86cd799439013"
+ *           description: Transfer dependents to this enrollment ID
  *         archive:
  *           type: boolean
- *           description: Archive instead of delete
- *           example: false
- *     
+ *           description: Archive instead of delete
  *     EnrollmentResponse:
  *       type: object
  *       properties:
  *         count:
  *           type: integer
- *           description: Number of records returned
- *           example: 10
+ *           description: Number of records returned
  *         filteredDocs:
  *           type: integer
- *           description: Number of documents matching filters
- *           example: 25
+ *           description: Number of documents matching filters
  *         totalDocs:
  *           type: integer
- *           description: Total documents in collection
- *           example: 100
+ *           description: Total documents in collection
  *         data:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/Enrollment'
- *     
  *     EnrollmentDropdownResponse:
  *       type: object
  *       properties:
@@ -327,38 +270,29 @@ const {
  *                 format: date-time
  *               status:
  *                 type: string
- *     
  *     EnrollmentCreateResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Enrollment added successfully!"
+ *           type: string
  *         data:
  *           $ref: '#/components/schemas/Enrollment'
- *     
  *     EnrollmentUpdateResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Enrollment updated successfully"
- *     
+ *           type: string
  *     EnrollmentDeleteResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Enrollment(s) deleted successfully"
+ *           type: string
  *         deletedCount:
- *           type: integer
- *           example: 2
+ *           type: integer
  *         deleted:
  *           type: array
  *           items:
- *             type: string
- *           example:
- *             - "507f1f77bcf86cd799439011"
+ *             type: string
  *             - "507f1f77bcf86cd799439012"
  *         dependencies:
  *           type: array
@@ -371,19 +305,15 @@ const {
  *                 type: string
  *               dependsOn:
  *                 type: object
- *     
  *     DuplicateEnrollmentError:
  *       type: object
  *       properties:
  *         error:
- *           type: string
- *           example: "Duplicate enrollment"
+ *           type: string
  *         details:
- *           type: string
- *           example: "A member enrollment already exists for this combination"
+ *           type: string
  *         suggestion:
- *           type: string
- *           example: "Please check if this enrollment already exists or modify the combination"
+ *           type: string
  */
 
 /**
@@ -407,7 +337,6 @@ const {
  *       - **Dropdown mode**: Get simplified data for dropdowns
  *       - **Value-based filtering**: Filter by joined field values
  *       - **ID-based retrieval**: Get specific enrollments by IDs
- *       
  *       **Parameter Combinations:**
  *       - **Basic**: `?page=1&limit=10`
  *       - **With filtering**: `?instituteId=123&status=active&page=1&limit=10`
@@ -428,8 +357,7 @@ const {
  *           type: integer
  *           minimum: 1
  *           default: 1
- *         description: Page number for pagination
- *         example: 1
+ *         description: Page number for pagination
  *       - in: query
  *         name: limit
  *         schema:
@@ -437,9 +365,7 @@ const {
  *           minimum: 1
  *           maximum: 100
  *           default: 10
- *         description: Number of items per page
- *         example: 10
- *       
+ *         description: Number of items per page
  *       # Aggregation Parameters
  *       - in: query
  *         name: aggregate
@@ -450,9 +376,7 @@ const {
  *         description: |
  *           Enable aggregation to join with related collections.
  *           - `true` (default): Returns enriched data with joined fields
- *           - `false`: Returns only enrollment fields without joins
- *         example: true
- *       
+ *           - `false`: Returns only enrollment fields without joins
  *       # Dropdown Mode
  *       - in: query
  *         name: dropdown
@@ -462,9 +386,7 @@ const {
  *           default: false
  *         description: |
  *           Simplified response for dropdown components.
- *           Returns only essential fields: _id, instituteId, departmentId, gradeId, memberId, memberType, enrollmentDate, status
- *         example: false
- *       
+ *           Returns only essential fields: _id, instituteId, departmentId, gradeId, memberId, memberType, enrollmentDate, status
  *       # ID-based Retrieval
  *       - in: query
  *         name: ids
@@ -476,170 +398,140 @@ const {
  *         explode: false
  *         description: |
  *           Array of enrollment IDs to retrieve specific records.
- *           When provided, only these enrollments will be returned.
- *         example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
- *       
+ *           When provided, only these enrollments will be returned.
  *       # Basic Filtering Parameters
  *       - in: query
  *         name: instituteId
  *         schema:
  *           type: string
- *         description: Filter by institute ID
- *         example: "507f1f77bcf86cd799439011"
+ *         description: Filter by institute ID
  *       - in: query
  *         name: departmentId
  *         schema:
  *           type: string
- *         description: Filter by department ID
- *         example: "507f1f77bcf86cd799439012"
+ *         description: Filter by department ID
  *       - in: query
  *         name: gradeId
  *         schema:
  *           type: string
- *         description: Filter by grade ID
- *         example: "507f1f77bcf86cd799439013"
+ *         description: Filter by grade ID
  *       - in: query
  *         name: gradeSectionId
  *         schema:
  *           type: string
- *         description: Filter by grade section ID
- *         example: "507f1f77bcf86cd799439014"
+ *         description: Filter by grade section ID
  *       - in: query
  *         name: gradeSectionBatchId
  *         schema:
  *           type: string
- *         description: Filter by grade section batch ID
- *         example: "507f1f77bcf86cd799439015"
+ *         description: Filter by grade section batch ID
  *       - in: query
  *         name: gradeBatchId
  *         schema:
  *           type: string
- *         description: Filter by grade batch ID
- *         example: "507f1f77bcf86cd799439016"
+ *         description: Filter by grade batch ID
  *       - in: query
  *         name: memberId
  *         schema:
  *           type: string
- *         description: Filter by member ID
- *         example: "507f1f77bcf86cd799439019"
+ *         description: Filter by member ID
  *       - in: query
  *         name: memberType
  *         schema:
  *           type: string
- *         description: Filter by member type ID
- *         example: "507f1f77bcf86cd799439020"
+ *         description: Filter by member type ID
  *       - in: query
  *         name: academicYearId
  *         schema:
  *           type: string
- *         description: Filter by academic year ID
- *         example: "507f1f77bcf86cd799439021"
+ *         description: Filter by academic year ID
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [active, inactive, completed, dropped]
- *         description: Filter by enrollment status
- *         example: "active"
+ *         description: Filter by enrollment status
  *       - in: query
  *         name: archive
  *         schema:
  *           type: boolean
- *         description: Filter by archive status
- *         example: false
- *       
+ *         description: Filter by archive status
  *       # Date Range Filtering
  *       - in: query
  *         name: enrollmentDateFrom
  *         schema:
  *           type: string
  *           format: date
- *         description: Filter enrollments from this date (inclusive)
- *         example: "2024-01-01"
+ *         description: Filter enrollments from this date (inclusive)
  *       - in: query
  *         name: enrollmentDateTo
  *         schema:
  *           type: string
  *           format: date
- *         description: Filter enrollments to this date (inclusive)
- *         example: "2024-12-31"
+ *         description: Filter enrollments to this date (inclusive)
  *       - in: query
  *         name: createdAtFrom
  *         schema:
  *           type: string
  *           format: date
- *         description: Filter by creation date from (inclusive)
- *         example: "2024-01-01"
+ *         description: Filter by creation date from (inclusive)
  *       - in: query
  *         name: createdAtTo
  *         schema:
  *           type: string
  *           format: date
- *         description: Filter by creation date to (inclusive)
- *         example: "2024-12-31"
- *       
+ *         description: Filter by creation date to (inclusive)
  *       # Value-based Filtering (works with aggregation)
  *       - in: query
  *         name: institute
  *         schema:
  *           type: string
- *         description: Filter by institute name (requires aggregate=true)
- *         example: "ABC University"
+ *         description: Filter by institute name (requires aggregate=true)
  *       - in: query
  *         name: department
  *         schema:
  *           type: string
- *         description: Filter by department name (requires aggregate=true)
- *         example: "Computer Science"
+ *         description: Filter by department name (requires aggregate=true)
  *       - in: query
  *         name: grade
  *         schema:
  *           type: string
- *         description: Filter by grade name (requires aggregate=true)
- *         example: "Grade 10"
+ *         description: Filter by grade name (requires aggregate=true)
  *       - in: query
  *         name: gradeCode
  *         schema:
  *           type: string
- *         description: Filter by grade code (requires aggregate=true)
- *         example: "G10"
+ *         description: Filter by grade code (requires aggregate=true)
  *       - in: query
  *         name: batch
  *         schema:
  *           type: string
- *         description: Filter by batch name (requires aggregate=true)
- *         example: "2024"
+ *         description: Filter by batch name (requires aggregate=true)
  *       - in: query
  *         name: section
  *         schema:
  *           type: string
- *         description: Filter by section name (requires aggregate=true)
- *         example: "A"
+ *         description: Filter by section name (requires aggregate=true)
  *       - in: query
  *         name: sectionBatch
  *         schema:
  *           type: string
- *         description: Filter by section batch name (requires aggregate=true)
- *         example: "A-2024"
+ *         description: Filter by section batch name (requires aggregate=true)
  *       - in: query
  *         name: academicYear
  *         schema:
  *           type: string
- *         description: Filter by academic year (requires aggregate=true)
- *         example: "2024-2025"
+ *         description: Filter by academic year (requires aggregate=true)
  *       - in: query
  *         name: member
  *         schema:
  *           type: string
- *         description: Filter by member name (requires aggregate=true)
- *         example: "John Doe"
+ *         description: Filter by member name (requires aggregate=true)
  *       - in: query
  *         name: memberType
  *         schema:
  *           type: string
- *         description: Filter by member type value (requires aggregate=true)
- *         example: "Student"
- *       
+ *         description: Filter by member type value (requires aggregate=true)
  *       # Sorting Parameters
  *       - in: query
  *         name: sortBy
@@ -647,32 +539,26 @@ const {
  *           type: string
  *           enum: [_id, instituteId, departmentId, gradeId, gradeSectionId, gradeSectionBatchId, gradeBatchId, memberId, memberType, enrollmentDate, academicYearId, status, description, archive, createdAt, updatedAt]
  *           default: enrollmentDate
- *         description: Field to sort by
- *         example: "enrollmentDate"
+ *         description: Field to sort by
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc]
  *           default: desc
- *         description: Sort order
- *         example: "desc"
- *       
+ *         description: Sort order
  *       # Additional Parameters
  *       - in: query
  *         name: validate
  *         schema:
  *           type: string
  *           enum: [true, false]
- *         description: Validate query parameters
- *         example: true
+ *         description: Validate query parameters
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
- *         description: Search across multiple fields (implementation dependent)
- *         example: "John Doe"
- *     
+ *         description: Search across multiple fields (implementation dependent)
  *     responses:
  *       200:
  *         description: Enrollments retrieved successfully
@@ -703,7 +589,6 @@ const {
  *                       gradeName: "Grade 10"
  *                       memberName: "John Doe"
  *                       academicYear: "2024-2025"
- *               
  *               # Dropdown response
  *               dropdown:
  *                 summary: Dropdown response
@@ -717,7 +602,6 @@ const {
  *                       memberType: "507f1f77bcf86cd799439020"
  *                       enrollmentDate: "2024-01-15T10:30:00.000Z"
  *                       status: "active"
- *               
  *               # Non-aggregated response
  *               non_aggregated:
  *                 summary: Non-aggregated response
@@ -735,35 +619,26 @@ const {
  *                       enrollmentDate: "2024-01-15T10:30:00.000Z"
  *                       createdAt: "2024-01-15T10:30:00.000Z"
  *                       updatedAt: "2024-01-15T10:30:00.000Z"
- *       
  *       400:
  *         description: Bad request - invalid parameters
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Invalid parameter combination"
+ *               $ref: '#/components/schemas/Error'
  *               status: "error"
- *       
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Unauthorized access"
+ *               $ref: '#/components/schemas/Error'
  *               status: "error"
- *       
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Server error"
+ *               $ref: '#/components/schemas/Error'
  *               status: "error"
  */
 
@@ -777,17 +652,14 @@ router.get('/enrollments', getEnrollments);
  *     summary: Create a new enrollment
  *     description: |
  *       Create a new enrollment with comprehensive validation and auto-population features.
- *       
  *       **Key Features:**
  *       - **Auto-population**: `memberType` is automatically populated from `memberId`
  *       - **Unique constraints**: Prevents duplicate enrollments based on combination of fields
  *       - **Validation**: Validates all required fields and references
  *       - **Flexible structure**: Supports optional fields like sections, batches, and subjects
- *       
  *       **Unique Constraints:**
  *       - For member enrollments: `memberId + instituteId + departmentId + gradeId + gradeSectionId + gradeSectionBatchId + gradeBatchId + academicYearId`
  *       - For general enrollments: `instituteId + departmentId + gradeId + gradeSectionId + gradeSectionBatchId + gradeBatchId + academicYearId`
- *       
  *       **Example Use Cases:**
  *       - **Student enrollment**: Full enrollment with member, grade, section, and subjects
  *       - **General enrollment**: Enrollment without specific member (for capacity planning)
@@ -820,7 +692,6 @@ router.get('/enrollments', getEnrollments);
  *                 academicYearId: "507f1f77bcf86cd799439021"
  *                 status: "active"
  *                 description: "Regular enrollment for Spring 2024 semester"
- *             
  *             # Basic enrollment (minimal required fields)
  *             basic_enrollment:
  *               summary: Basic enrollment with only required fields
@@ -830,7 +701,6 @@ router.get('/enrollments', getEnrollments);
  *                 gradeId: "507f1f77bcf86cd799439013"
  *                 memberId: "507f1f77bcf86cd799439019"
  *                 academicYearId: "507f1f77bcf86cd799439021"
- *             
  *             # Enrollment with grade section only
  *             section_enrollment:
  *               summary: Enrollment with grade section
@@ -843,7 +713,6 @@ router.get('/enrollments', getEnrollments);
  *                 academicYearId: "507f1f77bcf86cd799439021"
  *                 status: "active"
  *                 description: "Enrollment in Grade 10 Section A"
- *             
  *             # Enrollment with batch information
  *             batch_enrollment:
  *               summary: Enrollment with batch information
@@ -856,7 +725,6 @@ router.get('/enrollments', getEnrollments);
  *                 academicYearId: "507f1f77bcf86cd799439021"
  *                 status: "active"
  *                 description: "Enrollment in 2024 batch"
- *             
  *             # Enrollment with multiple subjects
  *             subjects_enrollment:
  *               summary: Enrollment with multiple subjects
@@ -872,7 +740,6 @@ router.get('/enrollments', getEnrollments);
  *                 academicYearId: "507f1f77bcf86cd799439021"
  *                 status: "active"
  *                 description: "Enrollment with Mathematics, Physics, and Chemistry"
- *             
  *             # Inactive enrollment
  *             inactive_enrollment:
  *               summary: Inactive enrollment
@@ -884,7 +751,6 @@ router.get('/enrollments', getEnrollments);
  *                 academicYearId: "507f1f77bcf86cd799439021"
  *                 status: "inactive"
  *                 description: "Temporary inactive enrollment"
- *     
  *     responses:
  *       200:
  *         description: Enrollment created successfully
@@ -912,7 +778,6 @@ router.get('/enrollments', getEnrollments);
  *                     archive: false
  *                     createdAt: "2024-01-15T10:30:00.000Z"
  *                     updatedAt: "2024-01-15T10:30:00.000Z"
- *       
  *       400:
  *         description: Bad request - validation error or duplicate enrollment
  *         content:
@@ -928,7 +793,6 @@ router.get('/enrollments', getEnrollments);
  *                   error: "Duplicate enrollment"
  *                   details: "A member enrollment already exists for this combination"
  *                   suggestion: "Please check if this enrollment already exists or modify the combination"
- *               
  *               validation_error:
  *                 summary: Validation error
  *                 value:
@@ -938,25 +802,19 @@ router.get('/enrollments', getEnrollments);
  *                       message: "Institute ID is required"
  *                     - field: "memberId"
  *                       message: "Member ID is required"
- *       
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Unauthorized access"
+ *               $ref: '#/components/schemas/Error'
  *               status: "error"
- *       
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Failed to add enrollment"
+ *               $ref: '#/components/schemas/Error'
  *               details: "Database connection error"
  */
 
@@ -970,21 +828,18 @@ router.post('/enrollments', createEnrollment);
  *     summary: Update an existing enrollment
  *     description: |
  *       Update an existing enrollment with comprehensive validation and auto-population features.
- *       
  *       **Key Features:**
  *       - **Selective updates**: Only update the fields you specify in `updatedData`
  *       - **Auto-population**: `memberType` is automatically populated if `memberId` is updated
  *       - **Unique constraint validation**: Prevents duplicate enrollments after updates
  *       - **Flexible updates**: Update any combination of fields
  *       - **Change tracking**: Returns appropriate messages based on what was actually changed
- *       
  *       **Update Scenarios:**
  *       - **Status changes**: Change enrollment status (active, inactive, completed, dropped)
  *       - **Field updates**: Update description, subjects, sections, etc.
  *       - **Member changes**: Change member or member type
  *       - **Academic changes**: Update grade, section, batch information
  *       - **Bulk updates**: Update multiple fields at once
- *       
  *       **Response Scenarios:**
  *       - **Success with changes**: Returns success message when changes are made
  *       - **No changes**: Returns message when no actual changes were made
@@ -1008,7 +863,6 @@ router.post('/enrollments', createEnrollment);
  *                 updatedData:
  *                   status: "completed"
  *                   description: "Enrollment completed successfully"
- *             
  *             # Update multiple fields
  *             update_multiple_fields:
  *               summary: Update multiple enrollment fields
@@ -1021,7 +875,6 @@ router.post('/enrollments', createEnrollment);
  *                   subjectsIds:
  *                     - "507f1f77bcf86cd799439017"
  *                     - "507f1f77bcf86cd799439018"
- *             
  *             # Update member information
  *             update_member:
  *               summary: Update member information
@@ -1030,7 +883,6 @@ router.post('/enrollments', createEnrollment);
  *                 updatedData:
  *                   memberId: "507f1f77bcf86cd799439020"
  *                   description: "Member changed due to transfer"
- *             
  *             # Update academic information
  *             update_academic:
  *               summary: Update academic information
@@ -1041,7 +893,6 @@ router.post('/enrollments', createEnrollment);
  *                   gradeSectionId: "507f1f77bcf86cd799439026"
  *                   academicYearId: "507f1f77bcf86cd799439027"
  *                   description: "Grade promotion and section change"
- *             
  *             # Update subjects only
  *             update_subjects:
  *               summary: Update subjects for enrollment
@@ -1054,7 +905,6 @@ router.post('/enrollments', createEnrollment);
  *                     - "507f1f77bcf86cd799439019"
  *                     - "507f1f77bcf86cd799439020"
  *                   description: "Added additional subjects to enrollment"
- *             
  *             # Update batch information
  *             update_batch:
  *               summary: Update batch information
@@ -1064,7 +914,6 @@ router.post('/enrollments', createEnrollment);
  *                   gradeBatchId: "507f1f77bcf86cd799439030"
  *                   gradeSectionBatchId: "507f1f77bcf86cd799439031"
  *                   description: "Batch transfer completed"
- *             
  *             # Update description only
  *             update_description:
  *               summary: Update enrollment description
@@ -1072,7 +921,6 @@ router.post('/enrollments', createEnrollment);
  *                 _id: "507f1f77bcf86cd799439011"
  *                 updatedData:
  *                   description: "Updated enrollment notes and additional information"
- *     
  *     responses:
  *       200:
  *         description: Enrollment updated successfully
@@ -1085,12 +933,10 @@ router.post('/enrollments', createEnrollment);
  *                 summary: Success with actual changes made
  *                 value:
  *                   message: "Enrollment updated successfully"
- *               
  *               success_no_changes:
  *                 summary: Success but no changes were made
  *                 value:
  *                   message: "No updates were made"
- *       
  *       400:
  *         description: Bad request - validation error or duplicate enrollment
  *         content:
@@ -1106,7 +952,6 @@ router.post('/enrollments', createEnrollment);
  *                   error: "Duplicate enrollment"
  *                   details: "An enrollment already exists for this combination"
  *                   suggestion: "Please check if this enrollment already exists or modify the combination"
- *               
  *               validation_error:
  *                 summary: Validation error
  *                 value:
@@ -1116,35 +961,26 @@ router.post('/enrollments', createEnrollment);
  *                       message: "Enrollment ID is required"
  *                     - field: "updatedData"
  *                       message: "Updated data is required"
- *       
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Unauthorized access"
+ *               $ref: '#/components/schemas/Error'
  *               status: "error"
- *       
  *       404:
  *         description: Enrollment not found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "No matching enrollment found or values are unchanged"
+ *               $ref: '#/components/schemas/Error'
  *               status: "error"
- *       
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Failed to update enrollment"
+ *               $ref: '#/components/schemas/Error'
  *               details: "Database connection error"
  */
 
@@ -1158,7 +994,6 @@ router.put('/enrollments', updateEnrollment);
  *     summary: Delete enrollment(s) with comprehensive dependency handling
  *     description: |
  *       Delete one or more enrollments with advanced dependency management and archiving options.
- *       
  *       **Key Features:**
  *       - **Bulk deletion**: Delete multiple enrollments in a single request
  *       - **Dependency handling**: Manage dependent records with multiple strategies
@@ -1166,14 +1001,12 @@ router.put('/enrollments', updateEnrollment);
  *       - **Transfer option**: Transfer dependents to another enrollment
  *       - **Cascade deletion**: Delete dependents along with enrollments
  *       - **Conflict resolution**: Handle conflicts between archive and transfer options
- *       
  *       **Deletion Strategies:**
  *       1. **Simple deletion**: Delete enrollments with no dependents
  *       2. **Archive**: Archive enrollments instead of deleting (preserves data)
  *       3. **Transfer dependents**: Move dependents to another enrollment before deletion
  *       4. **Cascade deletion**: Delete enrollments and all their dependents
  *       5. **Dependency summary**: Get information about dependents before deciding
- *       
  *       **Response Scenarios:**
  *       - **Direct deletion**: When no dependents exist
  *       - **Dependency summary**: When dependents exist and no action specified
@@ -1198,7 +1031,6 @@ router.put('/enrollments', updateEnrollment);
  *                 ids:
  *                   - "507f1f77bcf86cd799439011"
  *                   - "507f1f77bcf86cd799439012"
- *             
  *             # Archive enrollments
  *             archive_enrollments:
  *               summary: Archive enrollments instead of deleting
@@ -1207,7 +1039,6 @@ router.put('/enrollments', updateEnrollment);
  *                   - "507f1f77bcf86cd799439011"
  *                   - "507f1f77bcf86cd799439012"
  *                 archive: true
- *             
  *             # Unarchive enrollments
  *             unarchive_enrollments:
  *               summary: Unarchive enrollments
@@ -1216,7 +1047,6 @@ router.put('/enrollments', updateEnrollment);
  *                   - "507f1f77bcf86cd799439011"
  *                   - "507f1f77bcf86cd799439012"
  *                 archive: false
- *             
  *             # Transfer dependents to another enrollment
  *             transfer_dependents:
  *               summary: Transfer dependents to another enrollment
@@ -1224,7 +1054,6 @@ router.put('/enrollments', updateEnrollment);
  *                 ids:
  *                   - "507f1f77bcf86cd799439011"
  *                 transferTo: "507f1f77bcf86cd799439013"
- *             
  *             # Delete with dependents
  *             cascade_deletion:
  *               summary: Delete enrollments and their dependents
@@ -1233,7 +1062,6 @@ router.put('/enrollments', updateEnrollment);
  *                   - "507f1f77bcf86cd799439011"
  *                   - "507f1f77bcf86cd799439012"
  *                 deleteDependents: true
- *             
  *             # Get dependency information
  *             dependency_check:
  *               summary: Check dependencies without deleting
@@ -1241,14 +1069,12 @@ router.put('/enrollments', updateEnrollment);
  *                 ids:
  *                   - "507f1f77bcf86cd799439011"
  *                   - "507f1f77bcf86cd799439012"
- *             
  *             # Single enrollment deletion
  *             single_deletion:
  *               summary: Delete a single enrollment
  *               value:
  *                 ids:
  *                   - "507f1f77bcf86cd799439011"
- *             
  *             # Bulk deletion with mixed scenarios
  *             bulk_deletion:
  *               summary: Bulk deletion of multiple enrollments
@@ -1259,7 +1085,6 @@ router.put('/enrollments', updateEnrollment);
  *                   - "507f1f77bcf86cd799439013"
  *                   - "507f1f77bcf86cd799439014"
  *                 deleteDependents: true
- *     
  *     responses:
  *       200:
  *         description: Deletion operation completed successfully
@@ -1278,7 +1103,6 @@ router.put('/enrollments', updateEnrollment);
  *                     - "507f1f77bcf86cd799439011"
  *                     - "507f1f77bcf86cd799439012"
  *                   dependencies: []
- *               
  *               # Archive success
  *               archive_success:
  *                 summary: Archive operation successful
@@ -1289,7 +1113,6 @@ router.put('/enrollments', updateEnrollment);
  *                     archivedIds:
  *                       - "507f1f77bcf86cd799439011"
  *                       - "507f1f77bcf86cd799439012"
- *               
  *               # Transfer success
  *               transfer_success:
  *                 summary: Transfer operation successful
@@ -1299,7 +1122,6 @@ router.put('/enrollments', updateEnrollment);
  *                     transferredCount: 5
  *                     transferredTo: "507f1f77bcf86cd799439013"
  *                   deletedCount: 1
- *               
  *               # Cascade deletion success
  *               cascade_success:
  *                 summary: Cascade deletion successful
@@ -1312,15 +1134,12 @@ router.put('/enrollments', updateEnrollment);
  *                     - enrollmentId: "507f1f77bcf86cd799439012"
  *                       deletedCount: 1
  *                       dependentsDeleted: 2
- *       
  *       201:
  *         description: Dependencies found - action required
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/EnrollmentDeleteResponse'
- *             example:
- *               message: "Dependency summary"
+ *               $ref: '#/components/schemas/EnrollmentDeleteResponse'
  *               deleted: []
  *               dependencies:
  *                 - _id: "507f1f77bcf86cd799439011"
@@ -1328,7 +1147,6 @@ router.put('/enrollments', updateEnrollment);
  *                   dependsOn:
  *                     "SomeModel": 3
  *                     "AnotherModel": 2
- *       
  *       400:
  *         description: Bad request - validation error or conflicting options
  *         content:
@@ -1340,37 +1158,29 @@ router.put('/enrollments', updateEnrollment);
  *                 summary: Missing enrollment IDs
  *                 value:
  *                   message: "Enrollment ID(s) required"
- *               
  *               conflicting_options:
  *                 summary: Conflicting options provided
  *                 value:
  *                   message: "Only one of archive or transfer can be requested at a time."
- *               
  *               invalid_archive:
  *                 summary: Invalid archive parameter
  *                 value:
  *                   message: "The archive parameter must be a boolean (true or false)."
- *               
  *               transfer_delete_conflict:
  *                 summary: Cannot transfer and delete dependents
  *                 value:
  *                   message: "Either transfer or delete dependencies"
- *               
  *               single_transfer_required:
  *                 summary: Single enrollment required for transfer
  *                 value:
  *                   message: "Please select one Enrollment to transfer dependents from."
- *       
  *       401:
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Unauthorized access"
+ *               $ref: '#/components/schemas/Error'
  *               status: "error"
- *       
  *       404:
  *         description: No matching enrollments found
  *         content:
@@ -1382,20 +1192,16 @@ router.put('/enrollments', updateEnrollment);
  *                 summary: No enrollments found to delete
  *                 value:
  *                   message: "No matching Enrollment found for deletion"
- *               
  *               not_found_archive:
  *                 summary: No enrollments found to archive
  *                 value:
  *                   message: "No matching Enrollment found to archive/unarchive"
- *       
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Error'
- *             example:
- *               message: "Server error"
+ *               $ref: '#/components/schemas/Error'
  *               error: "Database connection failed"
  */
 

@@ -9,6 +9,9 @@ const Tenant = require('../../Model/authentication/tenantMd');
  * @swagger
  * components:
  *   schemas:
+ *     # ============================================================================
+ *     # FILE UPLOAD SCHEMAS
+ *     # ============================================================================
  *     PresignRequest:
  *       type: object
  *       required:
@@ -19,21 +22,19 @@ const Tenant = require('../../Model/authentication/tenantMd');
  *         fileName:
  *           type: string
  *           description: Name of the file to upload
- *           example: "profile_image.jpg"
+
  *         mimeType:
  *           type: string
  *           description: MIME type of the file
- *           example: "image/jpeg"
+
  *         purpose:
  *           type: string
  *           enum: [profile, document, assignment, syllabus, other]
  *           description: Purpose of the file upload
- *           example: "profile"
+
  *         folder:
  *           type: string
  *           description: Optional folder path in S3
- *           example: "users/profiles"
- *     
  *     PresignResponse:
  *       type: object
  *       properties:
@@ -41,20 +42,18 @@ const Tenant = require('../../Model/authentication/tenantMd');
  *           type: string
  *           format: uri
  *           description: Presigned URL for file upload
- *           example: "https://s3.amazonaws.com/bucket/folder/file.jpg?AWSAccessKeyId=..."
+
  *         key:
  *           type: string
  *           description: S3 object key
- *           example: "users/profiles/profile_image.jpg"
+
  *         message:
  *           type: string
  *           description: Success message
- *           example: "success"
+
  *         expiresIn:
  *           type: integer
  *           description: URL expiration time in seconds
- *           example: 3600
- *     
  *     FileUploadInfo:
  *       type: object
  *       properties:
@@ -73,7 +72,6 @@ const Tenant = require('../../Model/authentication/tenantMd');
  *         folder:
  *           type: string
  *           description: S3 folder path
- *     
  *     SuccessResponse:
  *       type: object
  *       properties:
@@ -83,7 +81,6 @@ const Tenant = require('../../Model/authentication/tenantMd');
  *         data:
  *           type: object
  *           description: Response data
- *     
  *     ErrorResponse:
  *       type: object
  *       properties:
@@ -200,8 +197,7 @@ router.use(flexibleAuthMiddleware);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/PresignRequest'
- *           example:
- *             fileName: "profile_image.jpg"
+
  *             mimeType: "image/jpeg"
  *             purpose: "profile"
  *             folder: "users/profiles"
@@ -212,8 +208,7 @@ router.use(flexibleAuthMiddleware);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/PresignResponse'
- *             example:
- *               url: "https://s3.amazonaws.com/bucket/users/profiles/profile_image.jpg?AWSAccessKeyId=..."
+
  *               key: "users/profiles/profile_image.jpg"
  *               message: "success"
  *               expiresIn: 3600
@@ -228,8 +223,7 @@ router.use(flexibleAuthMiddleware);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               error: "Validation Error"
+
  *               message: "fileName, mimeType, and purpose are required"
  *       401:
  *         description: Unauthorized - authentication required
@@ -259,8 +253,7 @@ router.use(flexibleAuthMiddleware);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               error: "Tenant not found"
+
  *               message: "No configuration found for institute code 'ABC001'"
  *       500:
  *         description: Internal server error

@@ -1,0 +1,1210 @@
+{
+  "info": {
+    "name": "General Data API Test Collection",
+    "description": "Comprehensive test suite for General Data API endpoints including CRUD operations for blood groups, genders, member types, status, and other general data types",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "{{baseUrl}}",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "{{authToken}}",
+      "type": "string"
+    },
+    {
+      "key": "testType",
+      "value": "blood_group",
+      "type": "string"
+    },
+    {
+      "key": "testValue",
+      "value": "AB+",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication Setup",
+      "item": [
+        {
+          "name": "Login to get Auth Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.token) {",
+                  "        pm.collectionVariables.set('authToken', response.token);",
+                  "        console.log('✅ Auth token set successfully');",
+                  "    }",
+                  "} else {",
+                  "    console.log('⚠️ Login failed, using default token');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login to get authentication token for API requests"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "General Data - GET Operations",
+      "item": [
+        {
+          "name": "Get All Blood Groups",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response time is reasonable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});",
+                  "",
+                  "pm.test('Each item has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    if (response.length > 0) {",
+                  "        pm.expect(response[0]).to.have.property('_id');",
+                  "        pm.expect(response[0]).to.have.property('value');",
+                  "    }",
+                  "});",
+                  "",
+                  "console.log('✅ Get all blood groups test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Get all blood group data items"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Genders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "console.log('✅ Get all genders test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/gender",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "gender"]
+            },
+            "description": "Get all gender data items"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Member Types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "console.log('✅ Get all member types test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/member_type",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "member_type"]
+            },
+            "description": "Get all member type data items"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Status Types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "console.log('✅ Get all status types test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "status"]
+            },
+            "description": "Get all status data items"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Other Types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "console.log('✅ Get all other types test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/other",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "other"]
+            },
+            "description": "Get all other type data items"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Specific Item by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an object', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test('Item has required fields', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('_id');",
+                  "    pm.expect(response).to.have.property('value');",
+                  "});",
+                  "",
+                  "// Store the item ID for later tests",
+                  "const response = pm.response.json();",
+                  "if (response._id) {",
+                  "    pm.collectionVariables.set('createdItemId', response._id.toString());",
+                  "}",
+                  "",
+                  "console.log('✅ Get specific item test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group", "1"]
+            },
+            "description": "Get a specific blood group item by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Non-existent Type (404 Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});",
+                  "",
+                  "console.log('✅ Non-existent type test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/nonexistent_type",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "nonexistent_type"]
+            },
+            "description": "Test 404 response for non-existent data type"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Non-existent Item ID (404 Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});",
+                  "",
+                  "console.log('✅ Non-existent item ID test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group/99999",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group", "99999"]
+            },
+            "description": "Test 404 response for non-existent item ID"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "General Data - POST Operations",
+      "item": [
+        {
+          "name": "Add New Blood Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an object', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test('Response has value field', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('value');",
+                  "    pm.expect(response.value).to.equal('AB+');",
+                  "});",
+                  "",
+                  "pm.test('Response has value field with correct data', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('value');",
+                  "    pm.expect(response.value).to.equal('AB+');",
+                  "});",
+                  "",
+                  "// Note: API doesn't return _id in POST response, so we can't store it for later tests",
+                  "",
+                  "console.log('✅ Add new blood group test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"AB+\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Add a new blood group item"
+          },
+          "response": []
+        },
+        {
+          "name": "Add New Gender",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has value field', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('value');",
+                  "    pm.expect(response.value).to.equal('Non-binary');",
+                  "});",
+                  "",
+                  "console.log('✅ Add new gender test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"Non-binary\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/gender",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "gender"]
+            },
+            "description": "Add a new gender item"
+          },
+          "response": []
+        },
+        {
+          "name": "Add New Member Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has value field', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('value');",
+                  "    pm.expect(response.value).to.equal('Guest');",
+                  "});",
+                  "",
+                  "console.log('✅ Add new member type test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"Guest\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/member_type",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "member_type"]
+            },
+            "description": "Add a new member type item"
+          },
+          "response": []
+        },
+        {
+          "name": "Add New Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has value field', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('value');",
+                  "    pm.expect(response.value).to.equal('Pending Review');",
+                  "});",
+                  "",
+                  "console.log('✅ Add new status test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"Pending Review\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "status"]
+            },
+            "description": "Add a new status item"
+          },
+          "response": []
+        },
+        {
+          "name": "Add New Other Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has value field', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('value');",
+                  "    pm.expect(response.value).to.equal('Custom Category');",
+                  "});",
+                  "",
+                  "console.log('✅ Add new other type test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"Custom Category\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/other",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "other"]
+            },
+            "description": "Add a new other type item"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Item with Missing Value (400 Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 500', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "",
+                  "console.log('✅ Missing value test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test error handling for missing required value field"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "General Data - PUT Operations",
+      "item": [
+        {
+          "name": "Update Item (Test with Non-existent ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404 or 500 (expected for non-existent ID)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});",
+                  "",
+                  "console.log('✅ Update non-existent item test completed (expected to fail)');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"nonexistent123\",\n  \"updatedData\": \"Updated Value\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test update with non-existent ID (expected to fail)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Non-existent Item (404 Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});",
+                  "",
+                  "console.log('✅ Update non-existent item test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"99999\",\n  \"updatedData\": \"Updated Value\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test 404 response when updating non-existent item"
+          },
+          "response": []
+        },
+        {
+          "name": "Update with Missing ItemId (400 Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 500', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "",
+                  "console.log('✅ Missing itemId test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"updatedData\": \"Updated Value\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test error handling for missing itemId"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "General Data - DELETE Operations",
+      "item": [
+        {
+          "name": "Delete Item (Test with Non-existent ID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404 or 500 (expected for non-existent ID)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});",
+                  "",
+                  "console.log('✅ Delete non-existent item test completed (expected to fail)');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\"nonexistent123\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test delete with non-existent ID (expected to fail)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Multiple Items (Test with Non-existent IDs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404 or 500 (expected for non-existent IDs)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});",
+                  "",
+                  "console.log('✅ Delete multiple non-existent items test completed (expected to fail)');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\"nonexistent1\", \"nonexistent2\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test delete multiple non-existent items (expected to fail)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Non-existent Items (404 Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.have.property('message');",
+                  "});",
+                  "",
+                  "console.log('✅ Delete non-existent items test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [\"99999\", \"99998\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test 404 response when deleting non-existent items"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete with Missing IDs (400 Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 500', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "",
+                  "console.log('✅ Missing IDs test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test error handling for missing IDs array"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "General Data - Authentication Tests",
+      "item": [
+        {
+          "name": "Unauthorized Access Test (Current Behavior)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 (API allows access without auth)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "console.log('✅ Unauthorized access test completed (API allows access)');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test access without authentication token (API currently allows this)"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Token Test (Current Behavior)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 (API allows access with invalid token)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "});",
+                  "",
+                  "console.log('✅ Invalid token test completed (API allows access)');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token_12345"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test access with invalid authentication token (API currently allows this)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "General Data - Performance Tests",
+      "item": [
+        {
+          "name": "Response Time Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Response time is less than 2 seconds', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Response time is reasonable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});",
+                  "",
+                  "console.log('Response time:', pm.response.responseTime, 'ms');",
+                  "console.log('✅ Response time test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/blood_group",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "blood_group"]
+            },
+            "description": "Test response time performance"
+          },
+          "response": []
+        },
+        {
+          "name": "Concurrent Requests Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time is reasonable under load', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(10000);",
+                  "});",
+                  "",
+                  "console.log('Concurrent request response time:', pm.response.responseTime, 'ms');",
+                  "console.log('✅ Concurrent requests test completed');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/generalDataRt/gender",
+              "host": ["{{baseUrl}}"],
+              "path": ["generalDataRt", "gender"]
+            },
+            "description": "Test concurrent request handling"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

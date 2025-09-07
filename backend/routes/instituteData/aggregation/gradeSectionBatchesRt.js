@@ -18,48 +18,37 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *       properties:
  *         _id:
  *           type: string
- *           description: Unique identifier for the grade section batch
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Unique identifier for the grade section batch
  *         sectionBatchName:
  *           type: string
- *           description: Grade section batch name (must be unique within the section)
- *           example: "Section A 2023-24"
+ *           description: Grade section batch name (must be unique within the section)
  *         instituteId:
  *           type: string
- *           description: Associated institute ID
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Associated institute ID
  *         departmentId:
  *           type: string
- *           description: Associated department ID
- *           example: "507f1f77bcf86cd799439012"
+ *           description: Associated department ID
  *         gradeId:
  *           type: string
- *           description: Associated grade ID
- *           example: "507f1f77bcf86cd799439013"
+ *           description: Associated grade ID
  *         sectionId:
  *           type: string
- *           description: Associated grade section ID
- *           example: "507f1f77bcf86cd799439014"
+ *           description: Associated grade section ID
  *         description:
  *           type: string
- *           description: Grade section batch description
- *           example: "Grade 10 Section A Batch for Academic Year 2023-24"
+ *           description: Grade section batch description
  *         archive:
  *           type: boolean
  *           default: false
- *           description: Archive status
- *           example: false
+ *           description: Archive status
  *         createdAt:
  *           type: string
  *           format: date-time
- *           description: Creation timestamp
- *           example: "2023-06-01T10:30:00.000Z"
+ *           description: Creation timestamp
  *         updatedAt:
  *           type: string
  *           format: date-time
- *           description: Last update timestamp
- *           example: "2023-06-01T10:30:00.000Z"
- *     
+ *           description: Last update timestamp
  *     GradeSectionBatchWithLookups:
  *       type: object
  *       allOf:
@@ -68,25 +57,19 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *           properties:
  *             instituteName:
  *               type: string
- *               description: Name of the associated institute
- *               example: "ABC School"
+ *               description: Name of the associated institute
  *             departmentName:
  *               type: string
- *               description: Name of the associated department
- *               example: "Science Department"
+ *               description: Name of the associated department
  *             gradeName:
  *               type: string
- *               description: Name of the associated grade
- *               example: "Grade 10"
+ *               description: Name of the associated grade
  *             gradeCode:
  *               type: string
- *               description: Code of the associated grade
- *               example: "G10"
+ *               description: Code of the associated grade
  *             sectionName:
  *               type: string
- *               description: Name of the associated section
- *               example: "Section A"
- *     
+ *               description: Name of the associated section
  *     GradeSectionBatchCreateRequest:
  *       type: object
  *       required:
@@ -98,29 +81,22 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *       properties:
  *         sectionBatchName:
  *           type: string
- *           description: Grade section batch name (must be unique within the section)
- *           example: "Section A 2023-24"
+ *           description: Grade section batch name (must be unique within the section)
  *         instituteId:
  *           type: string
- *           description: Associated institute ID
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Associated institute ID
  *         departmentId:
  *           type: string
- *           description: Associated department ID
- *           example: "507f1f77bcf86cd799439012"
+ *           description: Associated department ID
  *         gradeId:
  *           type: string
- *           description: Associated grade ID
- *           example: "507f1f77bcf86cd799439013"
+ *           description: Associated grade ID
  *         sectionId:
  *           type: string
- *           description: Associated grade section ID
- *           example: "507f1f77bcf86cd799439014"
+ *           description: Associated grade section ID
  *         description:
  *           type: string
- *           description: Grade section batch description
- *           example: "Grade 10 Section A Batch for Academic Year 2023-24"
- *     
+ *           description: Grade section batch description
  *     GradeSectionBatchUpdateRequest:
  *       type: object
  *       required:
@@ -129,24 +105,19 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *       properties:
  *         _id:
  *           type: string
- *           description: Grade section batch ID to update
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Grade section batch ID to update
  *         updatedData:
  *           type: object
  *           properties:
  *             sectionBatchName:
  *               type: string
- *               description: Updated section batch name
- *               example: "Section A 2023-24 Updated"
+ *               description: Updated section batch name
  *             description:
  *               type: string
- *               description: Updated description
- *               example: "Updated description for the batch"
+ *               description: Updated description
  *             archive:
  *               type: boolean
- *               description: Archive status
- *               example: false
- *     
+ *               description: Archive status
  *     GradeSectionBatchDeleteRequest:
  *       type: object
  *       required:
@@ -156,41 +127,32 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *           type: array
  *           items:
  *             type: string
- *           description: Array of grade section batch IDs to delete
- *           example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *           description: Array of grade section batch IDs to delete
  *         deleteDependents:
  *           type: boolean
- *           description: Whether to delete dependent records
- *           example: false
+ *           description: Whether to delete dependent records
  *         transferTo:
  *           type: string
- *           description: ID to transfer dependents to (only when deleting single record)
- *           example: "507f1f77bcf86cd799439013"
+ *           description: ID to transfer dependents to (only when deleting single record)
  *         archive:
  *           type: boolean
- *           description: Whether to archive instead of delete
- *           example: false
- *     
+ *           description: Whether to archive instead of delete
  *     GradeSectionBatchListResponse:
  *       type: object
  *       properties:
  *         count:
  *           type: integer
- *           description: Number of items in current page
- *           example: 10
+ *           description: Number of items in current page
  *         filteredDocs:
  *           type: integer
- *           description: Total number of documents matching filters
- *           example: 25
+ *           description: Total number of documents matching filters
  *         totalDocs:
  *           type: integer
- *           description: Total number of documents in collection
- *           example: 100
+ *           description: Total number of documents in collection
  *         data:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/GradeSectionBatchWithLookups'
- *     
  *     GradeSectionBatchDropdownResponse:
  *       type: object
  *       properties:
@@ -200,152 +162,115 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *             type: object
  *             properties:
  *               _id:
- *                 type: string
- *                 example: "507f1f77bcf86cd799439011"
+ *                 type: string
  *               sectionBatchName:
- *                 type: string
- *                 example: "Section A 2023-24"
- *     
+ *                 type: string
  *     GradeSectionBatchCreateResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Grade Section Batch added successfully!"
+ *           type: string
  *         data:
  *           $ref: '#/components/schemas/GradeSectionBatch'
- *     
  *     GradeSectionBatchUpdateResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Grade Section Batch updated successfully"
- *     
+ *           type: string
  *     GradeSectionBatchDeleteResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Grade Section Batch(s) deleted successfully"
+ *           type: string
  *         deletedCount:
- *           type: integer
- *           example: 2
- *     
+ *           type: integer
  *     GradeSectionBatchArchiveResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Grade Section Batch(s) archived successfully"
+ *           type: string
  *         archiveResult:
  *           type: object
  *           properties:
  *             archivedCount:
- *               type: integer
- *               example: 2
- *     
+ *               type: integer
  *     GradeSectionBatchDependencyResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Dependency summary"
+ *           type: string
  *         deleted:
  *           type: array
  *           items:
- *             type: string
- *           example: ["507f1f77bcf86cd799439011"]
+ *             type: string
  *         dependencies:
  *           type: array
  *           items:
  *             type: object
  *             properties:
  *               _id:
- *                 type: string
- *                 example: "507f1f77bcf86cd799439012"
+ *                 type: string
  *               value:
- *                 type: string
- *                 example: "Section B 2023-24"
+ *                 type: string
  *               dependsOn:
  *                 type: object
  *                 properties:
  *                   MembersData:
- *                     type: integer
- *                     example: 5
- *     
+ *                     type: integer
  *     GradeSectionBatchTransferResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Dependents transferred and Grade Section Batch(s) deleted"
+ *           type: string
  *         transfer:
  *           type: object
  *           description: Transfer operation details
  *         deletedCount:
- *           type: integer
- *           example: 1
- *     
+ *           type: integer
  *     GradeSectionBatchDeleteWithDependentsResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Deleted with dependents"
+ *           type: string
  *         results:
  *           type: array
  *           items:
  *             type: object
  *             properties:
  *               gradeSectionBatchId:
- *                 type: string
- *                 example: "507f1f77bcf86cd799439011"
+ *                 type: string
  *               deletedCount:
- *                 type: integer
- *                 example: 1
+ *                 type: integer
  *               dependentsDeleted:
  *                 type: object
  *                 properties:
  *                   MembersData:
- *                     type: integer
- *                     example: 5
- *     
+ *                     type: integer
  *     DuplicateErrorResponse:
  *       type: object
  *       properties:
  *         error:
- *           type: string
- *           example: "Duplicate value"
+ *           type: string
  *         details:
- *           type: string
- *           example: "Section batch name 'Section A 2023-24' already exists in this section"
+ *           type: string
  *         field:
- *           type: string
- *           example: "sectionBatchName"
+ *           type: string
  *         value:
- *           type: string
- *           example: "Section A 2023-24"
+ *           type: string
  *         suggestion:
- *           type: string
- *           example: "Section batch names must be unique within each section"
- *     
+ *           type: string
  *     ValidationErrorResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Grade Section Batch ID(s) required"
- *     
+ *           type: string
  *     ServerErrorResponse:
  *       type: object
  *       properties:
  *         message:
- *           type: string
- *           example: "Server error"
+ *           type: string
  *         error:
- *           type: string
- *           example: "Database connection failed"
+ *           type: string
  */
 
 /**
@@ -363,21 +288,18 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *     tags: [Grade Section Batches]
  *     description: |
  *       Get all grade section batches within an institute with comprehensive filtering, pagination, and aggregation options.
- *       
  *       **Key Features:**
  *       - Pagination support with page and limit parameters
  *       - Multiple filtering options (institute, department, grade, section)
  *       - Dropdown mode for simple ID/name pairs
  *       - Aggregation with lookup data (institute, department, grade, section names)
  *       - Support for specific ID filtering with aggregation control
- *       
  *       **Parameter Combinations:**
  *       - **Basic List**: No parameters - returns all records with pagination
  *       - **Filtered List**: Use instituteId, departmentId, gradeId, sectionId for filtering
  *       - **Dropdown Mode**: Set dropdown=true for simple ID/name pairs
  *       - **Specific Records**: Use ids array to get specific records
  *       - **Aggregation Control**: Use aggregate=false to disable lookups for specific IDs
- *       
  *       **Response Types:**
  *       - Standard list with full aggregation data
  *       - Dropdown format with minimal data
@@ -391,8 +313,7 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *           type: integer
  *           default: 1
  *           minimum: 1
- *         description: Page number for pagination (starts from 1)
- *         example: 1
+ *         description: Page number for pagination (starts from 1)
  *       - in: query
  *         name: limit
  *         schema:
@@ -400,36 +321,31 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *           default: 10
  *           minimum: 1
  *           maximum: 100
- *         description: Number of items per page (max 100)
- *         example: 10
+ *         description: Number of items per page (max 100)
  *       - in: query
  *         name: instituteId
  *         schema:
  *           type: string
  *           pattern: '^[0-9a-fA-F]{24}$'
- *         description: Filter by specific institute ID (MongoDB ObjectId)
- *         example: "507f1f77bcf86cd799439011"
+ *         description: Filter by specific institute ID (MongoDB ObjectId)
  *       - in: query
  *         name: departmentId
  *         schema:
  *           type: string
  *           pattern: '^[0-9a-fA-F]{24}$'
- *         description: Filter by specific department ID (MongoDB ObjectId)
- *         example: "507f1f77bcf86cd799439012"
+ *         description: Filter by specific department ID (MongoDB ObjectId)
  *       - in: query
  *         name: gradeId
  *         schema:
  *           type: string
  *           pattern: '^[0-9a-fA-F]{24}$'
- *         description: Filter by specific grade ID (MongoDB ObjectId)
- *         example: "507f1f77bcf86cd799439013"
+ *         description: Filter by specific grade ID (MongoDB ObjectId)
  *       - in: query
  *         name: sectionId
  *         schema:
  *           type: string
  *           pattern: '^[0-9a-fA-F]{24}$'
- *         description: Filter by specific grade section ID (MongoDB ObjectId)
- *         example: "507f1f77bcf86cd799439014"
+ *         description: Filter by specific grade section ID (MongoDB ObjectId)
  *       - in: query
  *         name: ids
  *         schema:
@@ -439,8 +355,7 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *             pattern: '^[0-9a-fA-F]{24}$'
  *         style: form
  *         explode: false
- *         description: Array of specific grade section batch IDs to retrieve
- *         example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *         description: Array of specific grade section batch IDs to retrieve
  *       - in: query
  *         name: aggregate
  *         schema:
@@ -449,8 +364,7 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *           default: true
  *         description: |
  *           Whether to include aggregation with lookup data (institute, department, grade, section names).
- *           Set to 'false' for faster response when only basic data is needed.
- *         example: true
+ *           Set to 'false' for faster response when only basic data is needed.
  *       - in: query
  *         name: dropdown
  *         schema:
@@ -459,8 +373,53 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *           default: false
  *         description: |
  *           Return simplified dropdown format with only _id and sectionBatchName.
- *           Ignores pagination and aggregation when true.
- *         example: false
+ *           Ignores pagination and aggregation when true.
+ *       - in: query
+ *         name: sortField
+ *         schema:
+ *           type: string
+ *         description: Field to sort by (e.g., sectionBatchName, createdAt, updatedAt)
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: asc
+ *         description: Sort order (asc or desc)
+ *       - in: query
+ *         name: filterField
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: false
+ *         description: Field(s) to filter by (e.g., sectionBatchName, description)
+ *       - in: query
+ *         name: operator
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [equals, contains, startsWith, endsWith, gt, gte, lt, lte, in, nin, exists, regex]
+ *         style: form
+ *         explode: false
+ *         description: Filter operator(s) corresponding to filterField(s)
+ *       - in: query
+ *         name: value
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         style: form
+ *         explode: false
+ *         description: Filter value(s) corresponding to filterField(s)
+ *       - in: query
+ *         name: validate
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Validate filter fields against schema
  *     responses:
  *       200:
  *         description: Grade section batches retrieved successfully
@@ -533,25 +492,19 @@ const gradeSectionBatchesCt = require('../../../Controller/instituteData/aggrega
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ValidationErrorResponse'
- *             example:
- *               message: "Invalid ObjectId format"
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       401:
  *         description: Unauthorized - invalid or missing authentication token
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ValidationErrorResponse'
- *             example:
- *               message: "Unauthorized access"
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ServerErrorResponse'
- *             example:
- *               message: "Server error"
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  *               error: "Database connection failed"
  */
 
@@ -565,13 +518,11 @@ router.get('/gradeSectionBatchesInInstitute',gradeSectionBatchesCt.gradeSectionB
  *     tags: [Grade Section Batches]
  *     description: |
  *       Create a new grade section batch within an institute. The section batch name must be unique within the same section.
- *       
  *       **Validation Rules:**
  *       - All required fields must be provided
  *       - sectionBatchName must be unique within the same section and institute
  *       - All ID fields must be valid MongoDB ObjectIds
  *       - The referenced institute, department, grade, and section must exist
- *       
  *       **Business Logic:**
  *       - Creates a new grade section batch with the provided information
  *       - Automatically sets archive to false and timestamps
@@ -670,17 +621,13 @@ router.get('/gradeSectionBatchesInInstitute',gradeSectionBatchesCt.gradeSectionB
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ValidationErrorResponse'
- *             example:
- *               message: "Unauthorized access"
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ServerErrorResponse'
- *             example:
- *               message: "Failed to add grade section batch"
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  *               error: "Database connection failed"
  */
 
@@ -694,14 +641,12 @@ router.post('/gradeSectionBatchesInInstitute',gradeSectionBatchesCt.createGradeS
  *     tags: [Grade Section Batches]
  *     description: |
  *       Update existing grade section batch information within an institute. Only the fields provided in updatedData will be updated.
- *       
  *       **Update Rules:**
  *       - The _id field is required to identify the record to update
  *       - Only fields provided in updatedData will be modified
  *       - sectionBatchName must remain unique within the same section if updated
  *       - Archive status can be toggled
  *       - Timestamps are automatically updated
- *       
  *       **Business Logic:**
  *       - Validates the existence of the grade section batch
  *       - Checks uniqueness constraints for updated fields
@@ -798,25 +743,19 @@ router.post('/gradeSectionBatchesInInstitute',gradeSectionBatchesCt.createGradeS
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ValidationErrorResponse'
- *             example:
- *               message: "Unauthorized access"
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       404:
  *         description: Grade section batch not found or no changes made
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ValidationErrorResponse'
- *             example:
- *               message: "No matching grade section batch found or values are unchanged"
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ServerErrorResponse'
- *             example:
- *               message: "Failed to update grade section batch"
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  *               error: "Database connection failed"
  */
 
@@ -830,20 +769,17 @@ router.put('/gradeSectionBatchesInInstitute',gradeSectionBatchesCt.updateGradeSe
  *     tags: [Grade Section Batches]
  *     description: |
  *       Delete grade section batch(es) from an institute with comprehensive dependency handling options.
- *       
  *       **Deletion Options:**
  *       - **Simple Delete**: Delete records with no dependencies
  *       - **Archive**: Archive records instead of deleting (set archive=true)
  *       - **Transfer Dependencies**: Transfer dependent records to another grade section batch
  *       - **Delete with Dependencies**: Delete records and all their dependent records
  *       - **Dependency Check**: Get dependency summary without deleting
- *       
  *       **Dependency Handling:**
  *       - Grade section batches may have dependent records (e.g., MembersData)
  *       - The system checks for dependencies before deletion
  *       - You can choose how to handle dependent records
  *       - Transfer is only available for single record deletion
- *       
  *       **Business Rules:**
  *       - Only one of archive, transferTo, or deleteDependents can be specified
  *       - Archive and transferTo are mutually exclusive
@@ -940,9 +876,7 @@ router.put('/gradeSectionBatchesInInstitute',gradeSectionBatchesCt.updateGradeSe
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/GradeSectionBatchDependencyResponse'
- *             example:
- *               message: "Dependency summary"
+ *               $ref: '#/components/schemas/GradeSectionBatchDependencyResponse'
  *               deleted: ["507f1f77bcf86cd799439011"]
  *               dependencies:
  *                 - _id: "507f1f77bcf86cd799439012"
@@ -986,25 +920,19 @@ router.put('/gradeSectionBatchesInInstitute',gradeSectionBatchesCt.updateGradeSe
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ValidationErrorResponse'
- *             example:
- *               message: "Unauthorized access"
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       404:
  *         description: Grade section batch not found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ValidationErrorResponse'
- *             example:
- *               message: "No matching Grade Section Batch found to archive/unarchive"
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ServerErrorResponse'
- *             example:
- *               message: "Server error"
+ *               $ref: '#/components/schemas/ServerErrorResponse'
  *               error: "Database connection failed"
  */
 

@@ -18,37 +18,29 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *       properties:
  *         _id:
  *           type: string
- *           description: Unique grade identifier
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Unique grade identifier
  *         gradeName:
  *           type: string
- *           description: Grade name (e.g., Grade 1, Grade 2, Class 10)
- *           example: "Grade 10"
+ *           description: Grade name (e.g., Grade 1, Grade 2, Class 10)
  *         gradeCode:
  *           type: string
- *           description: Unique grade code within institute
- *           example: "G10"
+ *           description: Unique grade code within institute
  *         instituteId:
  *           type: string
- *           description: Associated institute ID
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Associated institute ID
  *         departmentId:
  *           type: string
- *           description: Associated department ID
- *           example: "507f1f77bcf86cd799439012"
+ *           description: Associated department ID
  *         description:
  *           type: string
- *           description: Grade description
- *           example: "Tenth grade - Senior Secondary"
+ *           description: Grade description
  *         gradeDurationId:
  *           type: string
- *           description: Grade duration ID
- *           example: "507f1f77bcf86cd799439013"
+ *           description: Grade duration ID
  *         archive:
  *           type: boolean
  *           default: false
- *           description: Archive status
- *           example: false
+ *           description: Archive status
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -57,7 +49,6 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *           type: string
  *           format: date-time
  *           description: Last update timestamp
- *     
  *     GradeWithLookups:
  *       allOf:
  *         - $ref: '#/components/schemas/Grade'
@@ -65,33 +56,25 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *           properties:
  *             instituteName:
  *               type: string
- *               description: Institute name from lookup
- *               example: "ABC School"
+ *               description: Institute name from lookup
  *             departmentName:
  *               type: string
- *               description: Department name from lookup
- *               example: "Science Department"
+ *               description: Department name from lookup
  *             gradeDurationValue:
  *               type: string
- *               description: Grade duration value from lookup
- *               example: "1 Year"
- *     
+ *               description: Grade duration value from lookup
  *     GradeDropdown:
  *       type: object
  *       properties:
  *         _id:
  *           type: string
- *           description: Grade ID
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Grade ID
  *         gradeName:
  *           type: string
- *           description: Grade name
- *           example: "Grade 10"
+ *           description: Grade name
  *         gradeCode:
  *           type: string
- *           description: Grade code
- *           example: "G10"
- *     
+ *           description: Grade code
  *     GradeCreateRequest:
  *       type: object
  *       required:
@@ -103,29 +86,22 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *       properties:
  *         gradeName:
  *           type: string
- *           description: Grade name
- *           example: "Grade 10"
+ *           description: Grade name
  *         gradeCode:
  *           type: string
- *           description: Unique grade code
- *           example: "G10"
+ *           description: Unique grade code
  *         instituteId:
  *           type: string
- *           description: Institute ID
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Institute ID
  *         departmentId:
  *           type: string
- *           description: Department ID
- *           example: "507f1f77bcf86cd799439012"
+ *           description: Department ID
  *         description:
  *           type: string
- *           description: Grade description
- *           example: "Tenth grade - Senior Secondary"
+ *           description: Grade description
  *         gradeDurationId:
  *           type: string
- *           description: Grade duration ID
- *           example: "507f1f77bcf86cd799439013"
- *     
+ *           description: Grade duration ID
  *     GradeUpdateRequest:
  *       type: object
  *       required:
@@ -134,28 +110,22 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *       properties:
  *         _id:
  *           type: string
- *           description: Grade ID to update
- *           example: "507f1f77bcf86cd799439011"
+ *           description: Grade ID to update
  *         updatedData:
  *           type: object
  *           properties:
  *             gradeName:
  *               type: string
- *               description: Updated grade name
- *               example: "Grade 10 Updated"
+ *               description: Updated grade name
  *             gradeCode:
  *               type: string
- *               description: Updated grade code
- *               example: "G10U"
+ *               description: Updated grade code
  *             description:
  *               type: string
- *               description: Updated description
- *               example: "Updated tenth grade description"
+ *               description: Updated description
  *             gradeDurationId:
  *               type: string
- *               description: Updated grade duration ID
- *               example: "507f1f77bcf86cd799439014"
- *     
+ *               description: Updated grade duration ID
  *     GradeDeleteRequest:
  *       type: object
  *       required:
@@ -165,41 +135,32 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *           type: array
  *           items:
  *             type: string
- *           description: Array of grade IDs to delete
- *           example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *           description: Array of grade IDs to delete
  *         deleteDependents:
  *           type: boolean
- *           description: Whether to delete dependent records
- *           example: false
+ *           description: Whether to delete dependent records
  *         transferTo:
  *           type: string
- *           description: Grade ID to transfer dependents to (only when deleting single grade)
- *           example: "507f1f77bcf86cd799439013"
+ *           description: Grade ID to transfer dependents to (only when deleting single grade)
  *         archive:
  *           type: boolean
- *           description: Archive/unarchive grades instead of deleting
- *           example: false
- *     
+ *           description: Archive/unarchive grades instead of deleting
  *     GradeListResponse:
  *       type: object
  *       properties:
  *         count:
  *           type: integer
- *           description: Number of items in current page
- *           example: 10
+ *           description: Number of items in current page
  *         filteredDocs:
  *           type: integer
- *           description: Total filtered documents
- *           example: 25
+ *           description: Total filtered documents
  *         totalDocs:
  *           type: integer
- *           description: Total documents in collection
- *           example: 100
+ *           description: Total documents in collection
  *         data:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/GradeWithLookups'
- *     
  *     GradeDropdownResponse:
  *       type: object
  *       properties:
@@ -207,32 +168,26 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/GradeDropdown'
- *     
  *     GradeCreateResponse:
  *       type: object
  *       properties:
  *         message:
  *           type: string
- *           description: Success message
- *           example: "Grade added successfully!"
+ *           description: Success message
  *         data:
  *           $ref: '#/components/schemas/Grade'
- *     
  *     GradeUpdateResponse:
  *       type: object
  *       properties:
  *         message:
  *           type: string
- *           description: Success message
- *           example: "Grade updated successfully"
- *     
+ *           description: Success message
  *     GradeDeleteResponse:
  *       type: object
  *       properties:
  *         message:
  *           type: string
- *           description: Success message
- *           example: "Grade(s) deleted successfully"
+ *           description: Success message
  *         deleted:
  *           type: array
  *           items:
@@ -253,38 +208,30 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *                 type: string
  *               dependsOn:
  *                 type: object
- *     
  *     GradeArchiveResponse:
  *       type: object
  *       properties:
  *         message:
  *           type: string
- *           description: Success message
- *           example: "Grade(s) archived successfully"
+ *           description: Success message
  *         archiveResult:
  *           type: object
  *           properties:
  *             archivedCount:
  *               type: integer
- *     
  *     DuplicateErrorResponse:
  *       type: object
  *       properties:
  *         error:
- *           type: string
- *           example: "Duplicate value"
+ *           type: string
  *         details:
- *           type: string
- *           example: "Grade name 'Grade 10' already exists in this institute"
+ *           type: string
  *         field:
- *           type: string
- *           example: "gradeName"
+ *           type: string
  *         value:
- *           type: string
- *           example: "Grade 10"
+ *           type: string
  *         suggestion:
- *           type: string
- *           example: "Grade name must be unique within this institute"
+ *           type: string
  */
 
 /**
@@ -302,7 +249,6 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *     tags: [Grades]
  *     description: |
  *       Retrieve grades within an institute with comprehensive filtering, sorting, and pagination options.
- *       
  *       **Key Features:**
  *       - **Dropdown Mode**: Set `dropdown=true` for simplified dropdown data
  *       - **Aggregation Mode**: Set `aggregate=false` for simple find queries
@@ -310,14 +256,12 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *       - **Advanced Filtering**: Support for all grade fields with various operators
  *       - **Pagination**: Built-in pagination with count information
  *       - **Lookup Data**: Includes institute and department names when aggregated
- *       
  *       **Filtering Examples:**
  *       - `gradeName=Grade 10` - Exact match
  *       - `gradeName__regex=Grade.*` - Regex pattern
  *       - `gradeCode__in=G10,G11,G12` - Multiple values
  *       - `archive__ne=true` - Not equal
  *       - `createdAt__gte=2024-01-01` - Date range
- *       
  *       **Sorting Examples:**
  *       - `sortBy=gradeName` - Sort by grade name ascending
  *       - `sortBy=-gradeName` - Sort by grade name descending
@@ -331,8 +275,7 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *           type: integer
  *           default: 1
  *           minimum: 1
- *         description: Page number for pagination
- *         example: 1
+ *         description: Page number for pagination
  *       - in: query
  *         name: limit
  *         schema:
@@ -340,22 +283,19 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *           default: 10
  *           minimum: 1
  *           maximum: 100
- *         description: Number of items per page
- *         example: 10
+ *         description: Number of items per page
  *       - in: query
  *         name: dropdown
  *         schema:
  *           type: string
  *           enum: ["true", "false"]
- *         description: Return simplified dropdown data (only _id, gradeName, gradeCode)
- *         example: "false"
+ *         description: Return simplified dropdown data (only _id, gradeName, gradeCode)
  *       - in: query
  *         name: aggregate
  *         schema:
  *           type: string
  *           enum: ["true", "false"]
- *         description: Use aggregation pipeline for lookups (default true)
- *         example: "true"
+ *         description: Use aggregation pipeline for lookups (default true)
  *       - in: query
  *         name: ids
  *         schema:
@@ -364,128 +304,108 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *             type: string
  *         style: form
  *         explode: false
- *         description: Array of grade IDs to fetch specific grades
- *         example: ["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012"]
+ *         description: Array of grade IDs to fetch specific grades
  *       - in: query
  *         name: gradeName
  *         schema:
  *           type: string
- *         description: Filter by grade name (exact match)
- *         example: "Grade 10"
+ *         description: Filter by grade name (exact match)
  *       - in: query
  *         name: gradeName__regex
  *         schema:
  *           type: string
- *         description: Filter by grade name using regex pattern
- *         example: "Grade.*"
+ *         description: Filter by grade name using regex pattern
  *       - in: query
  *         name: gradeName__in
  *         schema:
  *           type: string
- *         description: Filter by multiple grade names (comma-separated)
- *         example: "Grade 10,Grade 11,Grade 12"
+ *         description: Filter by multiple grade names (comma-separated)
  *       - in: query
  *         name: gradeCode
  *         schema:
  *           type: string
- *         description: Filter by grade code (exact match)
- *         example: "G10"
+ *         description: Filter by grade code (exact match)
  *       - in: query
  *         name: gradeCode__regex
  *         schema:
  *           type: string
- *         description: Filter by grade code using regex pattern
- *         example: "G[0-9]+"
+ *         description: Filter by grade code using regex pattern
  *       - in: query
  *         name: gradeCode__in
  *         schema:
  *           type: string
- *         description: Filter by multiple grade codes (comma-separated)
- *         example: "G10,G11,G12"
+ *         description: Filter by multiple grade codes (comma-separated)
  *       - in: query
  *         name: instituteId
  *         schema:
  *           type: string
- *         description: Filter by institute ID
- *         example: "507f1f77bcf86cd799439011"
+ *         description: Filter by institute ID
  *       - in: query
  *         name: departmentId
  *         schema:
  *           type: string
- *         description: Filter by department ID
- *         example: "507f1f77bcf86cd799439012"
+ *         description: Filter by department ID
  *       - in: query
  *         name: gradeDurationId
  *         schema:
  *           type: string
- *         description: Filter by grade duration ID
- *         example: "507f1f77bcf86cd799439013"
+ *         description: Filter by grade duration ID
  *       - in: query
  *         name: description
  *         schema:
  *           type: string
- *         description: Filter by description (exact match)
- *         example: "Senior Secondary"
+ *         description: Filter by description (exact match)
  *       - in: query
  *         name: description__regex
  *         schema:
  *           type: string
- *         description: Filter by description using regex pattern
- *         example: ".*Secondary.*"
+ *         description: Filter by description using regex pattern
  *       - in: query
  *         name: archive
  *         schema:
  *           type: boolean
- *         description: Filter by archive status
- *         example: false
+ *         description: Filter by archive status
  *       - in: query
  *         name: archive__ne
  *         schema:
  *           type: boolean
- *         description: Filter by archive status (not equal)
- *         example: true
+ *         description: Filter by archive status (not equal)
  *       - in: query
  *         name: createdAt__gte
  *         schema:
  *           type: string
  *           format: date-time
- *         description: Filter by creation date (greater than or equal)
- *         example: "2024-01-01T00:00:00.000Z"
+ *         description: Filter by creation date (greater than or equal)
  *       - in: query
  *         name: createdAt__lte
  *         schema:
  *           type: string
  *           format: date-time
- *         description: Filter by creation date (less than or equal)
- *         example: "2024-12-31T23:59:59.999Z"
+ *         description: Filter by creation date (less than or equal)
  *       - in: query
  *         name: updatedAt__gte
  *         schema:
  *           type: string
  *           format: date-time
- *         description: Filter by update date (greater than or equal)
- *         example: "2024-01-01T00:00:00.000Z"
+ *         description: Filter by update date (greater than or equal)
  *       - in: query
  *         name: updatedAt__lte
  *         schema:
  *           type: string
  *           format: date-time
- *         description: Filter by update date (less than or equal)
- *         example: "2024-12-31T23:59:59.999Z"
+ *         description: Filter by update date (less than or equal)
  *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
- *         description: Sort by field(s). Use - prefix for descending order. Multiple fields comma-separated.
- *         example: "gradeName"
+ *         description: Sort by field(s). Use - prefix for descending order. Multiple fields comma-separated.
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: ["asc", "desc"]
  *           default: "asc"
- *         description: Sort order (when sortBy is used without - prefix)
- *         example: "asc"
+ *         description: Sort order (when sortBy is used without - prefix)
  *     responses:
  *       200:
  *         description: Grades retrieved successfully
@@ -554,8 +474,7 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Invalid query parameters"
+ *                   type: string
  *       401:
  *         description: Unauthorized
  *         content:
@@ -564,8 +483,7 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Unauthorized access"
+ *                   type: string
  *       500:
  *         description: Internal server error
  *         content:
@@ -574,11 +492,9 @@ const gradesCt = require('../../../Controller/instituteData/aggregation/gradesCt
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Server error"
+ *                   type: string
  *                 error:
- *                   type: string
- *                   example: "Database connection failed"
+ *                   type: string
  */
 
 router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
@@ -592,14 +508,12 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *     tags: [Grades]
  *     description: |
  *       Create a new grade within an institute. The grade name and code must be unique within the institute.
- *       
  *       **Validation Rules:**
  *       - `gradeName` must be unique within the institute
  *       - `gradeCode` must be unique within the institute
  *       - All required fields must be provided
  *       - `instituteId` and `departmentId` must be valid ObjectIds
  *       - `gradeDurationId` must be a valid ObjectId
- *       
  *       **Unique Constraints:**
  *       - Grade names are unique per institute (case-sensitive)
  *       - Grade codes are unique per institute (case-sensitive)
@@ -673,8 +587,7 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *                 - type: object
  *                   properties:
  *                     message:
- *                       type: string
- *                       example: "Validation failed"
+ *                       type: string
  *                     errors:
  *                       type: array
  *                       items:
@@ -718,8 +631,7 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Unauthorized access"
+ *                   type: string
  *       500:
  *         description: Internal server error
  *         content:
@@ -728,11 +640,9 @@ router.get('/gradesInInstitute',gradesCt.gradesInInstituteAg);
  *               type: object
  *               properties:
  *                 error:
- *                   type: string
- *                   example: "Failed to add grade"
+ *                   type: string
  *                 details:
- *                   type: string
- *                   example: "Database connection error"
+ *                   type: string
  */
 
 router.post('/gradesInInstitute',gradesCt.createGradesInInstitute);
@@ -745,7 +655,6 @@ router.post('/gradesInInstitute',gradesCt.createGradesInInstitute);
  *     tags: [Grades]
  *     description: |
  *       Update existing grade information within an institute. Only provided fields will be updated.
- *       
  *       **Update Rules:**
  *       - `_id` is required to identify the grade to update
  *       - `updatedData` object contains the fields to update
@@ -753,7 +662,6 @@ router.post('/gradesInInstitute',gradesCt.createGradesInInstitute);
  *       - Updated `gradeCode` must be unique within the institute
  *       - Archived grades don't count for uniqueness validation
  *       - Partial updates are supported (only update provided fields)
- *       
  *       **Response Scenarios:**
  *       - `modifiedCount > 0`: Grade was successfully updated
  *       - `matchedCount > 0 && modifiedCount = 0`: Grade found but no changes made
@@ -826,8 +734,7 @@ router.post('/gradesInInstitute',gradesCt.createGradesInInstitute);
  *                 - type: object
  *                   properties:
  *                     message:
- *                       type: string
- *                       example: "Validation failed"
+ *                       type: string
  *             examples:
  *               duplicate_name:
  *                 summary: Duplicate grade name error
@@ -857,8 +764,7 @@ router.post('/gradesInInstitute',gradesCt.createGradesInInstitute);
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Unauthorized access"
+ *                   type: string
  *       404:
  *         description: Grade not found
  *         content:
@@ -867,8 +773,7 @@ router.post('/gradesInInstitute',gradesCt.createGradesInInstitute);
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "No matching grade found or values are unchanged"
+ *                   type: string
  *       500:
  *         description: Internal server error
  *         content:
@@ -877,11 +782,9 @@ router.post('/gradesInInstitute',gradesCt.createGradesInInstitute);
  *               type: object
  *               properties:
  *                 error:
- *                   type: string
- *                   example: "Failed to update grade"
+ *                   type: string
  *                 details:
- *                   type: string
- *                   example: "Database connection error"
+ *                   type: string
  */
 
 router.put('/gradesInInstitute',gradesCt.updateGradesInInstitute);
@@ -894,7 +797,6 @@ router.put('/gradesInInstitute',gradesCt.updateGradesInInstitute);
  *     tags: [Grades]
  *     description: |
  *       Delete grade(s) from an institute with comprehensive dependency management options.
- *       
  *       **Dependency Management:**
  *       Grades can have dependencies in the following modules:
  *       - **Subjects**: Subjects linked to this grade
@@ -902,20 +804,17 @@ router.put('/gradesInInstitute',gradesCt.updateGradesInInstitute);
  *       - **GradeBatches**: Batches created for this grade
  *       - **GradeSections**: Sections created for this grade
  *       - **GradeSectionBatches**: Section batches created for this grade
- *       
  *       **Deletion Options:**
  *       1. **Simple Delete**: Delete grades without dependencies
  *       2. **Archive/Unarchive**: Archive grades instead of deleting (recommended)
  *       3. **Transfer Dependencies**: Transfer all dependencies to another grade
  *       4. **Cascade Delete**: Delete grades along with all dependencies
  *       5. **Dependency Check**: Get dependency information without deleting
- *       
  *       **Response Scenarios:**
  *       - **200**: Successful deletion/archival
  *       - **201**: Dependencies found, requires action
  *       - **400**: Invalid request parameters
  *       - **404**: Grade not found
- *       
  *       **Important Notes:**
  *       - Only one of `archive` or `transferTo` can be used at a time
  *       - `transferTo` requires exactly one grade ID
@@ -1017,8 +916,7 @@ router.put('/gradesInInstitute',gradesCt.updateGradesInInstitute);
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Dependency summary"
+ *                   type: string
  *                 deleted:
  *                   type: array
  *                   items:
@@ -1033,9 +931,7 @@ router.put('/gradesInInstitute',gradesCt.updateGradesInInstitute);
  *                       value:
  *                         type: string
  *                       dependsOn:
- *                         type: object
- *             example:
- *               message: "Dependency summary"
+ *                         type: object
  *               deleted: ["507f1f77bcf86cd799439012"]
  *               dependencies:
  *                 - _id: "507f1f77bcf86cd799439011"
@@ -1084,8 +980,7 @@ router.put('/gradesInInstitute',gradesCt.updateGradesInInstitute);
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Unauthorized access"
+ *                   type: string
  *       404:
  *         description: Grade not found
  *         content:
@@ -1094,8 +989,7 @@ router.put('/gradesInInstitute',gradesCt.updateGradesInInstitute);
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "No matching Grade found to archive/unarchive"
+ *                   type: string
  *       500:
  *         description: Internal server error
  *         content:
@@ -1104,11 +998,9 @@ router.put('/gradesInInstitute',gradesCt.updateGradesInInstitute);
  *               type: object
  *               properties:
  *                 message:
- *                   type: string
- *                   example: "Server error"
+ *                   type: string
  *                 error:
- *                   type: string
- *                   example: "Database connection failed"
+ *                   type: string
  */
 
 router.delete('/gradesInInstitute',gradesCt.deleteGradesInInstitute);

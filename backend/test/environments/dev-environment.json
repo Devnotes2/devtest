@@ -4,7 +4,7 @@
   "values": [
     {
       "key": "baseUrl",
-      "value": "http://ss.local:8000",
+      "value": "http://svb.local:8000",
       "enabled": true,
       "type": "default"
     },
@@ -23,7 +23,7 @@
     },
     {
       "key": "maxIterations",
-      "value": "2",
+      "value": "1",
       "enabled": true,
       "type": "default"
     },
